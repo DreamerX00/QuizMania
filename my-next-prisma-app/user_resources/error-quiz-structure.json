@@ -1,0 +1,17 @@
+{
+  "description": "This file has a valid JSON structure, but it's not the structure the application expects. It's missing the 'questions' array.",
+  "quiz_title": "Invalid Structure Test",
+  "data": [
+    {
+      "id": "err-q2",
+      "type": "mcq-single",
+      "question": "This question will not be imported.",
+      "options": [
+        { "id": "err-q2-opt1", "text": "Option A" },
+        { "id": "err-q2-opt2", "text": "Option B" }
+      ],
+      "correctAnswer": "err-q2-opt1",
+      "marks": 10
+    }
+  ]
+} 

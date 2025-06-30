@@ -1,0 +1,298 @@
+// Prisma schema for Quiz Mania
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  CREATOR
+  ADMIN
+  OWNER
+  TEACHER
+}
+
+enum AccountType {
+  FREE
+  PREMIUM
+  LIFETIME
+}
+
+enum QuizStatus {
+  COMPLETED
+  IN_PROGRESS
+  FAILED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  PREMIUM_SUBSCRIPTION
+  QUIZ_PURCHASE
+  PACKAGE_PURCHASE
+}
+
+enum DifficultyLevel {
+  SUPER_EASY
+  EASY
+  NORMAL
+  MEDIUM
+  HARD
+  IMPOSSIBLE
+  INSANE
+  JEE_MAIN
+  JEE_ADVANCED
+  NEET_UG
+  UPSC_CSE
+  GATE
+  CAT
+  CLAT
+  CA
+  GAOKAO
+  GRE
+  GMAT
+  USMLE
+  LNAT
+  MCAT
+  CFA
+  GOD_LEVEL
+}
+
+model User {
+  clerkId        String          @id @unique
+  email          String          @unique
+  name           String?
+  avatarUrl      String?
+  bannerUrl      String?
+  createdAt      DateTime        @default(now())
+  role           Role            @default(STUDENT)
+  xp             Int             @default(0)
+  rank           Int             @default(0)
+  streak         Int             @default(0)
+  accountType    AccountType     @default(FREE)
+  points         Int             @default(0) // Total points earned
+  premiumUntil   DateTime?       // Premium subscription expiry
+  quizzes        QuizRecord[]
+  achievements   Achievement[]
+  createdQuizzes Quiz[]          @relation("CreatedQuizzes")
+  bio            String?
+  alias          String?
+  socials        Json?
+  region         String?
+  premiumSummary PremiumSummary?
+  likes          QuizLike[]
+  comments       QuizComment[]
+  ratings        QuizRating[]
+  withdrawals    Withdrawal[]
+  attempts       Attempt[]       // Daily attempt tracking
+  quizUnlocks    QuizUnlock[]    // Premium quiz unlocks
+  payments       PaymentTransaction[] // Payment transactions
+  payoutAccount  PayoutAccount?  // Creator's payout account
+}
+
+model QuizRecord {
+  id           String     @id @default(cuid())
+  userId       String
+  quizId       String
+  score        Int
+  duration     Int // in seconds
+  dateTaken    DateTime
+  status       QuizStatus
+  earnedPoints Int?       // Points earned for this attempt
+  quiz         Quiz       @relation(fields: [quizId], references: [id])
+  user         User       @relation(fields: [userId], references: [clerkId])
+  likeCount    Int        @default(0)
+}
+
+model Attempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  userId    String
+  date      DateTime @default(now())
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  user      User     @relation(fields: [userId], references: [clerkId])
+
+  @@unique([quizId, userId, date])
+}
+
+model QuizUnlock {
+  id         String   @id @default(cuid())
+  userId     String
+  quizId     String
+  unlockedAt DateTime @default(now())
+  quiz       Quiz     @relation(fields: [quizId], references: [id])
+  user       User     @relation(fields: [userId], references: [clerkId])
+
+  @@unique([quizId, userId])
+}
+
+model PaymentTransaction {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [clerkId])
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String?       @unique
+  amount            Int           // Amount in paise
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  type              PaymentType
+  description       String?
+  metadata          Json?         // Store additional data like quizId, packageId, etc.
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model Quiz {
+  id                String          @id @default(cuid())
+  title             String          @default("Untitled Quiz")
+  description       String?
+  tags              String[]
+  field             String?         // New: For top-level category e.g., "Science"
+  subject           String?         // New: For sub-category e.g., "Physics"
+  imageUrl          String?
+  isTemplate        Boolean         @default(true)
+  isPublished       Boolean         @default(false)
+  isPinned          Boolean         @default(false)
+  price             Int             @default(0)
+  pricePerAttempt   Int             @default(0) // Price per attempt in ₹
+  pointPerAttempt   Int             @default(0) // Points awarded per attempt
+  jsonContent       Json            @default("{}")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @default(now()) @updatedAt
+  creatorId         String?
+  creator           User?           @relation("CreatedQuizzes", fields: [creatorId], references: [clerkId])
+  
+  // Relations & Aggregates
+  records           QuizRecord[]
+  likes             QuizLike[]
+  comments          QuizComment[]
+  ratings           QuizRating[]
+  attempts          Attempt[]       // Daily attempt tracking
+  unlocks           QuizUnlock[]    // Premium quiz unlocks
+
+  // Aggregated fields
+  usersTaken        Int             @default(0)
+  averageScore      Float           @default(0)
+  rating            Float           @default(0)
+  likeCount         Int             @default(0)
+  durationInSeconds Int             @default(0)
+  isLocked          Boolean         @default(false)
+  lockPassword      String?
+  difficultyLevel   DifficultyLevel?
+}
+
+model QuizLike {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quizId    String
+  user      User     @relation(fields: [userId], references: [clerkId])
+  userId    String
+
+  @@unique([quizId, userId])
+}
+
+model QuizComment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  text      String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quizId    String
+  user      User     @relation(fields: [userId], references: [clerkId])
+  userId    String
+}
+
+model QuizRating {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  value     Int      // e.g., 1 to 5
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quizId    String
+  user      User     @relation(fields: [userId], references: [clerkId])
+  userId    String
+
+  @@unique([quizId, userId])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  userId      String
+  unlockedAt  DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [clerkId])
+  type        String?
+  isLocked    Boolean  @default(false)
+}
+
+model PremiumSummary {
+  id            String @id @default(cuid())
+  userId        String @unique
+  user          User     @relation(fields: [userId], references: [clerkId])
+  templatesUsed Int    @default(0)
+  quizPacks     Int    @default(0)
+  timeSaved     Int    @default(0) // in hours
+  dollarValue   Float  @default(0)
+}
+
+model Withdrawal {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [clerkId])
+  amount      Int
+  currency    String   // e.g., INR, USD
+  status      WithdrawalStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model QuizPackage {
+  id            String   @id @default(cuid())
+  userId        String
+  title         String
+  description   String?
+  imageUrl      String?
+  quizIds       String[]  // store quiz IDs
+  price         Int       @default(0)  // Price in cents/paisa, 0 = free
+  isPublished   Boolean   @default(false)
+  isPinned      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Real-time stats fields
+  totalAttempts   Int      @default(0)
+  totalLikes      Int      @default(0)
+  earnings        Int      @default(0)
+  averageRating   Float    @default(0)
+  averageScore    Float    @default(0)
+}
+
+model PayoutAccount {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [clerkId])
+  razorpayAccountId String   @unique // The Razorpay Fund Account ID
+  accountType       String   @default("upi") // e.g., upi, bank_account
+  accountDetails    Json     // Store details like UPI ID, bank info
+  isVerified        Boolean  @default(true) // Assuming verification is handled by Razorpay
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+ 

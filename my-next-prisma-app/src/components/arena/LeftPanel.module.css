@@ -1,0 +1,24 @@
+.neon-glass {
+  box-shadow: 0 4px 32px 0 rgba(0, 255, 255, 0.25), 0 0 16px 2px #00eaff, 0 0 32px 8px #00eaff44;
+  border: 1.5px solid rgba(0,255,255,0.18);
+  position: relative;
+}
+
+.neon-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1.5rem;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(0,255,255,0.12) 0%, rgba(0,0,0,0.04) 100%);
+  z-index: 1;
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 6s linear infinite;
+} 

@@ -1,0 +1,64 @@
+{
+  "glyphs": {
+    "⚛": {
+      "ha": 600,
+      "x_min": 0,
+      "x_max": 600,
+      "o": "m 0 0 l 600 0 l 600 600 l 0 600 z"
+    },
+    "🚀": {
+      "ha": 600,
+      "x_min": 0,
+      "x_max": 600,
+      "o": "m 0 0 l 600 0 l 600 600 l 0 600 z"
+    },
+    "💻": {
+      "ha": 600,
+      "x_min": 0,
+      "x_max": 600,
+      "o": "m 0 0 l 600 0 l 600 600 l 0 600 z"
+    },
+    "🎨": {
+      "ha": 600,
+      "x_min": 0,
+      "x_max": 600,
+      "o": "m 0 0 l 600 0 l 600 600 l 0 600 z"
+    },
+    "🔮": {
+      "ha": 600,
+      "x_min": 0,
+      "x_max": 600,
+      "o": "m 0 0 l 600 0 l 600 600 l 0 600 z"
+    }
+  },
+  "familyName": "Helvetiker",
+  "ascender": 700,
+  "descender": -100,
+  "underlinePosition": -100,
+  "underlineThickness": 50,
+  "boundingBox": {
+    "yMin": -555,
+    "yMax": 2165,
+    "xMin": -558,
+    "xMax": 2000
+  },
+  "resolution": 1000,
+  "original_font_information": {
+    "format": 0,
+    "copyright": "Copyright (c) 2011, Yannick Spadone (yannick.spadone@gmail.com), with Reserved Font Name \"Helvetiker\". This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: http://scripts.sil.org/OFL",
+    "trademark": "Helvetiker is a trademark of Yannick Spadone.",
+    "boundingBox": {
+      "yMin": -555,
+      "yMax": 2165,
+      "xMin": -558,
+      "xMax": 2000
+    },
+    "resolution": 1000,
+    "ascender": 700,
+    "descender": -100,
+    "underlinePosition": -100,
+    "underlineThickness": 50
+  },
+  "cssFontWeight": "normal",
+  "cssFontStyle": "normal"
+}
