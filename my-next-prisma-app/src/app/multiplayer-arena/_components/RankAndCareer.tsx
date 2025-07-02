@@ -60,7 +60,7 @@ const RankAndCareer = () => {
       >
         <div className="flex flex-col items-center justify-center w-full">
           <Confetti show={showConfetti} />
-          <RankCard xp={userXP} className="w-full max-w-md mx-auto" />
+          <RankCard xp={userXP} className="w-full max-w-md mx-auto" compact={true} />
           <ThreeDBadgePlaceholder rankName={rankInfo.current.name} />
         </div>
         <Button 

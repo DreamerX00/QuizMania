@@ -4,6 +4,7 @@ import { getRankByXP } from '@/utils/rank';
 interface RankCardProps {
   xp: number;
   className?: string;
+  compact?: boolean;
 }
 
 const gradientThemes: Record<string, string> = {
@@ -24,52 +25,64 @@ const gradientThemes: Record<string, string> = {
   'Omniscian': 'from-yellow-400 via-purple-500 to-black',
 };
 
-const RankCard: React.FC<RankCardProps> = ({ xp, className }) => {
+const RankCard: React.FC<RankCardProps> = ({ xp, className, compact = false }) => {
   const rankInfo = getRankByXP(xp);
   const gradient = gradientThemes[rankInfo.current.name] || 'from-gray-200 to-gray-400';
 
+  // Compact mode adjustments
+  const padding = compact ? 'p-3' : 'p-6';
+  const iconSize = compact ? 'text-4xl' : 'text-6xl';
+  const nameSize = compact ? 'text-2xl' : 'text-3xl';
+  const descSize = compact ? 'text-sm' : 'text-base';
+  const barHeight = compact ? 'h-3' : 'h-4';
+  const cardRadius = compact ? 'rounded-2xl' : 'rounded-3xl';
+  const cardShadow = compact ? 'shadow-xl' : 'shadow-2xl';
+  const mb = compact ? 'mb-1' : 'mb-2';
+  const mt = compact ? 'mt-2' : 'mt-4';
+  const nextRankMt = compact ? 'mt-3' : 'mt-6';
+
   return (
     <div
-      className={`relative rounded-3xl shadow-2xl p-6 overflow-hidden flex flex-col items-center border-4 border-white/10 ${className}`}
+      className={`relative ${cardRadius} ${cardShadow} ${padding} overflow-hidden flex flex-col items-center border-4 border-white/10 ${className}`}
       style={{
         background: `linear-gradient(135deg, ${rankInfo.current.colorScheme[0]}, ${rankInfo.current.colorScheme[1]})`,
         boxShadow: `0 0 40px 0 ${rankInfo.current.colorScheme[0]}55, 0 0 80px 0 ${rankInfo.current.colorScheme[1]}33`,
       }}
     >
       {/* Glow ring */}
-      <div className="absolute -inset-2 z-0 rounded-3xl pointer-events-none" style={{
+      <div className={`absolute -inset-2 z-0 ${cardRadius} pointer-events-none`} style={{
         boxShadow: `0 0 60px 10px ${rankInfo.current.colorScheme[0]}55, 0 0 120px 20px ${rankInfo.current.colorScheme[1]}33`,
         filter: 'blur(8px)',
       }} />
       {/* Rank Icon and Name */}
-      <div className="relative z-10 flex flex-col items-center gap-2 mb-2">
-        <span className="text-6xl drop-shadow-lg" role="img" aria-label={rankInfo.current.name}>{rankInfo.current.emoji}</span>
-        <h2 className="text-3xl font-extrabold tracking-wide" style={{color: rankInfo.current.colorScheme[0], textShadow: `0 2px 16px ${rankInfo.current.colorScheme[1]}99`}}>
+      <div className={`relative z-10 flex flex-col items-center gap-2 ${mb}`}>
+        <span className={`${iconSize} drop-shadow-lg`} role="img" aria-label={rankInfo.current.name}>{rankInfo.current.emoji}</span>
+        <h2 className={`${nameSize} font-extrabold tracking-wide`} style={{color: rankInfo.current.colorScheme[0], textShadow: `0 2px 16px ${rankInfo.current.colorScheme[1]}99`}}>
           {rankInfo.current.name}
         </h2>
-        <p className="text-base text-white/80 text-center max-w-xs font-medium">{rankInfo.current.description}</p>
+        <p className={`${descSize} text-white/80 text-center max-w-xs font-medium`}>{rankInfo.current.description}</p>
       </div>
       {/* XP Bar */}
-      <div className="w-full mt-4">
+      <div className={`w-full ${mt}`}>
         <div className="flex justify-between text-xs text-white/70 mb-1">
           <span>{rankInfo.current.xpMin.toLocaleString()} XP</span>
           <span>{xp.toLocaleString()} XP</span>
           <span>{rankInfo.current.xpMax === Infinity ? '∞' : rankInfo.current.xpMax.toLocaleString() + ' XP'}</span>
         </div>
-        <div className="h-4 rounded-full bg-white/10 overflow-hidden relative">
+        <div className={`${barHeight} rounded-full bg-white/10 overflow-hidden relative`}>
           <div
             className="h-full rounded-full animate-pulse"
             style={{
               width: `${rankInfo.progressPercent}%`,
-              background: `linear-gradient(90deg, ${rankInfo.current.colorScheme[0]}, ${rankInfo.current.colorScheme[1]})`,
-              boxShadow: `0 0 16px 2px ${rankInfo.current.colorScheme[0]}99`,
+              background: 'linear-gradient(90deg, #a8ff78, #78ffd6)',
+              boxShadow: '0 0 16px 2px #a8ff7899',
               transition: 'width 0.7s cubic-bezier(.4,2,.3,1)',
             }}
           />
         </div>
       </div>
       {/* Next Rank Preview */}
-      <div className="mt-6 w-full flex flex-col items-center">
+      <div className={`${nextRankMt} w-full flex flex-col items-center`}>
         {rankInfo.next ? (
           <>
             <div className="flex items-center gap-2 text-lg font-semibold text-white/90">

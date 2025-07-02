@@ -25,9 +25,24 @@ function DialogPortal({
 }
 
 function DialogClose({
+  sound = "close.mp3",
+  onClick,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Close>) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+}: React.ComponentProps<typeof DialogPrimitive.Close> & { sound?: string }) {
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+    }
+    if (onClick) onClick(e);
+  };
+  return (
+    <>
+      <DialogPrimitive.Close data-slot="dialog-close" onClick={handleClick} {...props} />
+      <audio ref={audioRef} src={`/game_arena/${sound}`} preload="auto" />
+    </>
+  );
 }
 
 function DialogOverlay({

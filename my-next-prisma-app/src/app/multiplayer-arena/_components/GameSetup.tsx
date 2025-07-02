@@ -20,6 +20,15 @@ const GameSetup = () => {
     { name: 'Custom', icon: <UsersRound size={20} /> },
   ];
 
+  const handleGameModeClick = (modeName: string) => {
+    setSelectedGameMode(modeName);
+    if (typeof window !== 'undefined') {
+      const a = new Audio('/game_arena/mode_change.mp3');
+      a.currentTime = 0;
+      a.play();
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -50 }}
@@ -36,13 +45,13 @@ const GameSetup = () => {
         <label className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
           <BrainCircuit size={16} /> Dynamic Difficulty
         </label>
-        <Select defaultValue={difficultyLevels[1]}>
-          <SelectTrigger className="w-full bg-slate-900/70 border-slate-700 hover:bg-slate-800/70 rounded-lg">
+        <Select defaultValue={difficultyLevels[1]} onValueChange={() => { if (typeof window !== 'undefined') { const a = new Audio('/game_arena/select.mp3'); a.currentTime = 0; a.play(); } }}>
+          <SelectTrigger className="w-full bg-white dark:bg-slate-900 text-gray-900 dark:text-white border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
             <SelectValue placeholder="Select a difficulty..." />
           </SelectTrigger>
-          <SelectContent className="bg-slate-900 text-white border-slate-700">
+          <SelectContent className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white border border-slate-300 dark:border-slate-700">
             {difficultyLevels.map((level) => (
-              <SelectItem key={level} value={level} className="cursor-pointer hover:!bg-slate-800">
+              <SelectItem key={level} value={level} className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">
                 {level.replace(/_/g, ' ')}
               </SelectItem>
             ))}
@@ -59,11 +68,11 @@ const GameSetup = () => {
               key={mode.name}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedGameMode(mode.name)}
+              onClick={() => handleGameModeClick(mode.name)}
               className={`p-3 rounded-lg cursor-pointer flex flex-col items-center justify-center gap-1 border transition-colors ${
                 selectedGameMode === mode.name
-                  ? 'bg-purple-600 border-purple-500 text-white'
-                  : 'bg-white dark:bg-slate-900/70 border-gray-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/70'
+                  ? 'bg-purple-600 border-purple-500 text-slate-800 dark:text-white'
+                  : 'bg-white dark:bg-slate-900/70 border-gray-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800/70'
               }`}
             >
               {mode.icon}
@@ -74,7 +83,7 @@ const GameSetup = () => {
       </div>
       
       {/* Room Type */}
-      <Tabs defaultValue="public" className="w-full">
+      <Tabs defaultValue="public" className="w-full" onSelectionChange={() => { if (typeof window !== 'undefined') { const a = new Audio('/game_arena/tab_switch.mp3'); a.currentTime = 0; a.play(); } }}>
         <TabList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-slate-900/50 border border-gray-300 dark:border-slate-700 rounded-lg p-1">
             <Tab id="private" className={({isSelected}) => `flex items-center justify-center gap-1 p-2 rounded-md cursor-pointer transition-colors ${isSelected ? 'bg-purple-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800/60'}`}>
                 <Lock size={14} /> Private

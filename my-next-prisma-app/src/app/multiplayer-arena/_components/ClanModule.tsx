@@ -25,8 +25,8 @@ const ClanModule = () => {
                 <div className="relative">
                     <img src="https://api.dicebear.com/8.x/icons/svg?seed=wolf" alt="Clan Emblem" className="w-24 h-24 rounded-full border-4 border-slate-700 bg-slate-800 p-2" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-100">Celestial Wolves</h3>
-                <p className="text-sm text-slate-400 italic">"To the stars and beyond."</p>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Celestial Wolves</h3>
+                <p className="text-sm italic text-slate-500 dark:text-slate-400">"To the stars and beyond."</p>
                 <div className="mt-2 text-purple-400 font-semibold bg-purple-500/10 border border-purple-500/30 rounded-full px-4 py-1">
                     Your Role: Leader
                 </div>
@@ -44,7 +44,7 @@ const ClanModule = () => {
                 </Button>
                 <Button 
                     variant="outline"
-                    className="w-full text-slate-300 border-slate-600 hover:bg-slate-800 hover:text-white flex items-center justify-center gap-2 relative"
+                    className="w-full text-slate-600 dark:text-slate-300 border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-white flex items-center justify-center gap-2 relative"
                 >
                     <Bell size={16} /> Join Requests
                     {hasJoinRequests && (

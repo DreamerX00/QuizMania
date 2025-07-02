@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { useRef } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -40,19 +41,39 @@ function Button({
   variant,
   size,
   asChild = false,
+  sound = "button_click.mp3",
+  onClick,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
+    asChild?: boolean;
+    sound?: string;
   }) {
   const Comp = asChild ? Slot : "button"
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [isClient, setIsClient] = React.useState(false);
+  React.useEffect(() => setIsClient(true), []);
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0
+      audioRef.current.play()
+    }
+    if (onClick) onClick(e)
+  }
 
   return (
-    <Comp
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
+    <>
+      <Comp
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }))}
+        onClick={handleClick}
+        {...props}
+      />
+      {isClient && (
+        <audio ref={audioRef} src={`/game_arena/${sound}`} preload="auto" />
+      )}
+    </>
   )
 }
 
