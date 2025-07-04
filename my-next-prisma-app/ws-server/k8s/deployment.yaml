@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ws-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ws-server
+  template:
+    metadata:
+      labels:
+        app: ws-server
+    spec:
+      containers:
+        - name: ws-server
+          image: ws-server:latest
+          ports:
+            - containerPort: 4000
+          env:
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: NODE_ENV
+              value: "production"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 4000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 20 

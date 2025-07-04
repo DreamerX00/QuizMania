@@ -2,15 +2,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { BarChart } from 'lucide-react';
 import RankModal from '../components/RankModal';
 import RankCard from '../components/RankCard';
-import { getRankByXP } from '@/utils/rank';
+import useSWR from 'swr';
+import { useAuth } from '@/context/AuthContext';
 
-const userXP = 685_000; // Sample: halfway through Ascendrix
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-// Simple confetti animation using framer-motion
 const Confetti = ({ show }: { show: boolean }) => (
   <>
     {show && (
@@ -37,18 +36,26 @@ const ThreeDBadgePlaceholder = ({ rankName }: { rankName: string }) => (
 );
 
 const RankAndCareer = () => {
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const prevRank = useRef(getRankByXP(userXP).current.name);
-  const rankInfo = getRankByXP(userXP);
+  const { data, error, isLoading } = useSWR(user ? `/api/multiplayer-arena/user/${user.id}/stats` : null, fetcher);
+  const xp = data?.totalXP || 0;
+  const rankInfo = data?.rank || { name: '', emoji: '', description: '', xpMin: 0, xpMax: 0 };
 
   useEffect(() => {
-    if (prevRank.current !== rankInfo.current.name) {
+    if (data && data.rank && data.rank.name) {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2000);
-      prevRank.current = rankInfo.current.name;
     }
-  }, [rankInfo.current.name]);
+  }, [data?.rank?.name]);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-full">Loading rank...</div>;
+  }
+  if (error) {
+    return <div className="flex items-center justify-center h-full text-red-500">Failed to load rank.</div>;
+  }
 
   return (
     <>
@@ -60,8 +67,8 @@ const RankAndCareer = () => {
       >
         <div className="flex flex-col items-center justify-center w-full">
           <Confetti show={showConfetti} />
-          <RankCard xp={userXP} className="w-full max-w-md mx-auto" compact={true} />
-          <ThreeDBadgePlaceholder rankName={rankInfo.current.name} />
+          <RankCard xp={xp} className="w-full max-w-md mx-auto" compact={true} />
+          <ThreeDBadgePlaceholder rankName={rankInfo.name} />
         </div>
         <Button 
             onClick={() => setIsModalOpen(true)}
@@ -70,7 +77,7 @@ const RankAndCareer = () => {
             View Full Stats
         </Button>
       </motion.div>
-      <RankModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} xp={userXP} />
+      <RankModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} xp={xp} />
     </>
   );
 };

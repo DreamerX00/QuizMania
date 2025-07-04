@@ -71,7 +71,7 @@ function Button({
         {...props}
       />
       {isClient && (
-        <audio ref={audioRef} src={`/game_arena/${sound}`} preload="auto" />
+      <audio ref={audioRef} src={`/game_arena/${sound}`} preload="auto" />
       )}
     </>
   )

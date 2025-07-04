@@ -12,6 +12,7 @@ import { Brain, Zap, Sparkles, Trophy, Users } from 'lucide-react';
 import ClickSpark from "@/components/ClickSpark";
 import QueryProvider from "@/components/providers/QueryProvider";
 import WebVitals from "@/components/WebVitals";
+import { Toaster } from "react-hot-toast";
 
 // Optimized font loading
 const inter = Inter({ 
@@ -89,6 +90,7 @@ export default function RootLayout({
                       {children}
                       </Suspense>
                     </main>
+                    <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
                   </div>
                 </ClickSpark>
               </AuthProvider>

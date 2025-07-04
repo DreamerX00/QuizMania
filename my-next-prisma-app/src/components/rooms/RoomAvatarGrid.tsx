@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Mic, MicOff, Volume2, Users } from 'lucide-react';
+import { Star, Mic, MicOff, Volume2, Users, UserMinus } from 'lucide-react';
 import { getRankByXP } from '@/utils/rank';
 import { AnimatedTooltip } from '@/components/ui/animated-tooltip';
 
@@ -10,7 +10,7 @@ const playSound = (src: string) => {
   a.play();
 };
 
-export default function RoomAvatarGrid({ players, host, teamMode = false }: { players: any[], host: string, teamMode?: boolean }) {
+export default function RoomAvatarGrid({ players, host, teamMode = false, user }: { players: any[], host: string, teamMode?: boolean, user?: any }) {
   // Mock team state for demo
   const [teamA, setTeamA] = useState(players.filter((_, i) => i % 2 === 0));
   const [teamB, setTeamB] = useState(players.filter((_, i) => i % 2 !== 0));
@@ -161,17 +161,145 @@ export default function RoomAvatarGrid({ players, host, teamMode = false }: { pl
     );
   }
 
-  // Non-team mode UI
+  // Responsive avatar size
+  let avatarSize = 64;
+  if (players.length < 3) avatarSize = 80;
+  if (players.length > 20) avatarSize = 48;
+
+  // Grid config
+  const isScrollable = players.length > 24;
+  const gridCols = Math.min(5, players.length);
+  const gridColsClass = {
+    1: 'grid-cols-1',
+    2: 'grid-cols-2',
+    3: 'grid-cols-3',
+    4: 'grid-cols-4',
+    5: 'grid-cols-5',
+  }[gridCols] || 'grid-cols-5';
+
+  // Centering logic
+  const containerClass = players.length < 6
+    ? 'flex flex-col items-center justify-center h-full w-full'
+    : 'flex flex-col items-center w-full pt-4';
+
+  // Avatar actions
+  const handleMute = (player: any) => {};
+  const handleKick = (player: any) => {};
+
+  // Tooltip state
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
   return (
-    <div className="flex flex-wrap gap-4 justify-center items-center py-4">
-      <AnimatedTooltip
-        items={players.map((player, idx) => ({
-          id: idx,
-          name: player.name,
-          designation: player.isHost ? 'Host' : 'Player',
-          image: player.avatar,
-        }))}
-      />
+    <div
+      className={containerClass +
+        ' transition-all duration-300 ' +
+        (isScrollable ? 'overflow-y-auto max-h-[420px] scrollbar-thin scrollbar-thumb-blue-500/40' : '')}
+      style={{ minHeight: 200 }}
+    >
+      <div
+        className={`grid ${gridColsClass} gap-4 md:gap-6 w-full justify-center items-center`}
+        style={{
+          maxWidth: gridCols * (avatarSize + 32),
+          margin: '0 auto',
+        }}
+      >
+        {players.map((player, idx) => (
+          <motion.div
+            key={player.name}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: idx * 0.04, type: 'spring', stiffness: 200, damping: 20 }}
+            className="relative flex flex-col items-center group"
+            style={{ minWidth: avatarSize, minHeight: avatarSize + 32 }}
+            onMouseEnter={() => setHoveredIdx(idx)}
+            onMouseLeave={() => setHoveredIdx(null)}
+            onTouchStart={() => setHoveredIdx(idx)}
+            onTouchEnd={() => setHoveredIdx(null)}
+          >
+            {/* Avatar image with status dot */}
+            <div className="relative">
+              <img
+                src={player.avatar}
+                alt={player.name}
+                className={`rounded-full border-2 shadow-lg object-cover transition-all duration-300 ${player.name === host ? 'border-yellow-400' : 'border-blue-500/40'} bg-slate-800`}
+                style={{ width: avatarSize, height: avatarSize }}
+              />
+              {/* Online/connected status dot */}
+              <span className={`absolute bottom-1 right-1 w-3 h-3 rounded-full border-2 ${player.online ? 'bg-green-400' : 'bg-red-400'} border-white`}></span>
+              {/* Host badge */}
+              {player.name === host && (
+                <span className="absolute -top-2 -right-2 bg-yellow-400 text-slate-900 p-1 rounded-full z-30 shadow-lg" title="Host">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 17l-3-9 7 6 3-8 3 8 7-6-3 9z"/></svg>
+                </span>
+              )}
+            </div>
+            {/* Tooltip on hover/tap */}
+            {hoveredIdx === idx && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.8 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+                className="absolute z-50 -top-24 left-1/2 -translate-x-1/2 flex flex-col items-center rounded-xl px-4 py-3 min-w-[180px] shadow-2xl border border-blue-400/40 bg-gradient-to-br from-[#23234d]/90 to-[#0f1021]/90 backdrop-blur-lg"
+                style={{ pointerEvents: 'none' }}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <img src={player.avatar} alt={player.name} className="w-8 h-8 rounded-full border-2 border-blue-400" />
+                  <span className="font-bold text-white text-base">{player.name}</span>
+                  {player.name === host && (
+                    <span className="ml-1 bg-yellow-400 text-slate-900 px-2 py-0.5 rounded-full text-xs font-bold">Host</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  {/* Rank badge (stubbed) */}
+                  <span className="text-xs text-blue-300 bg-blue-900/60 px-2 py-0.5 rounded-full">Rank: {player.rank || 'N/A'}</span>
+                  {/* Online status */}
+                  <span className={`w-2 h-2 rounded-full ${player.online ? 'bg-green-400' : 'bg-red-400'}`}></span>
+                </div>
+                <div className="flex gap-2 mt-1 items-center justify-center">
+                  <button
+                    className="text-blue-400 hover:text-blue-600 transition"
+                    onClick={() => handleMute(player)}
+                    title={player.muted ? 'Unmute' : 'Mute'}
+                  >
+                    {player.muted ? <MicOff size={16} /> : <Mic size={16} />}
+                  </button>
+                  {user && user.name === host && player.name !== host && (
+                    <button
+                      className="text-red-400 hover:text-red-600 transition"
+                      onClick={() => handleKick(player)}
+                      title="Kick Player"
+                    >
+                      <UserMinus size={16} />
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+            {/* Name/username */}
+            <span className="mt-2 font-bold text-white text-sm text-center break-all w-full truncate max-w-[90px]">{player.name}</span>
+            {/* Actions: mute/unmute, kick (host only) */}
+            <div className="flex gap-2 mt-1 items-center justify-center">
+              <button
+                className="text-blue-400 hover:text-blue-600 transition"
+                onClick={() => handleMute(player)}
+                title={player.muted ? 'Unmute' : 'Mute'}
+              >
+                {player.muted ? <MicOff size={16} /> : <Mic size={16} />}
+              </button>
+              {user && user.name === host && player.name !== host && (
+                <button
+                  className="text-red-400 hover:text-red-600 transition"
+                  onClick={() => handleKick(player)}
+                  title="Kick Player"
+                >
+                  <UserMinus size={16} />
+                </button>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }

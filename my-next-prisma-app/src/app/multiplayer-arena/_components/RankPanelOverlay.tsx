@@ -2,15 +2,10 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain, Clock, TrendingUp, PieChartIcon } from 'lucide-react';
-import { getRankByXP } from '@/utils/rank';
+import useSWR from 'swr';
+import toast from 'react-hot-toast';
 
-const matchHistory = [
-    { id: 1, mode: 'MCQ', result: 'Victory', score: '+25 XP', date: '2h ago' },
-    { id: 2, mode: 'True/False', result: 'Defeat', score: '-15 XP', date: '3h ago' },
-    { id: 3, mode: 'Live Challenge', result: 'Victory', score: '+30 XP', date: '5h ago' },
-    { id: 4, mode: 'Puzzle', result: 'Victory', score: '+20 XP', date: '1d ago' },
-    { id: 5, mode: 'Essay', result: 'Defeat', score: '-10 XP', date: '1d ago' },
-];
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 interface RankPanelOverlayProps {
   open: boolean;
@@ -28,9 +23,22 @@ const StatCard = ({ icon, label, value }: { icon: React.ReactNode, label: string
     </div>
 );
 
-const RankPanelOverlay = ({ open, onClose, xp }: RankPanelOverlayProps) => {
-  const userXP = typeof xp === 'number' ? xp : 685_000;
-  const rankInfo = getRankByXP(userXP);
+const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
+  const { data, error, isLoading } = useSWR(open ? '/api/multiplayer-arena/history' : null, fetcher);
+  const { data: rankHistoryData } = useSWR(open ? '/api/multiplayer-arena/rank-history' : null, fetcher);
+  const xp = data?.xp || 0;
+  const rankInfo = data?.rank || { name: '', emoji: '', description: '', xpMin: 0, xpMax: 0, colorScheme: ["#000", "#fff"] };
+  const matchHistory = data?.history || [];
+  const rankHistory = rankHistoryData?.history || [];
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-full">Loading rank panel...</div>;
+  }
+  if (error) {
+    toast.error('Failed to load rank panel.');
+    return <div className="flex items-center justify-center h-full text-red-500">Failed to load rank panel.</div>;
+  }
+
   return (
     <AnimatePresence>
       {open && (
@@ -46,17 +54,17 @@ const RankPanelOverlay = ({ open, onClose, xp }: RankPanelOverlayProps) => {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 {/* Summary Card */}
                 <div className="flex items-center gap-4">
-                  <span className="text-5xl" role="img" aria-label={rankInfo.current.name}>{rankInfo.current.emoji}</span>
+                  <span className="text-5xl" role="img" aria-label={rankInfo.name}>{rankInfo.emoji}</span>
                   <div>
                     <div className="text-2xl font-bold flex items-center gap-2">
-                      {rankInfo.current.name}
-                      <span className="text-base text-slate-500 dark:text-slate-400">({userXP.toLocaleString()} XP)</span>
+                      {rankInfo.name}
+                      <span className="text-base text-slate-500 dark:text-slate-400">({xp.toLocaleString()} XP)</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm mt-1">
                       <span>Next:</span>
-                      {rankInfo.next ? (
+                      {data?.nextRank ? (
                         <span className="flex items-center gap-1 font-semibold">
-                          <span className="text-lg">{rankInfo.next.emoji}</span> {rankInfo.next.name}
+                          <span className="text-lg">{data.nextRank.emoji}</span> {data.nextRank.name}
                         </span>
                       ) : (
                         <span className="font-semibold">Max Rank</span>
@@ -66,7 +74,7 @@ const RankPanelOverlay = ({ open, onClose, xp }: RankPanelOverlayProps) => {
                       <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
-                          style={{ width: `${rankInfo.progressPercent}%` }}
+                          style={{ width: `${data?.progressPercent || 0}%` }}
                         />
                       </div>
                     </div>
@@ -81,6 +89,7 @@ const RankPanelOverlay = ({ open, onClose, xp }: RankPanelOverlayProps) => {
                 <TabsList className="mx-6 mt-4 bg-transparent border-b border-slate-200 dark:border-slate-800 rounded-none p-0">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="history">Match History</TabsTrigger>
+                  <TabsTrigger value="rank-history">Rank History</TabsTrigger>
                   <TabsTrigger value="performance">Performance Analytics</TabsTrigger>
                 </TabsList>
                 <div className="flex-1 overflow-y-auto p-6">
@@ -90,19 +99,19 @@ const RankPanelOverlay = ({ open, onClose, xp }: RankPanelOverlayProps) => {
                       <div className="lg:col-span-1 space-y-4">
                         <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400">Rank Details</h3>
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-3xl" role="img" aria-label={rankInfo.current.name}>{rankInfo.current.emoji}</span>
-                          <span className="font-bold text-lg" style={{color: rankInfo.current.colorScheme[0]}}>{rankInfo.current.name}</span>
+                          <span className="text-3xl" role="img" aria-label={rankInfo.name}>{rankInfo.emoji}</span>
+                          <span className="font-bold text-lg" style={{color: rankInfo.colorScheme[0]}}>{rankInfo.name}</span>
                         </div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{rankInfo.current.description}</div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{rankInfo.description}</div>
                         <div className="flex items-center gap-2 text-sm">
                           <span>XP:</span>
-                          <span className="font-bold text-gray-900 dark:text-white">{userXP.toLocaleString()}</span>
+                          <span className="font-bold text-gray-900 dark:text-white">{xp.toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <span>Next:</span>
-                          {rankInfo.next ? (
+                          {data?.nextRank ? (
                             <span className="flex items-center gap-1 font-semibold">
-                              <span className="text-lg">{rankInfo.next.emoji}</span> {rankInfo.next.name}
+                              <span className="text-lg">{data.nextRank.emoji}</span> {data.nextRank.name}
                             </span>
                           ) : (
                             <span className="font-semibold">Max Rank</span>
@@ -110,22 +119,22 @@ const RankPanelOverlay = ({ open, onClose, xp }: RankPanelOverlayProps) => {
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <span>To Next:</span>
-                          {rankInfo.next ? (
-                            <span className="font-bold text-green-600 dark:text-green-400">{(rankInfo.next.xpMin - userXP).toLocaleString()} XP</span>
+                          {data?.nextRank ? (
+                            <span className="font-bold text-green-600 dark:text-green-400">{(data.nextRank.xpMin - xp).toLocaleString()} XP</span>
                           ) : (
                             <span className="font-bold text-yellow-500 dark:text-yellow-400">--</span>
                           )}
                         </div>
                         <div className="mt-4">
                           <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                            <span>{rankInfo.current.xpMin.toLocaleString()} XP</span>
-                            <span>{rankInfo.current.xpMax === Infinity ? '∞' : rankInfo.current.xpMax.toLocaleString() + ' XP'}</span>
+                            <span>{rankInfo.xpMin.toLocaleString()} XP</span>
+                            <span>{rankInfo.xpMax === Infinity ? '∞' : rankInfo.xpMax.toLocaleString() + ' XP'}</span>
                           </div>
                           <div className="w-full">
                             <div className="h-3 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                               <div
                                 className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
-                                style={{ width: `${rankInfo.progressPercent}%` }}
+                                style={{ width: `${data?.progressPercent || 0}%` }}
                               />
                             </div>
                           </div>
@@ -134,10 +143,10 @@ const RankPanelOverlay = ({ open, onClose, xp }: RankPanelOverlayProps) => {
                       {/* Middle Column: Core Stats */}
                       <div className="lg:col-span-1 space-y-4">
                         <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400">Core Stats</h3>
-                        <StatCard icon={<Clock size={24} />} label="Time Played" value={'128h 42m'} />
-                        <StatCard icon={<TrendingUp size={24} />} label="Current Streak" value={'W5'} />
-                        <StatCard icon={<Brain size={24} />} label="IQ Score" value={128} />
-                        <StatCard icon={<PieChartIcon size={24} />} label="Best Category" value={'Science'} />
+                        <StatCard icon={<Clock size={24} />} label="Time Played" value={'--'} />
+                        <StatCard icon={<TrendingUp size={24} />} label="Current Streak" value={'--'} />
+                        <StatCard icon={<Brain size={24} />} label="IQ Score" value={'--'} />
+                        <StatCard icon={<PieChartIcon size={24} />} label="Best Category" value={'--'} />
                       </div>
                       {/* Right Column: Visuals */}
                       <div className="md:col-span-2 lg:col-span-1 space-y-4 flex flex-col">
@@ -150,18 +159,46 @@ const RankPanelOverlay = ({ open, onClose, xp }: RankPanelOverlayProps) => {
                   <TabsContent value="history">
                     <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400 mb-4">Recent Matches</h3>
                     <div className="space-y-3">
-                      {matchHistory.map(match => (
-                        <div key={match.id} className="flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-                          <div>
-                            <p className="font-bold text-gray-900 dark:text-white">{match.mode}</p>
-                            <p className={`text-sm ${match.result === 'Victory' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{match.result}</p>
+                      {matchHistory.length === 0 ? (
+                        <div className="text-slate-400">No matches found.</div>
+                      ) : (
+                        matchHistory.map((match: any) => (
+                          <div key={match.id} className="flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <div>
+                              <p className="font-bold text-gray-900 dark:text-white">{match.quizTitle}</p>
+                              <p className="text-sm text-slate-500 dark:text-slate-400">{new Date(match.dateTaken).toLocaleString()}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-gray-900 dark:text-white">{match.earnedPoints} XP</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">Score: {match.score}/{match.totalQuestions}</p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-gray-900 dark:text-white">{match.score}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{match.date}</p>
+                        ))
+                      )}
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="rank-history">
+                    <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400 mb-4">Rank History</h3>
+                    <div className="space-y-3">
+                      {rankHistory.length === 0 ? (
+                        <div className="text-slate-400">No rank changes yet.</div>
+                      ) : (
+                        rankHistory.map((entry: any, idx: number) => (
+                          <div key={entry.id} className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-[#2a2040] dark:to-[#1a1a2a] rounded-lg border border-purple-200 dark:border-purple-700 shadow-sm">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl" role="img" aria-label="Old Rank">{entry.oldRankEmoji}</span>
+                              <span className="font-semibold text-gray-700 dark:text-white">{entry.oldRankName}</span>
+                              <span className="mx-2 text-purple-500 font-bold">→</span>
+                              <span className="text-2xl" role="img" aria-label="New Rank">{entry.newRankEmoji}</span>
+                              <span className="font-semibold text-purple-700 dark:text-purple-300">{entry.newRankName}</span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-slate-500 dark:text-slate-400">{new Date(entry.changedAt).toLocaleString()}</p>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{entry.oldXp} XP → {entry.newXp} XP</p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </TabsContent>
                   <TabsContent value="performance">

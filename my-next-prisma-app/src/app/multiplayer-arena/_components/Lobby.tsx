@@ -1,30 +1,42 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Mic, Plus, Crown, Sparkles, Users } from 'lucide-react';
 import InviteModal from '../components/InviteModal';
+import useSWR from 'swr';
+import toast from 'react-hot-toast';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const Lobby = () => {
     const [isInviteModalOpen, setInviteModalOpen] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    // Fetch match history (replace with live lobby endpoint if available)
+    const { data, error, isLoading } = useSWR('/api/multiplayer-arena/history', fetcher);
+    const matches = data?.history || [];
+    // For demo, show the most recent match's players (replace with real lobby data if available)
+    const players = matches.length > 0 ? matches[0].players || [] : [];
+    const filledSlots = players.length;
 
-    const players = [
-        { name: 'QuantumLeap', isLeader: true, isYou: true, avatar: `https://api.dicebear.com/8.x/lorelei/svg?seed=QuantumLeap` },
-        { name: 'Glitch', isLeader: false, isYou: false, avatar: `https://api.dicebear.com/8.x/lorelei/svg?seed=Glitch` },
-        { name: 'Nova', isLeader: false, isYou: false, avatar: `https://api.dicebear.com/8.x/lorelei/svg?seed=Nova` },
-        null, // Join Slot
-        null, // Join Slot
-    ];
-    const filledSlots = players.filter(p => p).length;
-
-    // Play audio only on client
     const playSound = (src: string) => {
-      if (typeof window !== 'undefined') {
-        const a = new Audio(src);
-        a.currentTime = 0;
-        a.play();
+      if (!audioRef.current) {
+        audioRef.current = new Audio(src);
+      } else {
+        audioRef.current.src = src;
       }
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
     };
+
+    useEffect(() => {
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+      };
+    }, []);
 
     const handleInviteClick = () => {
       setInviteModalOpen(true);
@@ -33,8 +45,17 @@ const Lobby = () => {
 
     const handleStartMatch = () => {
       playSound('/game_arena/start_match.mp3');
-      // Add your start match logic here
+      toast.success('Match started!');
+      // TODO: Implement match start logic with real API
     };
+
+    if (isLoading) {
+      return <div className="flex items-center justify-center h-full">Loading lobby...</div>;
+    }
+    if (error) {
+      toast.error('Failed to load lobby.');
+      return <div className="flex items-center justify-center h-full text-red-500">Failed to load lobby.</div>;
+    }
 
   return (
     <motion.div
@@ -53,7 +74,10 @@ const Lobby = () => {
         </div>
       </div>
       <div className="grid grid-cols-5 gap-3 flex-1 items-center">
-        {players.map((player, index) => (
+          {players.length === 0 ? (
+            <div className="col-span-5 flex flex-col items-center justify-center h-full text-slate-400">No players in lobby.</div>
+          ) : (
+            players.map((player: any, index: number) => (
             player ? (
               <div key={player.name} className="flex flex-col items-center gap-1">
                 <div className={`w-20 h-20 rounded-full flex items-center justify-center relative bg-slate-200 dark:bg-slate-800/80 border-2 ${player.isLeader ? 'border-yellow-400' : 'border-slate-300 dark:border-slate-600'}`}>
@@ -74,7 +98,8 @@ const Lobby = () => {
                 <p className="text-sm font-semibold text-slate-400 dark:text-slate-600">Empty</p>
               </div>
             )
-        ))}
+            ))
+          )}
       </div>
       <motion.div
         whileHover={{ scale: 1.02 }}

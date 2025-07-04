@@ -74,59 +74,105 @@ enum DifficultyLevel {
   GOD_LEVEL
 }
 
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  BLOCKED
+}
+
+enum ClanRole {
+  LEADER
+  ELDER
+  MEMBER
+}
+
+enum ClanJoinRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum RoomRole {
+  HOST
+  PLAYER
+  SPECTATOR
+}
+
+enum RoomInviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
 model User {
-  clerkId        String          @id @unique
-  email          String          @unique
-  name           String?
-  avatarUrl      String?
-  bannerUrl      String?
-  createdAt      DateTime        @default(now())
-  role           Role            @default(STUDENT)
-  xp             Int             @default(0)
-  rank           Int             @default(0)
-  streak         Int             @default(0)
-  accountType    AccountType     @default(FREE)
-  points         Int             @default(0) // Total points earned
-  premiumUntil   DateTime?       // Premium subscription expiry
-  quizzes        QuizRecord[]
-  achievements   Achievement[]
-  createdQuizzes Quiz[]          @relation("CreatedQuizzes")
-  bio            String?
-  alias          String?
-  socials        Json?
-  region         String?
-  premiumSummary PremiumSummary?
-  likes          QuizLike[]
-  comments       QuizComment[]
-  ratings        QuizRating[]
-  withdrawals    Withdrawal[]
-  attempts       Attempt[]       // Daily attempt tracking
-  quizUnlocks    QuizUnlock[]    // Premium quiz unlocks
-  payments       PaymentTransaction[] // Payment transactions
-  payoutAccount  PayoutAccount?  // Creator's payout account
+  clerkId                String               @id @unique
+  email                  String               @unique
+  name                   String?
+  avatarUrl              String?
+  bannerUrl              String?
+  createdAt              DateTime             @default(now())
+  role                   Role                 @default(STUDENT)
+  xp                     Int                  @default(0)
+  rank                   Int                  @default(0)
+  streak                 Int                  @default(0)
+  accountType            AccountType          @default(FREE)
+  points                 Int                  @default(0) // Total points earned
+  premiumUntil           DateTime? // Premium subscription expiry
+  quizzes                QuizRecord[]
+  achievements           Achievement[]
+  createdQuizzes         Quiz[]               @relation("CreatedQuizzes")
+  bio                    String?
+  alias                  String?
+  socials                Json?
+  region                 String?
+  premiumSummary         PremiumSummary?
+  likes                  QuizLike[]
+  comments               QuizComment[]
+  ratings                QuizRating[]
+  withdrawals            Withdrawal[]
+  attempts               Attempt[] // Daily attempt tracking
+  quizUnlocks            QuizUnlock[] // Premium quiz unlocks
+  payments               PaymentTransaction[] // Payment transactions
+  payoutAccount          PayoutAccount? // Creator's payout account
+  rankHistories          RankHistory[]
+  sentFriendRequests     Friend[]             @relation("Requester")
+  receivedFriendRequests Friend[]             @relation("Addressee")
+  clanMemberships        ClanMembership[]
+  clanJoinRequests       ClanJoinRequest[]
+  clanChatMessages       ClanChat[]
+  roomMemberships        RoomMembership[]
+  roomInvites            RoomInvite[]
+  roomChatMessages       RoomChat[]
+  publicChatMessages     PublicChat[]         @relation("UserPublicChatMessages")
+  gameSetups             GameSetup[]
+  sentFriendChats        FriendChat[]         @relation("FriendChatSender")
+  receivedFriendChats    FriendChat[]         @relation("FriendChatReceiver")
+  votes                  Vote[]
 }
 
 model QuizRecord {
-  id           String     @id @default(cuid())
-  userId       String
-  quizId       String
-  score        Int
-  duration     Int // in seconds
-  dateTaken    DateTime
-  status       QuizStatus
-  earnedPoints Int?       // Points earned for this attempt
-  quiz         Quiz       @relation(fields: [quizId], references: [id])
-  user         User       @relation(fields: [userId], references: [clerkId])
-  likeCount    Int        @default(0)
+  id              String           @id @default(cuid())
+  userId          String
+  quizId          String
+  score           Int
+  duration        Int // in seconds
+  dateTaken       DateTime
+  status          QuizStatus
+  earnedPoints    Int? // Points earned for this attempt
+  quiz            Quiz             @relation(fields: [quizId], references: [id])
+  user            User             @relation(fields: [userId], references: [clerkId])
+  likeCount       Int              @default(0)
+  questionRecords QuestionRecord[]
 }
 
 model Attempt {
-  id        String   @id @default(cuid())
-  quizId    String
-  userId    String
-  date      DateTime @default(now())
-  quiz      Quiz     @relation(fields: [quizId], references: [id])
-  user      User     @relation(fields: [userId], references: [clerkId])
+  id     String   @id @default(cuid())
+  quizId String
+  userId String
+  date   DateTime @default(now())
+  quiz   Quiz     @relation(fields: [quizId], references: [id])
+  user   User     @relation(fields: [userId], references: [clerkId])
 
   @@unique([quizId, userId, date])
 }
@@ -148,51 +194,51 @@ model PaymentTransaction {
   user              User          @relation(fields: [userId], references: [clerkId])
   razorpayOrderId   String        @unique
   razorpayPaymentId String?       @unique
-  amount            Int           // Amount in paise
+  amount            Int // Amount in paise
   currency          String        @default("INR")
   status            PaymentStatus @default(PENDING)
   type              PaymentType
   description       String?
-  metadata          Json?         // Store additional data like quizId, packageId, etc.
+  metadata          Json? // Store additional data like quizId, packageId, etc.
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 }
 
 model Quiz {
-  id                String          @id @default(cuid())
-  title             String          @default("Untitled Quiz")
-  description       String?
-  tags              String[]
-  field             String?         // New: For top-level category e.g., "Science"
-  subject           String?         // New: For sub-category e.g., "Physics"
-  imageUrl          String?
-  isTemplate        Boolean         @default(true)
-  isPublished       Boolean         @default(false)
-  isPinned          Boolean         @default(false)
-  price             Int             @default(0)
-  pricePerAttempt   Int             @default(0) // Price per attempt in ₹
-  pointPerAttempt   Int             @default(0) // Points awarded per attempt
-  jsonContent       Json            @default("{}")
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @default(now()) @updatedAt
-  creatorId         String?
-  creator           User?           @relation("CreatedQuizzes", fields: [creatorId], references: [clerkId])
-  
+  id              String   @id @default(cuid())
+  title           String   @default("Untitled Quiz")
+  description     String?
+  tags            String[]
+  field           String? // New: For top-level category e.g., "Science"
+  subject         String? // New: For sub-category e.g., "Physics"
+  imageUrl        String?
+  isTemplate      Boolean  @default(true)
+  isPublished     Boolean  @default(false)
+  isPinned        Boolean  @default(false)
+  price           Int      @default(0)
+  pricePerAttempt Int      @default(0) // Price per attempt in ₹
+  pointPerAttempt Int      @default(0) // Points awarded per attempt
+  jsonContent     Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+  creatorId       String?
+  creator         User?    @relation("CreatedQuizzes", fields: [creatorId], references: [clerkId])
+
   // Relations & Aggregates
-  records           QuizRecord[]
-  likes             QuizLike[]
-  comments          QuizComment[]
-  ratings           QuizRating[]
-  attempts          Attempt[]       // Daily attempt tracking
-  unlocks           QuizUnlock[]    // Premium quiz unlocks
+  records  QuizRecord[]
+  likes    QuizLike[]
+  comments QuizComment[]
+  ratings  QuizRating[]
+  attempts Attempt[] // Daily attempt tracking
+  unlocks  QuizUnlock[] // Premium quiz unlocks
 
   // Aggregated fields
-  usersTaken        Int             @default(0)
-  averageScore      Float           @default(0)
-  rating            Float           @default(0)
-  likeCount         Int             @default(0)
-  durationInSeconds Int             @default(0)
-  isLocked          Boolean         @default(false)
+  usersTaken        Int              @default(0)
+  averageScore      Float            @default(0)
+  rating            Float            @default(0)
+  likeCount         Int              @default(0)
+  durationInSeconds Int              @default(0)
+  isLocked          Boolean          @default(false)
   lockPassword      String?
   difficultyLevel   DifficultyLevel?
 }
@@ -221,7 +267,7 @@ model QuizComment {
 model QuizRating {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  value     Int      // e.g., 1 to 5
+  value     Int // e.g., 1 to 5
   quiz      Quiz     @relation(fields: [quizId], references: [id])
   quizId    String
   user      User     @relation(fields: [userId], references: [clerkId])
@@ -245,7 +291,7 @@ model Achievement {
 model PremiumSummary {
   id            String @id @default(cuid())
   userId        String @unique
-  user          User     @relation(fields: [userId], references: [clerkId])
+  user          User   @relation(fields: [userId], references: [clerkId])
   templatesUsed Int    @default(0)
   quizPacks     Int    @default(0)
   timeSaved     Int    @default(0) // in hours
@@ -253,35 +299,35 @@ model PremiumSummary {
 }
 
 model Withdrawal {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [clerkId])
-  amount      Int
-  currency    String   // e.g., INR, USD
-  status      WithdrawalStatus @default(PENDING)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [clerkId])
+  amount    Int
+  currency  String // e.g., INR, USD
+  status    WithdrawalStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }
 
 model QuizPackage {
-  id            String   @id @default(cuid())
-  userId        String
-  title         String
-  description   String?
-  imageUrl      String?
-  quizIds       String[]  // store quiz IDs
-  price         Int       @default(0)  // Price in cents/paisa, 0 = free
-  isPublished   Boolean   @default(false)
-  isPinned      Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  imageUrl    String?
+  quizIds     String[] // store quiz IDs
+  price       Int      @default(0) // Price in cents/paisa, 0 = free
+  isPublished Boolean  @default(false)
+  isPinned    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Real-time stats fields
-  totalAttempts   Int      @default(0)
-  totalLikes      Int      @default(0)
-  earnings        Int      @default(0)
-  averageRating   Float    @default(0)
-  averageScore    Float    @default(0)
+  totalAttempts Int   @default(0)
+  totalLikes    Int   @default(0)
+  earnings      Int   @default(0)
+  averageRating Float @default(0)
+  averageScore  Float @default(0)
 }
 
 model PayoutAccount {
@@ -290,9 +336,183 @@ model PayoutAccount {
   user              User     @relation(fields: [userId], references: [clerkId])
   razorpayAccountId String   @unique // The Razorpay Fund Account ID
   accountType       String   @default("upi") // e.g., upi, bank_account
-  accountDetails    Json     // Store details like UPI ID, bank info
+  accountDetails    Json // Store details like UPI ID, bank info
   isVerified        Boolean  @default(true) // Assuming verification is handled by Razorpay
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
- 
+
+model QuestionRecord {
+  id           String     @id @default(cuid())
+  quizRecordId String
+  questionId   String
+  type         String
+  isCorrect    Boolean
+  timeTaken    Int // in seconds
+  answer       Json? // Store submitted answer for audit
+  createdAt    DateTime   @default(now())
+  quizRecord   QuizRecord @relation(fields: [quizRecordId], references: [id])
+}
+
+model RankHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [clerkId])
+  oldRank   Int
+  newRank   Int
+  oldXp     Int
+  newXp     Int
+  changedAt DateTime @default(now())
+}
+
+model Friend {
+  id          String       @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  // Optionally, block support
+  isBlocked   Boolean      @default(false)
+  blockedById String? // If blocked, who blocked whom
+
+  requester User @relation("Requester", fields: [requesterId], references: [clerkId])
+  addressee User @relation("Addressee", fields: [addresseeId], references: [clerkId])
+
+  @@unique([requesterId, addresseeId])
+}
+
+model Clan {
+  id           String            @id @default(cuid())
+  name         String            @unique
+  motto        String?
+  emblemUrl    String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  memberships  ClanMembership[]
+  joinRequests ClanJoinRequest[]
+  chatMessages ClanChat[]
+}
+
+model ClanMembership {
+  id       String   @id @default(cuid())
+  userId   String
+  clanId   String
+  role     ClanRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [clerkId])
+  clan     Clan     @relation(fields: [clanId], references: [id])
+
+  @@unique([userId, clanId])
+}
+
+model ClanJoinRequest {
+  id        String                @id @default(cuid())
+  userId    String
+  clanId    String
+  status    ClanJoinRequestStatus @default(PENDING)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  user      User                  @relation(fields: [userId], references: [clerkId])
+  clan      Clan                  @relation(fields: [clanId], references: [id])
+
+  @@unique([userId, clanId])
+}
+
+model ClanChat {
+  id        String   @id @default(cuid())
+  clanId    String
+  userId    String
+  message   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [clerkId])
+  clan      Clan     @relation(fields: [clanId], references: [id])
+}
+
+model Room {
+  id           String           @id @default(cuid())
+  name         String
+  code         String           @unique
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  memberships  RoomMembership[]
+  invites      RoomInvite[]
+  chatMessages RoomChat[]
+}
+
+model RoomMembership {
+  id       String   @id @default(cuid())
+  userId   String
+  roomId   String
+  role     RoomRole @default(PLAYER)
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [clerkId])
+  room     Room     @relation(fields: [roomId], references: [id])
+
+  @@unique([userId, roomId])
+}
+
+model RoomInvite {
+  id        String           @id @default(cuid())
+  roomId    String
+  userId    String
+  status    RoomInviteStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  user      User             @relation(fields: [userId], references: [clerkId])
+  room      Room             @relation(fields: [roomId], references: [id])
+
+  @@unique([roomId, userId])
+}
+
+model RoomChat {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String
+  message   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [clerkId])
+  room      Room     @relation(fields: [roomId], references: [id])
+}
+
+model PublicChat {
+  id        String   @id @default(cuid())
+  senderId  String
+  sender    User     @relation("UserPublicChatMessages", fields: [senderId], references: [clerkId])
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model GameSetup {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [clerkId])
+  mode       String
+  difficulty String
+  region     String
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+}
+
+model FriendChat {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  sender     User     @relation("FriendChatSender", fields: [senderId], references: [clerkId])
+  receiver   User     @relation("FriendChatReceiver", fields: [receiverId], references: [clerkId])
+  message    String
+  createdAt  DateTime @default(now())
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  userId    String
+  roomId    String
+  type      String
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [clerkId])
+
+  @@unique([userId, roomId, type])
+}

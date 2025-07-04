@@ -6,6 +6,8 @@ import {
   getPricingConfig 
 } from '@/constants/pricing';
 import { DifficultyLevel } from '@prisma/client';
+import { calculateArenaXP } from './xpAlgorithm';
+import { getRankByXP } from '@/utils/rank';
 
 export interface AttemptValidationResult {
   canAttempt: boolean;
@@ -433,6 +435,100 @@ export class QuizAttemptService {
       quizRecordId: quizRecord.id,
       remainingAttempts: validation.remainingAttempts ? validation.remainingAttempts - 1 : undefined,
       dailyLimit: validation.dailyLimit,
+    };
+  }
+
+  /**
+   * Submit a multiplayer arena attempt with per-question answers and calculate XP
+   */
+  static async submitArenaAttempt(
+    userId: string,
+    quizRecordId: string,
+    answers: Array<{
+      questionId: string;
+      type: string;
+      isCorrect: boolean;
+      timeTaken: number;
+      answer: any;
+    }>,
+    duration: number,
+    status: string = 'COMPLETED'
+  ): Promise<AttemptResult> {
+    const existingRecord = await prisma.quizRecord.findUnique({
+      where: { id: quizRecordId }
+    });
+    if (!existingRecord || existingRecord.userId !== userId || existingRecord.status !== 'IN_PROGRESS') {
+      throw new Error('In-progress quiz record not found or access denied.');
+    }
+
+    // Store each answer in QuestionRecord
+    await prisma.$transaction(
+      answers.map(ans =>
+        prisma.questionRecord.create({
+          data: {
+            quizRecordId,
+            questionId: ans.questionId,
+            type: ans.type,
+            isCorrect: ans.isCorrect,
+            timeTaken: ans.timeTaken,
+            answer: ans.answer,
+          },
+        })
+      )
+    );
+
+    // Calculate XP using the new algorithm
+    const earnedXP = calculateArenaXP(answers, { duration });
+
+    // Get user's old XP and rank before update
+    const userBefore = await prisma.user.findUnique({ where: { clerkId: userId } });
+    const oldXp = userBefore?.xp || 0;
+    const oldRank = getRankByXP(oldXp).tierIndex;
+
+    // Update quiz record
+    const quizRecord = await prisma.quizRecord.update({
+      where: { id: quizRecordId },
+      data: {
+        score: answers.filter(a => a.isCorrect).length,
+        duration,
+        dateTaken: new Date(),
+        status: status as any,
+        earnedPoints: earnedXP,
+      },
+    });
+
+    // Update user XP
+    const userAfter = await prisma.user.update({
+      where: { clerkId: userId },
+      data: { xp: { increment: earnedXP } },
+      select: { xp: true },
+    });
+    const newXp = userAfter.xp;
+    const newRank = getRankByXP(newXp).tierIndex;
+
+    // If rank changed, record in RankHistory
+    if (oldRank !== newRank) {
+      await prisma.rankHistory.create({
+        data: {
+          userId,
+          oldRank,
+          newRank,
+          oldXp,
+          newXp,
+          changedAt: new Date(),
+        },
+      });
+    }
+
+    // Return result
+    return {
+      success: true,
+      earnedPoints: earnedXP,
+      isNewBestScore: true, // For now, always true for arena
+      previousBestScore: null,
+      totalAttempts: 1, // For now, always 1 for arena
+      averageScore: answers.filter(a => a.isCorrect).length,
+      quizUnlocked: true,
     };
   }
 } 

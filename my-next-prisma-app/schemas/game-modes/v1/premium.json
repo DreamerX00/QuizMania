@@ -1,0 +1,8 @@
+{
+  "question": { "type": "string" },
+  "options": { "type": "array", "items": { "type": "string" } },
+  "answer": { "type": "string" },
+  "timeLimit": { "type": "number" },
+  "difficulty": { "type": "string" },
+  "mediaUrl": { "type": "string", "optional": true }
+} 

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ws-server-config
+  labels:
+    app: ws-server
+data:
+  REDIS_URL: "redis://redis:6379"
+  NODE_ENV: "production" 

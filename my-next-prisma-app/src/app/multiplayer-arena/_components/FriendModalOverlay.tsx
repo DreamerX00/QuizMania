@@ -4,15 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Star, MessageSquare, UserMinus, Users, Search, CheckCircle2, XCircle, UserCheck, UserX, Bell, Pin, PinOff, X, Send, Gift } from 'lucide-react';
+import useSWR from 'swr';
+import toast from 'react-hot-toast';
 // import Lottie from 'lottie-react'; // For real Lottie gifts, if available
 // import giftLottie from '@/assets/lottie/gift.json';
-
-const dummyFriends = [
-  { name: 'QuantumLeap', status: 'online', pinned: true, avatar: 'https://api.dicebear.com/8.x/lorelei/svg?seed=QuantumLeap' },
-  { name: 'Nova', status: 'offline', pinned: false, avatar: 'https://api.dicebear.com/8.x/lorelei/svg?seed=Nova' },
-  { name: 'Glitch', status: 'in-match', pinned: false, avatar: 'https://api.dicebear.com/8.x/lorelei/svg?seed=Glitch' },
-  { name: 'Raptor', status: 'online', pinned: false, avatar: 'https://api.dicebear.com/8.x/lorelei/svg?seed=Raptor' },
-];
 
 const statusColor = {
   online: 'bg-green-500',
@@ -87,10 +82,11 @@ const SparkleIcon = () => (
   </svg>
 );
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 const FriendModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('friends');
-  const [friends, setFriends] = useState(dummyFriends);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteTarget, setInviteTarget] = useState<any>(null);
   const [showRemove, setShowRemove] = useState(false);
@@ -99,52 +95,157 @@ const FriendModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => v
   const [messageTarget, setMessageTarget] = useState<any>(null);
   const [showGift, setShowGift] = useState(false);
   const [giftTarget, setGiftTarget] = useState<any>(null);
-  const [friendRequests, setFriendRequests] = useState([{ name: 'Echo', avatar: 'https://api.dicebear.com/8.x/lorelei/svg?seed=Echo' }]);
   const modalRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
-  const playSoundRef = useRef<(src: string) => void>(() => {});
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // SWR hooks for friends and requests
+  const { data: friendsData, error: friendsError, isLoading: friendsLoading, mutate: mutateFriends } = useSWR(open ? '/api/friends' : null, fetcher);
+  const { data: requestsData, error: requestsError, isLoading: requestsLoading, mutate: mutateRequests } = useSWR(open ? '/api/friends/requests' : null, fetcher);
+  const { data: searchData, error: searchError, isLoading: searchLoading, mutate: mutateSearch } = useSWR(search.length >= 2 && tab === 'add' && open ? `/api/friends/search?q=${encodeURIComponent(search)}` : null, fetcher);
+
+  const playSound = (src: string) => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(src);
+    } else {
+      audioRef.current.src = src;
+    }
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch(() => {});
+  };
 
   useEffect(() => {
     setIsClient(true);
-    playSoundRef.current = (src: string) => {
-      const a = new Audio(src);
-      a.currentTime = 0;
-      a.play();
+    playSound('/game_arena/pin.mp3');
+    playSound('/game_arena/remove.mp3');
+    playSound('/game_arena/confirm.mp3');
+    playSound('/game_arena/message.mp3');
+    playSound('/game_arena/invite.mp3');
+    playSound('/game_arena/gift.mp3');
+    playSound('/game_arena/invite_sent.mp3');
+    playSound('/game_arena/gift_sent.mp3');
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
   }, []);
 
   const handlePin = (friend: any) => {
-    setFriends(friends => friends.map(f => f.name === friend.name ? { ...f, pinned: !f.pinned } : f));
-    if (isClient) playSoundRef.current('/game_arena/pin.mp3');
+    mutateFriends(friends => friends.map(f => f.name === friend.name ? { ...f, pinned: !f.pinned } : f));
+    playSound('/game_arena/pin.mp3');
+    toast.success(friend.pinned ? 'Unpinned friend.' : 'Pinned friend!');
   };
   const handleRemove = (friend: any) => {
     setShowRemove(true);
     setRemoveTarget(friend);
-    if (isClient) playSoundRef.current('/game_arena/remove.mp3');
+    playSound('/game_arena/remove.mp3');
   };
-  const confirmRemove = () => {
-    setFriends(friends => friends.filter(f => f.name !== removeTarget.name));
-    setShowRemove(false);
-    setRemoveTarget(null);
-    if (isClient) playSoundRef.current('/game_arena/confirm.mp3');
+  const confirmRemove = async () => {
+    try {
+      await mutateFriends(friends => friends.filter(f => f.name !== removeTarget.name));
+      setShowRemove(false);
+      setRemoveTarget(null);
+      playSound('/game_arena/confirm.mp3');
+      toast.success('Friend removed.');
+    } catch (e) {
+      toast.error('Failed to remove friend.');
+    }
   };
   const handleMessage = (friend: any) => {
     setShowMessage(true);
     setMessageTarget(friend);
-    if (isClient) playSoundRef.current('/game_arena/message.mp3');
+    playSound('/game_arena/message.mp3');
+    toast('Opening chat...');
   };
   const handleInvite = (friend: any) => {
     setShowInvite(true);
     setInviteTarget(friend);
-    if (isClient) playSoundRef.current('/game_arena/invite.mp3');
+    playSound('/game_arena/invite.mp3');
+    toast('Invite sent!');
   };
   const handleGift = (friend: any) => {
     setShowGift(true);
     setGiftTarget(friend);
-    if (isClient) playSoundRef.current('/game_arena/gift.mp3');
+    playSound('/game_arena/gift.mp3');
+    toast('Gift sent!');
   };
 
-  const sortedFriends = sortFriends(friends);
+  // Add handlers for add, remove, accept, decline
+  const handleAddFriend = async (userId: string) => {
+    try {
+      await fetch('/api/friends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ addresseeId: userId }),
+      });
+      mutateFriends();
+      mutateRequests();
+      mutateSearch();
+      playSound('/game_arena/confirm.mp3');
+      toast.success('Friend request sent!');
+    } catch (e) {
+      toast.error('Failed to send friend request.');
+    }
+  };
+  const handleRemoveFriend = async (userId: string) => {
+    try {
+      await fetch('/api/friends', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otherUserId: userId }),
+      });
+      mutateFriends();
+      mutateRequests();
+      playSound('/game_arena/confirm.mp3');
+      toast.success('Friend removed.');
+    } catch (e) {
+      toast.error('Failed to remove friend.');
+    }
+  };
+  const handleAcceptRequest = async (requestId: string) => {
+    try {
+      await fetch('/api/friends/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId, action: 'accept' }),
+      });
+      mutateFriends();
+      mutateRequests();
+      playSound('/game_arena/confirm.mp3');
+      toast.success('Friend request accepted!');
+    } catch (e) {
+      toast.error('Failed to accept request.');
+    }
+  };
+  const handleDeclineRequest = async (requestId: string) => {
+    try {
+      await fetch('/api/friends/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId, action: 'decline' }),
+      });
+      mutateFriends();
+      mutateRequests();
+      playSound('/game_arena/confirm.mp3');
+      toast('Request declined.');
+    } catch (e) {
+      toast.error('Failed to decline request.');
+    }
+  };
+
+  const sortedFriends = sortFriends(friendsData?.friends || []);
+
+  // Add error toasts for SWR errors
+  useEffect(() => {
+    if (friendsError) toast.error('Failed to load friends.');
+    if (requestsError) toast.error('Failed to load friend requests.');
+    if (searchError) toast.error('Failed to search users.');
+  }, [friendsError, requestsError, searchError]);
 
   return (
     <AnimatePresence>
@@ -182,14 +283,14 @@ const FriendModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => v
               </h2>
               <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 <Bell className="text-yellow-400 animate-float-bounce" />
-                {friendRequests.length > 0 && (
+                {requestsData?.incoming.length > 0 && (
                   <motion.span
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1.1, opacity: 1 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 10 }}
                     className="bg-gradient-to-r from-pink-500 to-yellow-400 text-white text-xs rounded-full px-3 py-1 shadow-lg animate-badge-pulse border-2 border-white"
                   >
-                    +{friendRequests.length}
+                    +{requestsData.incoming.length}
                   </motion.span>
                 )}
               </div>
@@ -251,22 +352,24 @@ const FriendModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => v
                   </div>
                   {/* Placeholder for search results */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700">
-                      <div className="flex items-center gap-3">
-                        <img src="https://api.dicebear.com/8.x/lorelei/svg?seed=Echo" alt="Echo" className="w-8 h-8 rounded-full border-2 border-slate-300 dark:border-slate-700" />
-                        <span className="font-semibold text-gray-900 dark:text-white">Echo</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Online</span>
+                    {searchData?.users.map(user => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center gap-3">
+                          <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full border-2 border-slate-300 dark:border-slate-700" />
+                          <span className="font-semibold text-gray-900 dark:text-white">{user.name}</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">{user.status === 'online' ? 'Online' : user.status === 'in-match' ? 'In Match' : 'Offline'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button size="icon" variant="ghost" className="text-green-500" title="Add" onClick={() => handleAddFriend(user.id)}><UserCheck size={16} /></Button>
+                          {requestsData?.incoming.includes(user.id) && (
+                            <Button size="icon" variant="ghost" className="text-yellow-500" title="Accept" onClick={() => handleAcceptRequest(user.id)}><CheckCircle2 size={16} /></Button>
+                          )}
+                          {requestsData?.outgoing.includes(user.id) && (
+                            <Button size="icon" variant="ghost" className="text-red-500" title="Decline" onClick={() => handleDeclineRequest(user.id)}><XCircle size={16} /></Button>
+                          )}
+                        </div>
                       </div>
-                      <Button size="icon" variant="ghost" className="text-green-500" title="Add"><UserCheck size={16} /></Button>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700">
-                      <div className="flex items-center gap-3">
-                        <img src="https://api.dicebear.com/8.x/lorelei/svg?seed=Cypher" alt="Cypher" className="w-8 h-8 rounded-full border-2 border-slate-300 dark:border-slate-700" />
-                        <span className="font-semibold text-gray-900 dark:text-white">Cypher</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Offline</span>
-                      </div>
-                      <Button size="icon" variant="ghost" className="text-gray-400" title="Add"><UserPlus size={16} /></Button>
-                    </div>
+                    ))}
                   </div>
                 </TabsContent>
               </motion.div>
@@ -292,7 +395,7 @@ const FriendModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => v
                     <img src={inviteTarget.avatar} alt={inviteTarget.name} className="w-16 h-16 rounded-full border-2 border-blue-400 mb-2" />
                     <span className="font-semibold text-lg text-gray-900 dark:text-white mb-2">{inviteTarget.name}</span>
                     <span className="text-sm text-slate-500 dark:text-slate-400 mb-4">Send an invite to join your room or party!</span>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full text-lg" onClick={() => { setShowInvite(false); playSoundRef.current('/game_arena/invite_sent.mp3'); }}>Send Invite</Button>
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full text-lg" onClick={() => { setShowInvite(false); playSound('/game_arena/invite_sent.mp3'); }}>Send Invite</Button>
                   </div>
                 </motion.div>
               )}
@@ -358,7 +461,7 @@ const FriendModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => v
                     <span className="text-sm text-slate-500 dark:text-slate-400 mb-4">Send a special gift to your friend!</span>
                     {/* <Lottie animationData={giftLottie} loop style={{ width: 80, height: 80 }} /> */}
                     <Gift size={48} className="text-pink-400 animate-bounce mb-2" />
-                    <Button className="bg-pink-600 hover:bg-pink-700 text-white w-full text-lg" onClick={() => { setShowGift(false); playSoundRef.current('/game_arena/gift_sent.mp3'); }}>Send Gift</Button>
+                    <Button className="bg-pink-600 hover:bg-pink-700 text-white w-full text-lg" onClick={() => { setShowGift(false); playSound('/game_arena/gift_sent.mp3'); }}>Send Gift</Button>
                   </div>
                 </motion.div>
               )}
