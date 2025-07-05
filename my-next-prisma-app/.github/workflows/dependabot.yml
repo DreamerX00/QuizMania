@@ -1,0 +1,183 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "your-username"
+    assignees:
+      - "your-username"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "npm"
+    ignore:
+      # Ignore major version updates for critical packages
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-username"
+    assignees:
+      - "your-username"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Enable version updates for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-username"
+    assignees:
+      - "your-username"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # Enable version updates for WebSocket server dependencies
+  - package-ecosystem: "npm"
+    directory: "/ws-server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-username"
+    assignees:
+      - "your-username"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "npm"
+      - "websocket-server"
+    ignore:
+      # Ignore major version updates for critical WebSocket packages
+      - dependency-name: "socket.io"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "ioredis"
+        update-types: ["version-update:semver-major"]
+
+  # Enable version updates for Python dependencies (for load tests)
+  - package-ecosystem: "pip"
+    directory: "/tests/load"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "your-username"
+    assignees:
+      - "your-username"
+    commit-message:
+      prefix: "test"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+      - "load-tests"
+
+  # Security updates (immediate)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-username"
+    assignees:
+      - "your-username"
+    commit-message:
+      prefix: "security"
+      include: "scope"
+    labels:
+      - "security"
+      - "dependencies"
+      - "npm"
+    # Only create PRs for security updates
+    allow:
+      - dependency-type: "direct"
+        update-type: "security"
+
+  # Security updates for WebSocket server
+  - package-ecosystem: "npm"
+    directory: "/ws-server"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "your-username"
+    assignees:
+      - "your-username"
+    commit-message:
+      prefix: "security"
+      include: "scope"
+    labels:
+      - "security"
+      - "dependencies"
+      - "npm"
+      - "websocket-server"
+    # Only create PRs for security updates
+    allow:
+      - dependency-type: "direct"
+        update-type: "security"
+
+  # Security updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "your-username"
+    assignees:
+      - "your-username"
+    commit-message:
+      prefix: "security"
+      include: "scope"
+    labels:
+      - "security"
+      - "dependencies"
+      - "github-actions"
+    # Only create PRs for security updates
+    allow:
+      - dependency-type: "direct"
+        update-type: "security" 

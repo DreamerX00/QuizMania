@@ -1,0 +1,34 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "LiveKit Overview",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "Packet Loss",
+        "targets": [{ "expr": "livekit_packet_loss" }],
+        "id": 1
+      },
+      {
+        "type": "graph",
+        "title": "Disconnects",
+        "targets": [{ "expr": "rate(livekit_disconnects_total[1m])" }],
+        "id": 2
+      },
+      {
+        "type": "graph",
+        "title": "Voice Lag (ms)",
+        "targets": [{ "expr": "livekit_voice_lag_ms" }],
+        "id": 3
+      },
+      {
+        "type": "graph",
+        "title": "Fallback Events",
+        "targets": [{ "expr": "rate(livekit_fallback_events_total[1m])" }],
+        "id": 4
+      }
+    ],
+    "schemaVersion": 16,
+    "version": 1
+  }
+} 

@@ -1,5 +1,24 @@
+// ---
+// chat:send event expected payload:
+// {
+//   type: 'match' | 'clan' | 'room' | 'public' | 'friend',
+//   message: string,
+//   roomId?: string,      // required for 'match' and 'room'
+//   clanId?: string,      // required for 'clan'
+//   receiverId?: string   // required for 'friend'
+// }
+// ---
+
 import { Server, Socket } from 'socket.io';
 import { redisClient } from '../config/redis';
+import {
+  createClanChat,
+  createRoomChat,
+  createPublicChat,
+  createFriendChat
+} from '../../services/chatService';
+import { Counter } from 'prom-client';
+declare const messagesTotal: Counter;
 
 // Placeholder: Replace with a real word list or external service
 const PROFANITY_WORDS = ['badword', 'anotherbadword'];
@@ -23,27 +42,47 @@ function isMutedOrBlocked(socket: Socket, roomId: string): boolean {
 }
 
 export function registerChatEvents(io: Server, socket: Socket) {
-  socket.on('chat:send', async ({ roomId, message, type }: { roomId: string; message: string; type: 'match' | 'clan' }, cb) => {
-    try {
-      if (!message || message.length > 1000) return cb?.({ error: 'Invalid message length' });
-      if (profanityFilter(message)) return cb?.({ error: 'Message contains inappropriate language' });
-      if (isMutedOrBlocked(socket, roomId)) return cb?.({ error: 'User is muted or blocked' });
-      const chatMsg = {
-        user: (socket as any).user,
-        message,
-        timestamp: Date.now(),
-        type
-      };
-      if (type === 'match') {
-        // Ephemeral: store in Redis (volatile)
-        await redisClient.lPush(`chat:match:${roomId}`, JSON.stringify(chatMsg));
-        await redisClient.expire(`chat:match:${roomId}`, 600); // 10 min
-      }
-      io.to(roomId).emit('chat:message', chatMsg);
-      cb?.({ success: true });
-    } catch (err) {
-      cb?.({ error: 'Failed to send message' });
+  socket.on('chat:send', async (payload, cb) => {
+    // Defensive: validate payload
+    if (!payload || typeof payload !== 'object') return cb?.({ error: 'Invalid payload' });
+    const { roomId, message, type, clanId, receiverId } = payload;
+    if (!type || !['match', 'clan', 'room', 'public', 'friend'].includes(type)) {
+      return cb?.({ error: 'Invalid or missing chat type' });
     }
+    if (!message || typeof message !== 'string' || message.length > 1000) {
+      return cb?.({ error: 'Invalid message length' });
+    }
+    if (type === 'clan' && !clanId) return cb?.({ error: 'Missing clanId for clan chat' });
+    if (type === 'room' && !roomId) return cb?.({ error: 'Missing roomId for room chat' });
+    if (type === 'friend' && !receiverId) return cb?.({ error: 'Missing receiverId for friend chat' });
+    if ((type === 'match' || type === 'room') && !roomId) return cb?.({ error: 'Missing roomId' });
+    if (profanityFilter(message)) return cb?.({ error: 'Message contains inappropriate language' });
+    if (isMutedOrBlocked(socket, roomId || clanId || '')) return cb?.({ error: 'User is muted or blocked' });
+    const chatMsg = {
+      user: (socket as any).user,
+      message,
+      timestamp: Date.now(),
+      type
+    };
+    // Persist to Postgres for persistent chat types
+    if (type === 'clan' && clanId) {
+      await createClanChat(clanId, (socket as any).user.id, message);
+    } else if (type === 'room' && roomId) {
+      await createRoomChat(roomId, (socket as any).user.id, message);
+    } else if (type === 'public') {
+      await createPublicChat((socket as any).user.id, message);
+    } else if (type === 'friend' && receiverId) {
+      await createFriendChat((socket as any).user.id, receiverId, message);
+    }
+    if (type === 'match' && roomId) {
+      // Ephemeral: store in Redis (volatile)
+      await redisClient.lPush(`chat:match:${roomId}`, JSON.stringify(chatMsg));
+      await redisClient.expire(`chat:match:${roomId}`, 600); // 10 min
+    }
+    io.to(roomId || clanId || receiverId || 'public').emit('chat:message', chatMsg);
+    // Increment Prometheus metric
+    messagesTotal.inc();
+    cb?.({ success: true });
   });
 
   // Moderation events

@@ -1,0 +1,42 @@
+groups:
+  - name: ws-server-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(ws_server_errors_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'High error rate on ws-server'
+
+      - alert: HighCPULoad
+        expr: process_cpu_seconds_total > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'High CPU load on ws-server'
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes > 1e+09
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'High memory usage on ws-server'
+
+      - alert: RedisKeyEviction
+        expr: rate(redis_evicted_keys_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Redis key eviction detected'
+
+      - alert: LiveKitFallback
+        expr: increase(livekit_fallback_events_total[10m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'LiveKit fallback events detected' 

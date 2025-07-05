@@ -149,6 +149,8 @@ model User {
   sentFriendChats        FriendChat[]         @relation("FriendChatSender")
   receivedFriendChats    FriendChat[]         @relation("FriendChatReceiver")
   votes                  Vote[]
+  moderationActionsTaken ModerationAction[]   @relation("ModerationTarget")
+  moderationActionsPerformed ModerationAction[] @relation("ModerationPerformer")
 }
 
 model QuizRecord {
@@ -515,4 +517,19 @@ model Vote {
   user      User     @relation(fields: [userId], references: [clerkId])
 
   @@unique([userId, roomId, type])
+}
+
+model ModerationAction {
+  id             String   @id @default(cuid())
+  action         String   // e.g., 'mute', 'kick', 'block', 'report', 'unmute', etc.
+  targetUserId   String
+  performedById  String
+  reason         String?
+  context        Json?
+  createdAt      DateTime @default(now())
+  targetUser     User     @relation("ModerationTarget", fields: [targetUserId], references: [clerkId])
+  performedBy    User     @relation("ModerationPerformer", fields: [performedById], references: [clerkId])
+
+  @@index([targetUserId])
+  @@index([performedById])
 }

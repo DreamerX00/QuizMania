@@ -2,6 +2,10 @@ import { Server, Socket } from 'socket.io';
 import { redisClient } from '../config/redis';
 import { roomTypes, RoomType } from '../config/roomTypes';
 import { logger } from '../config/logger';
+import { Gauge } from 'prom-client';
+declare const activeRooms: Gauge;
+
+const roomCounts = new Map<string, number>();
 
 function hasRoom(socket: Socket, roomId: string): boolean {
   // Support both Set (Socket.IO v4+) and object (older)
@@ -21,6 +25,10 @@ export function registerRoomEvents(io: Server, socket: Socket) {
       await socket.join(roomId);
       // Set TTL for room metadata in Redis
       await redisClient.set(`room:${roomId}:type`, roomType, { EX: roomTypes[roomType].ttl });
+      // Track active rooms
+      const count = (roomCounts.get(roomId) || 0) + 1;
+      roomCounts.set(roomId, count);
+      if (count === 1) activeRooms.inc();
       cb?.({ success: true });
       io.to(roomId).emit('room:user-joined', { user: (socket as any).user, roomId });
       logger.info({ user: (socket as any).user?.id, roomId }, 'User joined room');
@@ -32,6 +40,14 @@ export function registerRoomEvents(io: Server, socket: Socket) {
   socket.on('room:leave', async ({ roomId }, cb) => {
     try {
       await socket.leave(roomId);
+      // Track active rooms
+      const count = (roomCounts.get(roomId) || 1) - 1;
+      if (count <= 0) {
+        roomCounts.delete(roomId);
+        activeRooms.dec();
+      } else {
+        roomCounts.set(roomId, count);
+      }
       cb?.({ success: true });
       io.to(roomId).emit('room:user-left', { user: (socket as any).user, roomId });
       logger.info({ user: (socket as any).user?.id, roomId }, 'User left room');

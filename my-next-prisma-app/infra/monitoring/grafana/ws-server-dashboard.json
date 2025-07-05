@@ -1,0 +1,58 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "ws-server Overview",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "Request Rate",
+        "targets": [{ "expr": "rate(ws_server_requests_total[1m])" }],
+        "id": 1
+      },
+      {
+        "type": "graph",
+        "title": "Error Rate",
+        "targets": [{ "expr": "rate(ws_server_errors_total[1m])" }],
+        "id": 2
+      },
+      {
+        "type": "graph",
+        "title": "Latency (ms)",
+        "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(ws_server_request_duration_seconds_bucket[5m])) by (le)) * 1000" }],
+        "id": 3
+      },
+      {
+        "type": "graph",
+        "title": "Active Connections",
+        "targets": [{ "expr": "ws_server_active_connections" }],
+        "id": 4
+      },
+      {
+        "type": "graph",
+        "title": "Active Rooms",
+        "targets": [{ "expr": "ws_server_active_rooms" }],
+        "id": 5
+      },
+      {
+        "type": "graph",
+        "title": "Active Users",
+        "targets": [{ "expr": "ws_server_active_users" }],
+        "id": 6
+      },
+      {
+        "type": "graph",
+        "title": "Messages per Minute",
+        "targets": [{ "expr": "rate(ws_server_messages_total[1m])" }],
+        "id": 7
+      },
+      {
+        "type": "graph",
+        "title": "Votes per Minute",
+        "targets": [{ "expr": "rate(ws_server_votes_total[1m])" }],
+        "id": 8
+      }
+    ],
+    "schemaVersion": 16,
+    "version": 2
+  }
+} 

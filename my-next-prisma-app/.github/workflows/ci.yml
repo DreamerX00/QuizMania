@@ -1,0 +1,416 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Lint and Type Check
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        run: npm run type-check
+
+      - name: Check code formatting
+        run: npm run format:check
+
+  # Unit Tests
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  # Schema Tests
+  schema-tests:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run schema validation tests
+        run: npm run test:schemas
+
+  # Database Tests
+  database-tests:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: |
+          npm run db:generate
+          npm run db:push
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+
+      - name: Run database tests
+        run: npm run test:db
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+
+  # WebSocket Server Tests
+  websocket-tests:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run WebSocket server tests
+        run: npm run test:websocket
+        env:
+          REDIS_URL: redis://localhost:6379
+
+  # Build and Docker
+  build:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, schema-tests, database-tests, websocket-tests]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Build Docker images
+        run: |
+          docker build -t quizmania-app .
+          docker build -t quizmania-ws-server ./ws-server
+
+      - name: Run Docker health checks
+        run: |
+          docker run --rm -d --name test-app -p 3000:3000 quizmania-app
+          docker run --rm -d --name test-ws -p 3001:3001 quizmania-ws-server
+          
+          # Wait for services to start
+          sleep 10
+          
+          # Test health endpoints
+          curl -f http://localhost:3000/api/health || exit 1
+          curl -f http://localhost:3001/healthz || exit 1
+          
+          # Cleanup
+          docker stop test-app test-ws
+
+  # E2E Tests
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+
+      - name: Setup test database
+        run: |
+          npm run db:generate
+          npm run db:push
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+
+      - name: Start application
+        run: |
+          npm run build
+          npm run start &
+          cd ws-server && npm start &
+          sleep 10
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+
+      - name: Upload Playwright results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  # Load Tests
+  load-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install locust python-socketio asyncio
+
+      - name: Setup test database
+        run: |
+          npm run db:generate
+          npm run db:push
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+
+      - name: Start application
+        run: |
+          npm run build
+          npm run start &
+          cd ws-server && npm start &
+          sleep 15
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+
+      - name: Run load tests
+        run: |
+          locust -f tests/load/locustfile.py --host=http://localhost:3000 --headless --users 10 --spawn-rate 2 --run-time 30s --html=load-test-report.html
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-results
+          path: load-test-report.html
+          retention-days: 30
+
+  # Security Scan
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  # Deploy Preview
+  deploy-preview:
+    runs-on: ubuntu-latest
+    needs: [build, e2e-tests, security-scan]
+    if: github.event_name == 'pull_request'
+    environment: preview
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel (Preview)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+
+  # Deploy Production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build, e2e-tests, load-tests, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel (Production)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+
+      - name: Deploy WebSocket Server
+        run: |
+          # Deploy to your preferred cloud provider
+          # Example for AWS ECS, Google Cloud Run, or Azure Container Instances
+          echo "Deploying WebSocket server to production..." 

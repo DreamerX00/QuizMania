@@ -1,7 +1,20 @@
+// ---
+// game:vote event expected payload:
+// {
+//   roomId: string,
+//   vote: any,
+//   mode: string,
+//   type: string // e.g., 'MCQ', 'TF', etc.
+// }
+// ---
+
 import { Server, Socket } from 'socket.io';
 import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
+import { createVoteLog } from '../../services/voteLogService';
+import { Counter } from 'prom-client';
+declare const votesTotal: Counter;
 
 // In-memory vote throttle (for demo only; use Redis in production)
 const lastVote: Record<string, number> = {}; // userId: timestamp
@@ -28,7 +41,13 @@ function validateGameModeSchema(mode: string, payload: any): boolean {
 }
 
 export function registerGameEvents(io: Server, socket: Socket) {
-  socket.on('game:vote', ({ roomId, vote, mode }, cb) => {
+  socket.on('game:vote', async (payload, cb) => {
+    // Defensive: validate payload
+    if (!payload || typeof payload !== 'object') return cb?.({ error: 'Invalid payload' });
+    const { roomId, vote, mode, type } = payload;
+    if (!roomId || typeof roomId !== 'string') return cb?.({ error: 'Missing or invalid roomId' });
+    if (!type || typeof type !== 'string') return cb?.({ error: 'Missing or invalid vote type' });
+    if (!mode || typeof mode !== 'string') return cb?.({ error: 'Missing or invalid mode' });
     const userId = (socket as any).user?.id;
     const now = Date.now();
     if (userId && lastVote[userId] && now - lastVote[userId] < VOTE_THROTTLE_MS) {
@@ -38,6 +57,12 @@ export function registerGameEvents(io: Server, socket: Socket) {
     if (!validateGameModeSchema(mode, vote)) {
       return cb({ error: 'Invalid vote for mode' });
     }
+    // Log vote to Postgres
+    if (userId && roomId && type) {
+      await createVoteLog(userId, roomId, type);
+    }
+    // Increment Prometheus metric
+    votesTotal.inc();
     io.to(roomId).emit('game:vote-update', { user: (socket as any).user, vote });
     cb?.({ success: true });
   });
