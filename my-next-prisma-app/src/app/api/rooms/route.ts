@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { name } = await request.json();
+    const { name, maxPlayers, type, quizTypes, password } = await request.json();
     if (!name) {
       return NextResponse.json({ error: 'Room name required' }, { status: 400 });
     }
@@ -62,6 +62,10 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         code,
+        type: type || 'Public',
+        maxParticipants: maxPlayers || 8,
+        quizTypes: quizTypes || [],
+        password: password || null,
         memberships: {
           create: {
             userId,

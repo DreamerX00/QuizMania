@@ -16,7 +16,7 @@ import {
   createRoomChat,
   createPublicChat,
   createFriendChat
-} from '../../services/chatService';
+} from '../../src/services/chatService';
 import { Counter } from 'prom-client';
 declare const messagesTotal: Counter;
 

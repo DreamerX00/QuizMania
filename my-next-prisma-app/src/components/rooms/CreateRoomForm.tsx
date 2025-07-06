@@ -6,10 +6,6 @@ import { Button } from '@/components/ui/button';
 const quizTypes = ['MCQ', 'True/False', 'Match', 'Essay', 'Puzzle', 'Audio', 'Live Video'];
 const roomTypes = ['Public', 'Friends Only', 'Invite', 'Private'];
 
-function generateRoomId() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
 export default function CreateRoomForm({ onCreate }: { onCreate: (room: any) => void }) {
   const [title, setTitle] = useState('');
   const [maxPlayers, setMaxPlayers] = useState(8);
@@ -19,7 +15,7 @@ export default function CreateRoomForm({ onCreate }: { onCreate: (room: any) => 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     setError('');
     if (!title) {
       setError('Room title is required.');
@@ -30,21 +26,45 @@ export default function CreateRoomForm({ onCreate }: { onCreate: (room: any) => 
       return;
     }
     setLoading(true);
-    setTimeout(() => {
+    
+    try {
+      const response = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          name: title,
+          maxPlayers,
+          type,
+          quizTypes: selectedQuizTypes,
+          password: type === 'Private' ? password : undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create room');
+      }
+
+      const data = await response.json();
       const room = {
-        id: generateRoomId(),
-        title,
-        host: 'QuantumLeap',
+        id: data.room.id,
+        title: data.room.name,
+        code: data.room.code,
+        host: 'You',
         players: [
-          { name: 'QuantumLeap', avatar: 'https://api.dicebear.com/8.x/lorelei/svg?seed=QuantumLeap', isHost: true, isSpeaking: false },
+          { name: 'You', avatar: 'https://api.dicebear.com/8.x/lorelei/svg?seed=You', isHost: true, isSpeaking: false },
         ],
-        maxPlayers,
-        type,
+        maxPlayers: data.room.maxParticipants,
+        type: data.room.type || 'Public',
         quizTypes: selectedQuizTypes,
         password: type === 'Private' ? password : undefined,
       };
       onCreate(room);
-    }, 1200);
+    } catch (error) {
+      console.error('Failed to create room:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create room');
+      setLoading(false);
+    }
   };
 
   return (

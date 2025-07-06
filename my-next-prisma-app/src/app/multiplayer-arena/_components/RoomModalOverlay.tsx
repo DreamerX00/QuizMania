@@ -7,10 +7,12 @@ import RoomLobby from '@/components/rooms/RoomLobby';
 import { Button } from '@/components/ui/button';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
+import { useAuth } from '@clerk/nextjs';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+  const { userId, user } = useAuth();
   const [step, setStep] = useState<'choose' | 'join' | 'create' | 'lobby'>('choose');
   const [roomData, setRoomData] = useState<any>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -115,22 +117,36 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
                 )}
                 {step === 'join' && (
                   <motion.div key="join" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }} className="w-full">
-                    {/* Implement join room flow with real API */}
-                    {/* Example: List available rooms, allow code entry, call /api/rooms/members POST to join */}
-                    <Button variant="ghost" className="text-gray-400 mt-4 w-full" onClick={() => setStep('choose')}>Back</Button>
+                    <div className="flex items-center justify-between mb-6">
+                      <Button variant="ghost" className="text-gray-400" onClick={() => setStep('choose')}>
+                        ← Back
+                      </Button>
+                      <h3 className="text-2xl font-bold text-white">Join Room</h3>
+                      <div className="w-16"></div> {/* Spacer for centering */}
+                    </div>
+                    <JoinRoomFlow onJoin={handleJoin} />
                   </motion.div>
                 )}
                 {step === 'create' && (
                   <motion.div key="create" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }} className="w-full">
-                    {/* Implement create room flow with real API */}
-                    {/* Example: Form to enter room name, call /api/rooms POST to create */}
-                    <Button variant="ghost" className="text-gray-400 mt-4 w-full" onClick={() => setStep('choose')}>Back</Button>
+                    <div className="flex items-center justify-between mb-6">
+                      <Button variant="ghost" className="text-gray-400" onClick={() => setStep('choose')}>
+                        ← Back
+                      </Button>
+                      <h3 className="text-2xl font-bold text-white">Create Room</h3>
+                      <div className="w-16"></div> {/* Spacer for centering */}
+                    </div>
+                    <CreateRoomForm onCreate={handleCreate} />
                   </motion.div>
                 )}
                 {step === 'lobby' && roomData && (
                   <motion.div key="lobby" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.3 }} className="w-full h-[70vh] flex items-stretch">
                     {/* Pass real room and member data to RoomLobby */}
-                    <RoomLobby room={roomData} members={roomMembersData?.members || []} />
+                    <RoomLobby 
+                      room={roomData} 
+                      members={roomMembersData?.members || []} 
+                      currentUser={{ userId, name: user?.fullName || 'User', avatar: user?.imageUrl }}
+                    />
                   </motion.div>
                 )}
               </AnimatePresence>

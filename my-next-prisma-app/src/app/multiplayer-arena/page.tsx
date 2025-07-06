@@ -15,12 +15,12 @@ import ClanHubOverlay from './_components/ClanHubOverlay';
 import RoomModalOverlay from './_components/RoomModalOverlay';
 import VoiceChat from '@/components/voice/VoiceChat';
 import { AnimatePresence, motion } from 'framer-motion';
-import { User, Users, Shield, Home, DoorOpen, Phone, Mic, MicOff, Zap, Crown, Xp, Coins, Gem, Trophy } from 'lucide-react';
+import { User, Users, Shield, Home, DoorOpen, Phone, Mic, MicOff, Zap, Crown, TrendingUp, Coins, Gem, Trophy, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function MultiplayerArenaPage() {
-  const { userId, getToken } = useAuth();
+  const { userId } = useAuth();
   const { connect, disconnect, isConnected } = useSocket();
   
   // Multiplayer store state
@@ -50,8 +50,8 @@ export default function MultiplayerArenaPage() {
     if (userId && !isConnected) {
       const initializeConnection = async () => {
         try {
-          const token = await getToken();
-          actions.connect(userId, token || undefined);
+          // Use the new authentication method - no token needed for client
+          actions.connect(userId);
         } catch (error) {
           console.error('Failed to initialize connection:', error);
         }
@@ -64,7 +64,7 @@ export default function MultiplayerArenaPage() {
         actions.disconnect();
       }
     };
-  }, [userId, isConnected, actions, getToken]);
+  }, [userId, isConnected, actions]);
 
   // Auto-join room if specified in URL
   useEffect(() => {
@@ -99,6 +99,12 @@ export default function MultiplayerArenaPage() {
     }
   };
 
+  const handleVoiceButtonClick = () => {
+    // Toggle the voice chat panel
+    console.log('Voice button clicked, current UI state:', ui);
+    actions.toggleVoiceChat();
+  };
+
   const handleMuteToggle = () => {
     actions.muteVoice(!voice.isMuted);
   };
@@ -117,12 +123,12 @@ export default function MultiplayerArenaPage() {
     },
     {
       title: 'Voice',
-      icon: voice.isConnected ? <Phone className="w-7 h-7" /> : <Phone className="w-7 h-7 opacity-50" />,
-      onClick: () => {
-        if (currentRoom) {
-          handleVoiceToggle();
-        }
-      },
+      icon: ui.showVoiceChat ? 
+        <Phone className="w-7 h-7 text-purple-400" /> : 
+        voice.isConnected ? 
+          <Phone className="w-7 h-7" /> : 
+          <Phone className="w-7 h-7 opacity-50" />,
+      onClick: handleVoiceButtonClick,
     },
     {
       title: 'Home',
@@ -188,7 +194,7 @@ export default function MultiplayerArenaPage() {
                   <span className="text-sm font-medium">{userStats.rank}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Xp className="w-4 h-4 text-blue-400" />
+                  <TrendingUp className="w-4 h-4 text-blue-400" />
                   <span className="text-sm">{userStats.xp}</span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -213,18 +219,53 @@ export default function MultiplayerArenaPage() {
 
       {/* Voice Chat Panel */}
       <AnimatePresence>
-        {ui.showVoiceChat && currentRoom && (
+        {ui.showVoiceChat && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed top-20 right-4 z-30 w-80"
+            className="fixed top-20 right-4 z-30 w-80 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-lg"
           >
-            <VoiceChat roomId={currentRoom.id} />
+            {currentRoom ? (
+              <VoiceChat 
+                roomId={currentRoom.id} 
+                onClose={() => actions.toggleVoiceChat()}
+              />
+            ) : (
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <h3 className="font-semibold text-slate-900 dark:text-white">Voice Chat</h3>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => actions.toggleVoiceChat()}
+                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="text-center py-8">
+                  <Phone className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                  <p className="text-slate-600 dark:text-slate-400 mb-4">
+                    Join a room to start voice chat
+                  </p>
+                  <Button 
+                    onClick={() => actions.toggleVoiceChat()}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
-
+      
       {/* Main Arena UI (hidden when overlay is open) */}
       <AnimatePresence>
         {!activePanel && (

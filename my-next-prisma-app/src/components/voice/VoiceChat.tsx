@@ -18,7 +18,8 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Zap
+  Zap,
+  X
 } from 'lucide-react';
 import { useLiveKit } from '@/lib/livekit';
 import { useSocket } from '@/lib/socket';
@@ -28,6 +29,7 @@ import toast from 'react-hot-toast';
 interface VoiceChatProps {
   roomId: string;
   className?: string;
+  onClose?: () => void;
 }
 
 interface ParticipantInfo {
@@ -40,7 +42,7 @@ interface ParticipantInfo {
   volume: number;
 }
 
-const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '' }) => {
+const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }) => {
   const { liveKitService, connect, disconnect, setMuted, setPushToTalk, getVoiceState, isConnected, isMuted, isSpeaking, getParticipants } = useLiveKit();
   const { socketService } = useSocket();
   
@@ -283,6 +285,16 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '' }) => {
           >
             <Settings className="w-4 h-4" />
           </Button>
+          {onClose && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onClose}
+              className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
 

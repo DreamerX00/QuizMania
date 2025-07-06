@@ -15,7 +15,7 @@ export default function RoomInfoPanel({ room, isHost }: { room: any, isHost?: bo
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(room.id);
+    navigator.clipboard.writeText(room.code);
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
@@ -55,10 +55,10 @@ export default function RoomInfoPanel({ room, isHost }: { room: any, isHost?: bo
           <span className="text-2xl font-bold text-purple-300 drop-shadow-glow">{room.title}</span>
           <button onClick={handleCopy} className="ml-auto flex items-center gap-1 text-blue-400 hover:text-blue-200">
             {copied ? <CheckCircle2 className="text-green-400" /> : <ClipboardCopy />}
-            <span className="text-xs">{room.id}</span>
+            <span className="text-xs">{room.code}</span>
           </button>
           <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="ml-4 flex flex-col items-center">
-            <QRCodeCanvas value={room.id} size={48} bgColor="#23234d" fgColor="#a78bfa" level="H" includeMargin={false} />
+            <QRCodeCanvas value={room.code} size={48} bgColor="#23234d" fgColor="#a78bfa" level="H" includeMargin={false} />
             <span className="text-xs text-slate-400 mt-1">Scan to Join</span>
           </motion.div>
         </div>

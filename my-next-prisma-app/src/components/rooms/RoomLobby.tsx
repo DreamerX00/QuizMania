@@ -83,7 +83,7 @@ export default function RoomLobby({ room, members, currentUser }: { room: any, m
           <h2 className="text-2xl md:text-3xl font-extrabold text-blue-400 flex items-center gap-2 mb-6 tracking-widest uppercase drop-shadow-glow">
             Lobby
           </h2>
-          <RoomAvatarGrid players={members.map(m => ({ ...m.user, role: m.role }))} host={members.find(m => m.role === 'HOST')?.user.name} teamMode={room.type === 'Squad' || room.type === 'Custom'} user={currentUser} />
+          <RoomAvatarGrid players={members.map(m => ({ ...m.user, id: m.user.clerkId, role: m.role }))} hostId={members.find(m => m.role === 'HOST')?.user.clerkId} teamMode={room.type === 'Squad' || room.type === 'Custom'} user={currentUser} />
         </div>
       </section>
       {/* Right: Info/Controls/Chat */}

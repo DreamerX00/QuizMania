@@ -432,14 +432,18 @@ model ClanChat {
 }
 
 model Room {
-  id           String           @id @default(cuid())
-  name         String
-  code         String           @unique
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  memberships  RoomMembership[]
-  invites      RoomInvite[]
-  chatMessages RoomChat[]
+  id              String           @id @default(cuid())
+  name            String
+  code            String           @unique
+  type            String           @default("Public")
+  maxParticipants Int              @default(8)
+  quizTypes       String[]         @default([])
+  password        String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  memberships     RoomMembership[]
+  invites         RoomInvite[]
+  chatMessages    RoomChat[]
 }
 
 model RoomMembership {

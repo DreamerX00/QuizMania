@@ -30,8 +30,9 @@ export function registerRoomEvents(io: Server, socket: Socket) {
       roomCounts.set(roomId, count);
       if (count === 1) activeRooms.inc();
       cb?.({ success: true });
-      io.to(roomId).emit('room:user-joined', { user: (socket as any).user, roomId });
-      logger.info({ user: (socket as any).user?.id, roomId }, 'User joined room');
+      const user = (socket as any).user || { id: socket.id, name: 'Anonymous User' };
+      io.to(roomId).emit('room:user-joined', { user, roomId });
+      logger.info({ user: user.id, roomId }, 'User joined room');
     } catch (err) {
       cb?.({ error: 'Failed to join room' });
     }
@@ -49,8 +50,9 @@ export function registerRoomEvents(io: Server, socket: Socket) {
         roomCounts.set(roomId, count);
       }
       cb?.({ success: true });
-      io.to(roomId).emit('room:user-left', { user: (socket as any).user, roomId });
-      logger.info({ user: (socket as any).user?.id, roomId }, 'User left room');
+      const user = (socket as any).user || { id: socket.id, name: 'Anonymous User' };
+      io.to(roomId).emit('room:user-left', { user, roomId });
+      logger.info({ user: user.id, roomId }, 'User left room');
     } catch (err) {
       cb?.({ error: 'Failed to leave room' });
     }
@@ -65,8 +67,9 @@ export function registerRoomEvents(io: Server, socket: Socket) {
   socket.on('disconnecting', () => {
     for (const roomId of socket.rooms) {
       if (roomId !== socket.id) {
-        io.to(roomId).emit('room:user-left', { user: (socket as any).user, roomId });
-        logger.info({ user: (socket as any).user?.id, roomId }, 'User left room (disconnect)');
+        const user = (socket as any).user || { id: socket.id, name: 'Anonymous User' };
+        io.to(roomId).emit('room:user-left', { user, roomId });
+        logger.info({ user: user.id, roomId }, 'User left room (disconnect)');
       }
     }
   });

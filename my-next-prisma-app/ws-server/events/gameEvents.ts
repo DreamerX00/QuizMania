@@ -12,7 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
-import { createVoteLog } from '../../services/voteLogService';
+import { createVoteLog } from '../../src/services/voteLogService';
 import { Counter } from 'prom-client';
 declare const votesTotal: Counter;
 

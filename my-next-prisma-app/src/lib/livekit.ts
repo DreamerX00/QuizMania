@@ -22,7 +22,6 @@ import {
   ScreenShareCaptureOptions,
   VideoCodec,
   AudioCodec,
-  LogLevel,
 } from 'livekit-client';
 
 // Voice chat state
@@ -68,8 +67,8 @@ class LiveKitService {
   };
 
   constructor() {
-    // Set LiveKit client options
-    Room.setLogLevel(LogLevel.warn);
+    // LiveKit client options - log level is now configured differently
+    // Room.setLogLevel(LogLevel.warn); // This method doesn't exist in current version
   }
 
   // Set event callbacks

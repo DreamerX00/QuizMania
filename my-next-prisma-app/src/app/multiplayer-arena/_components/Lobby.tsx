@@ -4,20 +4,19 @@ import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Mic, Plus, Crown, Sparkles, Users } from 'lucide-react';
 import InviteModal from '../components/InviteModal';
-import useSWR from 'swr';
 import toast from 'react-hot-toast';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
-
-const Lobby = () => {
+const Lobby = ({ participants, currentRoom, gameState }: { 
+  participants: Map<string, any>; 
+  currentRoom: any; 
+  gameState: string; 
+}) => {
     const [isInviteModalOpen, setInviteModalOpen] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    // Fetch match history (replace with live lobby endpoint if available)
-    const { data, error, isLoading } = useSWR('/api/multiplayer-arena/history', fetcher);
-    const matches = data?.history || [];
-    // For demo, show the most recent match's players (replace with real lobby data if available)
-    const players = matches.length > 0 ? matches[0].players || [] : [];
-    const filledSlots = players.length;
+    
+    // Convert participants Map to array for rendering
+    const participantsArray = Array.from(participants.values());
+    const filledSlots = participantsArray.length;
 
     const playSound = (src: string) => {
       if (!audioRef.current) {
@@ -49,13 +48,7 @@ const Lobby = () => {
       // TODO: Implement match start logic with real API
     };
 
-    if (isLoading) {
-      return <div className="flex items-center justify-center h-full">Loading lobby...</div>;
-    }
-    if (error) {
-      toast.error('Failed to load lobby.');
-      return <div className="flex items-center justify-center h-full text-red-500">Failed to load lobby.</div>;
-    }
+
 
   return (
     <motion.div
@@ -74,32 +67,32 @@ const Lobby = () => {
         </div>
       </div>
       <div className="grid grid-cols-5 gap-3 flex-1 items-center">
-          {players.length === 0 ? (
+          {participantsArray.length === 0 ? (
             <div className="col-span-5 flex flex-col items-center justify-center h-full text-slate-400">No players in lobby.</div>
           ) : (
-            players.map((player: any, index: number) => (
-            player ? (
-              <div key={player.name} className="flex flex-col items-center gap-1">
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center relative bg-slate-200 dark:bg-slate-800/80 border-2 ${player.isLeader ? 'border-yellow-400' : 'border-slate-300 dark:border-slate-600'}`}>
-                  <img src={player.avatar} alt={player.name} className="w-18 h-18 rounded-full p-1" />
-                  {player.isLeader && (
+            participantsArray.map((participant: any, index: number) => (
+              <div key={participant.id} className="flex flex-col items-center gap-1">
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center relative bg-slate-200 dark:bg-slate-800/80 border-2 ${participant.isLeader ? 'border-yellow-400' : 'border-slate-300 dark:border-slate-600'}`}>
+                  <img src={participant.avatar || '/default_avatar.png'} alt={participant.name} className="w-18 h-18 rounded-full p-1" />
+                  {participant.isLeader && (
                     <div className="absolute -top-2 -right-2 bg-yellow-400 text-slate-900 p-1 rounded-full">
                       <Crown size={12} />
                     </div>
                   )}
                 </div>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{player.name} {player.isYou && '(You)'}</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{participant.name}</p>
               </div>
-            ) : (
+            ))
+          )}
+          {/* Show empty slots */}
+          {Array.from({ length: Math.max(0, 5 - participantsArray.length) }, (_, index) => (
               <div key={`empty-${index}`} className="flex flex-col items-center gap-1" onClick={handleInviteClick}>
                 <div className="w-20 h-20 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-900/50 border-2 border-dashed border-slate-300 dark:border-slate-700 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800/70 transition-colors">
                   <Plus size={24} className="text-slate-400 dark:text-slate-500" />
                 </div>
                 <p className="text-sm font-semibold text-slate-400 dark:text-slate-600">Empty</p>
               </div>
-            )
-            ))
-          )}
+          ))}
       </div>
       <motion.div
         whileHover={{ scale: 1.02 }}

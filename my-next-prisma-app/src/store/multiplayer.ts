@@ -559,7 +559,7 @@ liveKitService.setCallbacks({
 
 // Export selectors for common state access
 export const useCurrentRoom = () => useMultiplayerStore((state) => state.currentRoom);
-export const useParticipants = () => useMultiplayerStore((state) => Array.from(state.participants.values()));
+export const useParticipants = () => useMultiplayerStore((state) => state.participants);
 export const useChat = () => useMultiplayerStore((state) => state.chat);
 export const useVoting = () => useMultiplayerStore((state) => state.voting);
 export const useGame = () => useMultiplayerStore((state) => state.game);

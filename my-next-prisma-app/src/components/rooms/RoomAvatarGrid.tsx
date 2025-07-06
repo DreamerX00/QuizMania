@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Mic, MicOff, Volume2, Users, UserMinus } from 'lucide-react';
+import { Mic, MicOff, Volume2, Users, UserMinus } from 'lucide-react';
 import { getRankByXP } from '@/utils/rank';
-import { AnimatedTooltip } from '@/components/ui/animated-tooltip';
+import { toast } from 'react-hot-toast';
 
 const playSound = (src: string) => {
   const a = new Audio(src);
@@ -10,12 +10,32 @@ const playSound = (src: string) => {
   a.play();
 };
 
-export default function RoomAvatarGrid({ players, host, teamMode = false, user }: { players: any[], host: string, teamMode?: boolean, user?: any }) {
+interface Player {
+  id: string;
+  name: string;
+  avatar: string;
+  muted?: boolean;
+  isSpeaking?: boolean;
+  online?: boolean;
+  xp?: number;
+  rank?: string;
+  clerkId?: string;
+}
+
+interface RoomAvatarGridProps {
+  players: Player[];
+  hostId: string;
+  teamMode?: boolean;
+  user?: { userId: string };
+  room?: { id: string };
+}
+
+export default function RoomAvatarGrid({ players, hostId, teamMode = false, user, room }: RoomAvatarGridProps) {
   // Mock team state for demo
   const [teamA, setTeamA] = useState(players.filter((_, i) => i % 2 === 0));
   const [teamB, setTeamB] = useState(players.filter((_, i) => i % 2 !== 0));
 
-  const handleMove = (player: any, toTeam: 'A' | 'B') => {
+  const handleMove = (player: Player, toTeam: 'A' | 'B') => {
     if (toTeam === 'A') {
       setTeamB(b => b.filter(p => p.name !== player.name));
       setTeamA(a => [...a, player]);
@@ -27,8 +47,8 @@ export default function RoomAvatarGrid({ players, host, teamMode = false, user }
   };
 
   // Avatar with host glow, voice ring, and rank glow
-  const Avatar = ({ player }: { player: any }) => {
-    const isHost = player.name === host;
+  const Avatar = ({ player }: { player: Player }) => {
+    const isHost = player.id === hostId;
     const xp = typeof player.xp === 'number' ? player.xp : 0;
     const rankInfo = getRankByXP(xp);
     const colorA = rankInfo.current.colorScheme[0];
@@ -95,7 +115,7 @@ export default function RoomAvatarGrid({ players, host, teamMode = false, user }
             <AnimatePresence>
               {teamA.map((player, i) => (
                 <motion.div
-                  key={player.name}
+                  key={player.id || player.clerkId || `${player.name}-${i}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
@@ -131,7 +151,7 @@ export default function RoomAvatarGrid({ players, host, teamMode = false, user }
             <AnimatePresence>
               {teamB.map((player, i) => (
                 <motion.div
-                  key={player.name}
+                  key={player.id || player.clerkId || `${player.name}-${i}`}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
@@ -182,12 +202,60 @@ export default function RoomAvatarGrid({ players, host, teamMode = false, user }
     ? 'flex flex-col items-center justify-center h-full w-full'
     : 'flex flex-col items-center w-full pt-4';
 
-  // Avatar actions
-  const handleMute = (player: any) => {};
-  const handleKick = (player: any) => {};
-
   // Tooltip state
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  // Avatar actions
+  const handleMute = async (player: Player) => {
+    try {
+      const response = await fetch(`/api/rooms/voice/mute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          roomId: room?.id, 
+          playerId: player.id, 
+          muted: !player.muted 
+        }),
+      });
+      
+      if (response.ok) {
+        toast.success(player.muted ? `Unmuted ${player.name}` : `Muted ${player.name}`);
+        // Update local state or trigger refresh
+      } else {
+        toast.error('Failed to update mute status');
+      }
+    } catch (error) {
+      console.error('Error updating mute status:', error);
+      toast.error('Failed to update mute status');
+    }
+  };
+
+  const handleKick = async (player: Player) => {
+    if (!confirm(`Are you sure you want to kick ${player.name} from the room?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/rooms/members`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          roomId: room?.id, 
+          userId: player.id 
+        }),
+      });
+      
+      if (response.ok) {
+        toast.success(`Kicked ${player.name} from the room`);
+        // Update local state or trigger refresh
+      } else {
+        toast.error('Failed to kick player');
+      }
+    } catch (error) {
+      console.error('Error kicking player:', error);
+      toast.error('Failed to kick player');
+    }
+  };
 
   return (
     <div
@@ -205,7 +273,7 @@ export default function RoomAvatarGrid({ players, host, teamMode = false, user }
       >
         {players.map((player, idx) => (
           <motion.div
-            key={player.name}
+            key={player.id || player.clerkId || `${player.name}-${idx}`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: idx * 0.04, type: 'spring', stiffness: 200, damping: 20 }}
@@ -221,13 +289,13 @@ export default function RoomAvatarGrid({ players, host, teamMode = false, user }
               <img
                 src={player.avatar}
                 alt={player.name}
-                className={`rounded-full border-2 shadow-lg object-cover transition-all duration-300 ${player.name === host ? 'border-yellow-400' : 'border-blue-500/40'} bg-slate-800`}
+                className={`rounded-full border-2 shadow-lg object-cover transition-all duration-300 ${player.id === hostId ? 'border-yellow-400' : 'border-blue-500/40'} bg-slate-800`}
                 style={{ width: avatarSize, height: avatarSize }}
               />
               {/* Online/connected status dot */}
               <span className={`absolute bottom-1 right-1 w-3 h-3 rounded-full border-2 ${player.online ? 'bg-green-400' : 'bg-red-400'} border-white`}></span>
               {/* Host badge */}
-              {player.name === host && (
+              {player.id === hostId && (
                 <span className="absolute -top-2 -right-2 bg-yellow-400 text-slate-900 p-1 rounded-full z-30 shadow-lg" title="Host">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 17l-3-9 7 6 3-8 3 8 7-6-3 9z"/></svg>
                 </span>
@@ -246,7 +314,7 @@ export default function RoomAvatarGrid({ players, host, teamMode = false, user }
                 <div className="flex items-center gap-2 mb-1">
                   <img src={player.avatar} alt={player.name} className="w-8 h-8 rounded-full border-2 border-blue-400" />
                   <span className="font-bold text-white text-base">{player.name}</span>
-                  {player.name === host && (
+                  {player.id === hostId && (
                     <span className="ml-1 bg-yellow-400 text-slate-900 px-2 py-0.5 rounded-full text-xs font-bold">Host</span>
                   )}
                 </div>
@@ -264,7 +332,7 @@ export default function RoomAvatarGrid({ players, host, teamMode = false, user }
                   >
                     {player.muted ? <MicOff size={16} /> : <Mic size={16} />}
                   </button>
-                  {user && user.name === host && player.name !== host && (
+                  {user && user.userId === hostId && player.id !== hostId && (
                     <button
                       className="text-red-400 hover:text-red-600 transition"
                       onClick={() => handleKick(player)}
@@ -287,7 +355,7 @@ export default function RoomAvatarGrid({ players, host, teamMode = false, user }
               >
                 {player.muted ? <MicOff size={16} /> : <Mic size={16} />}
               </button>
-              {user && user.name === host && player.name !== host && (
+              {user && user.userId === hostId && player.id !== hostId && (
                 <button
                   className="text-red-400 hover:text-red-600 transition"
                   onClick={() => handleKick(player)}

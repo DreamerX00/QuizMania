@@ -165,7 +165,15 @@ class SocketService {
     }
 
     if (this.socket && !this.socket.connected) {
-      // Set auth data
+      // Debug logging
+      console.log('Connecting to WebSocket with:', {
+        userId,
+        hasToken: !!userToken,
+        tokenLength: userToken?.length,
+        tokenPreview: userToken ? `${userToken.substring(0, 20)}...` : 'no token'
+      });
+      
+      // Set auth data (optional when auth is disabled)
       this.socket.auth = { userId, token: userToken };
       this.socket.connect();
     }

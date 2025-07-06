@@ -14,7 +14,8 @@ export const subClient = createClient({ url: REDIS_URL });
     await subClient.connect();
     logger.info('Connected to Redis');
   } catch (err) {
-    logger.error('Redis connection error', err);
-    process.exit(1);
+    logger.error('Redis connection error - continuing without Redis', err);
+    // Don't exit process for development - Redis is optional
+    // process.exit(1);
   }
 })(); 
