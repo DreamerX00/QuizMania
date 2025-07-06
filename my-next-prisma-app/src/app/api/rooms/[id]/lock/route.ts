@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId } = await auth();
@@ -13,7 +13,7 @@ export async function PATCH(
     }
 
     const { locked } = await request.json();
-    const { roomId } = params;
+    const { id: roomId } = params;
 
     // Check if user is host of the room
     const membership = await prisma.roomMembership.findFirst({

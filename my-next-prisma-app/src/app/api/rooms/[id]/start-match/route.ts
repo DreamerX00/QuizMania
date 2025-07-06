@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
-export async function PATCH(
+export async function POST(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId } = await auth();
@@ -12,8 +12,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { quizType } = await request.json();
-    const { roomId } = params;
+    const { id: roomId } = params;
 
     // Check if user is host of the room
     const membership = await prisma.roomMembership.findFirst({
@@ -24,15 +23,27 @@ export async function PATCH(
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
 
-    // Update room quiz type
+    // Check if room has enough players (at least 2)
+    const playerCount = await prisma.roomMembership.count({
+      where: { roomId },
+    });
+
+    if (playerCount < 2) {
+      return NextResponse.json({ error: 'Need at least 2 players to start' }, { status: 400 });
+    }
+
+    // Update room status to started
     const updatedRoom = await prisma.room.update({
       where: { id: roomId },
-      data: { quizType },
+      data: { 
+        status: 'STARTED',
+        startedAt: new Date(),
+      },
     });
 
     return NextResponse.json({ room: updatedRoom });
   } catch (error) {
-    console.error('Error updating quiz type:', error);
-    return NextResponse.json({ error: 'Failed to update quiz type' }, { status: 500 });
+    console.error('Error starting match:', error);
+    return NextResponse.json({ error: 'Failed to start match' }, { status: 500 });
   }
 } 

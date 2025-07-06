@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 
 // GET: List invites for the authenticated user
@@ -28,6 +28,13 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    // Get user data from Clerk
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    
     const { roomId, inviteeId, action, inviteId } = await request.json();
     if (action === 'send') {
       // Only host can send
@@ -43,6 +50,17 @@ export async function POST(request: NextRequest) {
       const invite = await prisma.roomInvite.findUnique({ where: { id: inviteId } });
       if (!invite || invite.userId !== userId) return NextResponse.json({ error: 'Invite not found' }, { status: 404 });
       if (action === 'accept') {
+        // Ensure user exists in the database
+        await prisma.user.upsert({
+          where: { clerkId: userId },
+          update: {},
+          create: {
+            clerkId: userId,
+            email: user.emailAddresses[0]?.emailAddress || 'unknown@example.com',
+            name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || user.username || 'Unknown User',
+            avatarUrl: user.imageUrl,
+          },
+        });
         // Add to room
         await prisma.roomMembership.create({ data: { roomId: invite.roomId, userId, role: 'PLAYER' } });
       }

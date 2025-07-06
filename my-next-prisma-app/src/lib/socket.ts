@@ -70,7 +70,7 @@ class SocketService {
   }
 
   private init() {
-    const WS_SERVER_URL = process.env.NEXT_PUBLIC_WS_SERVER_URL || 'http://localhost:4000';
+    const WS_SERVER_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001';
     
     this.socket = io(WS_SERVER_URL, {
       transports: ['websocket', 'polling'],

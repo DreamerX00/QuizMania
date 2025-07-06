@@ -46,6 +46,37 @@ function ParticleBurst({ x, y, keyId }: { x: number; y: number; keyId: string })
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
+// List of fallback avatars
+const fallbackAvatars = [
+  '/avatars/wink%20(2).png',
+  '/avatars/voila.png',
+  '/avatars/sleep.png',
+  '/avatars/maybe.png',
+  '/avatars/bored%20.png',
+  '/avatars/tears.png',
+  '/avatars/pissed.png',
+  '/avatars/hmmm.png',
+  '/avatars/shocked.png',
+  '/avatars/gotit.png',
+  '/avatars/amazed.png',
+  '/avatars/hi.png',
+  '/avatars/wink.png',
+  '/avatars/kiss.png',
+  '/avatars/sleeping.png',
+  '/avatars/thinking.png',
+  '/avatars/sad.png',
+  '/avatars/crying.png',
+  '/avatars/angry.png',
+];
+
+function getRandomAvatar(seed: string) {
+  // Use a hash of the seed (user id or name) for deterministic fallback
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+  hash = Math.abs(hash);
+  return fallbackAvatars[hash % fallbackAvatars.length];
+}
+
 export default function RoomLobby({ room, members, currentUser }: { room: any, members: any[], currentUser: any }) {
   const isHost = members.find((m: any) => m.role === 'HOST' && m.userId === currentUser.userId);
   const [chatInput, setChatInput] = useState('');
@@ -83,7 +114,17 @@ export default function RoomLobby({ room, members, currentUser }: { room: any, m
           <h2 className="text-2xl md:text-3xl font-extrabold text-blue-400 flex items-center gap-2 mb-6 tracking-widest uppercase drop-shadow-glow">
             Lobby
           </h2>
-          <RoomAvatarGrid players={members.map(m => ({ ...m.user, id: m.user.clerkId, role: m.role }))} hostId={members.find(m => m.role === 'HOST')?.user.clerkId} teamMode={room.type === 'Squad' || room.type === 'Custom'} user={currentUser} />
+          <RoomAvatarGrid
+            players={members.map(m => ({
+              ...m.user,
+              id: m.user.clerkId,
+              role: m.role,
+              avatar: m.user.avatarUrl || getRandomAvatar(m.user.clerkId || m.user.name || Math.random().toString()),
+            }))}
+            hostId={members.find(m => m.role === 'HOST')?.user.clerkId}
+            teamMode={room.type === 'Squad' || room.type === 'Custom'}
+            user={currentUser}
+          />
         </div>
       </section>
       {/* Right: Info/Controls/Chat */}

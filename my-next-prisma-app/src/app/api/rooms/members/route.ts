@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 
 // GET: List members of a room
@@ -33,6 +33,13 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    // Get user data from Clerk
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    
     const { roomId, newUserId, role } = await request.json();
     if (!roomId) {
       return NextResponse.json({ error: 'Room ID required' }, { status: 400 });
@@ -41,6 +48,19 @@ export async function POST(request: NextRequest) {
       // Join self
       const existing = await prisma.roomMembership.findFirst({ where: { roomId, userId } });
       if (existing) return NextResponse.json({ error: 'Already a member' }, { status: 409 });
+      
+      // Ensure user exists in the database
+      await prisma.user.upsert({
+        where: { clerkId: userId },
+        update: {},
+        create: {
+          clerkId: userId,
+          email: user.emailAddresses[0]?.emailAddress || 'unknown@example.com',
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || user.username || 'Unknown User',
+          avatarUrl: user.imageUrl,
+        },
+      });
+      
       const member = await prisma.roomMembership.create({
         data: { roomId, userId, role: 'PLAYER' },
         include: { user: true },
@@ -52,6 +72,19 @@ export async function POST(request: NextRequest) {
       if (!host) return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
       const existing = await prisma.roomMembership.findFirst({ where: { roomId, userId: newUserId } });
       if (existing) return NextResponse.json({ error: 'Already a member' }, { status: 409 });
+      
+      // For adding other users, we need to get their data from Clerk
+      // This is a simplified approach - in production you might want to fetch their data differently
+      await prisma.user.upsert({
+        where: { clerkId: newUserId },
+        update: {},
+        create: {
+          clerkId: newUserId,
+          email: `user-${newUserId}@example.com`, // Placeholder email
+          name: `User ${newUserId.slice(-4)}`, // Placeholder name
+        },
+      });
+      
       const member = await prisma.roomMembership.create({
         data: { roomId, userId: newUserId, role: role || 'PLAYER' },
         include: { user: true },
@@ -64,26 +97,57 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE: Leave or remove member (by host or self)
+// DELETE: Remove member (kick player)
 export async function DELETE(request: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { roomId, removeUserId } = await request.json();
-    if (!roomId || !removeUserId) {
+    const { roomId, userId: targetUserId } = await request.json();
+    
+    console.log('DELETE /api/rooms/members - Request data:', { roomId, targetUserId, currentUserId: userId });
+    
+    if (!roomId || !targetUserId) {
+      console.log('Missing required fields:', { roomId: !!roomId, targetUserId: !!targetUserId });
       return NextResponse.json({ error: 'Room ID and user ID required' }, { status: 400 });
     }
-    // Only host or self can remove
-    const host = await prisma.roomMembership.findFirst({ where: { roomId, userId, role: 'HOST' } });
-    if (userId !== removeUserId && !host) {
-      return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
+
+    // Check if user is host of the room
+    const hostMembership = await prisma.roomMembership.findFirst({
+      where: { roomId, userId, role: 'HOST' },
+    });
+
+    if (!hostMembership) {
+      console.log('User is not host of the room');
+      return NextResponse.json({ error: 'Not authorized to kick players' }, { status: 403 });
     }
-    await prisma.roomMembership.deleteMany({ where: { roomId, userId: removeUserId } });
-    return NextResponse.json({ success: true });
+
+    // Check if target user is a member
+    const targetMembership = await prisma.roomMembership.findFirst({
+      where: { roomId, userId: targetUserId },
+    });
+
+    if (!targetMembership) {
+      console.log('Target user is not a member of the room');
+      return NextResponse.json({ error: 'User is not a member of this room' }, { status: 404 });
+    }
+
+    // Prevent host from kicking themselves
+    if (targetUserId === userId) {
+      console.log('Host trying to kick themselves');
+      return NextResponse.json({ error: 'Cannot kick yourself' }, { status: 400 });
+    }
+
+    // Remove the member
+    await prisma.roomMembership.delete({
+      where: { id: targetMembership.id },
+    });
+
+    console.log('Player kicked successfully');
+    return NextResponse.json({ success: true, message: 'Player kicked successfully' });
   } catch (error) {
-    console.error('Error removing room member:', error);
-    return NextResponse.json({ error: 'Failed to remove room member' }, { status: 500 });
+    console.error('Error kicking room member:', error);
+    return NextResponse.json({ error: 'Failed to kick room member' }, { status: 500 });
   }
 } 

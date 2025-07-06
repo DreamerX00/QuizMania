@@ -24,7 +24,7 @@ import {
 import { useLiveKit } from '@/lib/livekit';
 import { useSocket } from '@/lib/socket';
 import { Participant } from 'livekit-client';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 interface VoiceChatProps {
   roomId: string;
@@ -87,7 +87,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
       onParticipantLeft: (participant) => {
         console.log('Voice participant left:', participant.identity);
         updateParticipants();
-        toast.info(`${participant.identity} left voice chat`);
+        toast(`${participant.identity} left voice chat`);
       },
       onParticipantMuted: (participant, muted) => {
         console.log('Voice participant muted:', participant.identity, muted);
@@ -110,7 +110,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
         console.log('Voice disconnected:', reason);
         setConnectionMode('disconnected');
         setIsVoiceEnabled(false);
-        toast.info('Voice chat disconnected');
+        toast('Voice chat disconnected');
       },
     });
   }, [liveKitService]);
@@ -201,7 +201,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
       socketService.leaveVoiceRoom(roomId);
       setIsVoiceEnabled(false);
       setConnectionMode('disconnected');
-      toast.info('Voice chat disabled');
+              toast('Voice chat disabled');
     } else {
       // Enable voice
       setIsVoiceEnabled(true);

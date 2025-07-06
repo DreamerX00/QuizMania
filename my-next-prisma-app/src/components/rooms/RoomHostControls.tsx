@@ -2,10 +2,24 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { UserMinus, Lock, Users, Sparkles, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
+
+interface Room {
+  id: string;
+  name: string;
+  code: string;
+  type: string;
+  maxParticipants: number;
+  quizTypes: string[];
+  quizType?: string;
+  isLocked?: boolean;
+  status?: string;
+  startedAt?: Date;
+  password?: string;
+}
 
 interface RoomHostControlsProps {
-  room: any;
+  room: Room;
   onInvite?: () => void;
   onStartMatch?: () => void;
   onKickPlayer?: (playerId: string) => void;
@@ -24,16 +38,22 @@ export default function RoomHostControls({
   const [isLocked, setIsLocked] = useState(room.isLocked || false);
   const [selectedQuizType, setSelectedQuizType] = useState(room.quizType || 'general');
 
+  // Validate room has required properties
+  if (!room.id) {
+    console.error('Room ID is required for host controls');
+    return null;
+  }
+
   const handleKick = async () => {
     // TODO: Show player selection modal
-    toast.info('Kick player functionality - select a player to kick');
+            toast('Kick player functionality - select a player to kick');
   };
 
   const handleInvite = () => {
     if (onInvite) {
       onInvite();
     } else {
-      toast.info('Invite functionality - share room code or invite specific users');
+              toast('Invite functionality - share room code or invite specific users');
     }
   };
 
@@ -53,7 +73,8 @@ export default function RoomHostControls({
         toast.success(newLockedState ? 'Room locked' : 'Room unlocked');
         if (onLockRoom) onLockRoom(newLockedState);
       } else {
-        toast.error('Failed to update room lock status');
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to update room lock status');
         setIsLocked(!newLockedState); // Revert on error
       }
     } catch (error) {
@@ -76,7 +97,8 @@ export default function RoomHostControls({
         toast.success(`Quiz type set to ${selectedQuizType}`);
         if (onSetQuizType) onSetQuizType(selectedQuizType);
       } else {
-        toast.error('Failed to set quiz type');
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to set quiz type');
       }
     } catch (error) {
       console.error('Error setting quiz type:', error);
@@ -96,7 +118,8 @@ export default function RoomHostControls({
         toast.success('Match started!');
         if (onStartMatch) onStartMatch();
       } else {
-        toast.error('Failed to start match');
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to start match');
       }
     } catch (error) {
       console.error('Error starting match:', error);

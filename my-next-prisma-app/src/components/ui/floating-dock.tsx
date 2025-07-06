@@ -16,7 +16,7 @@ export const FloatingDock = ({
   desktopClassName,
   mobileClassName,
 }: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
+  items: { title: string; icon: React.ReactNode; href?: string; onClick?: (e: React.MouseEvent) => void }[];
   desktopClassName?: string;
   mobileClassName?: string;
 }) => {
@@ -32,7 +32,7 @@ const FloatingDockMobile = ({
   items,
   className,
 }: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
+  items: { title: string; icon: React.ReactNode; href?: string; onClick?: (e: React.MouseEvent) => void }[];
   className?: string;
 }) => {
   const [open, setOpen] = useState(false);
@@ -62,9 +62,10 @@ const FloatingDockMobile = ({
                 transition={{ delay: (items.length - 1 - idx) * 0.05 }}
               >
                 <a
-                  href={item.href}
+                  href={item.href || '#'}
                   key={item.title}
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-900"
+                  onClick={item.onClick ? (e) => { e.preventDefault(); item.onClick && item.onClick(e); } : undefined}
                 >
                   <div className="h-4 w-4">{item.icon}</div>
                 </a>
@@ -87,7 +88,7 @@ const FloatingDockDesktop = ({
   items,
   className,
 }: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
+  items: { title: string; icon: React.ReactNode; href?: string; onClick?: (e: React.MouseEvent) => void }[];
   className?: string;
 }) => {
   let mouseX = useMotionValue(Infinity);
@@ -112,11 +113,13 @@ function IconContainer({
   title,
   icon,
   href,
+  onClick,
 }: {
   mouseX: MotionValue;
   title: string;
   icon: React.ReactNode;
-  href: string;
+  href?: string;
+  onClick?: (e: React.MouseEvent) => void;
 }) {
   let ref = useRef<HTMLDivElement>(null);
 
@@ -161,7 +164,10 @@ function IconContainer({
   const [hovered, setHovered] = useState(false);
 
   return (
-    <a href={href}>
+    <a
+      href={href || '#'}
+      onClick={onClick ? (e) => { e.preventDefault(); onClick(e); } : undefined}
+    >
       <motion.div
         ref={ref}
         style={{ width, height }}

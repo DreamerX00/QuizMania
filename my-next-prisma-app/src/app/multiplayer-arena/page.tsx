@@ -2,55 +2,41 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useSocket } from '@/lib/socket';
-import { useMultiplayerStore, useCurrentRoom, useParticipants, useChat, useVoting, useGame, useVoice, useUI, useMultiplayerActions } from '@/store/multiplayer';
+import { useCurrentRoom, useParticipants, useGame, useVoice, useUI, useMultiplayerActions } from '@/store/multiplayer';
 import GameSetup from './_components/GameSetup';
 import Lobby from './_components/Lobby';
 import SocialChat from './_components/SocialChat';
 import PublicChat from './_components/PublicChat';
 import VotingSystem from './_components/VotingSystem';
-import { FloatingDock } from '@/components/ui/floating-dock';
 import FriendModalOverlay from './_components/FriendModalOverlay';
 import RankPanelOverlay from './_components/RankPanelOverlay';
 import ClanHubOverlay from './_components/ClanHubOverlay';
 import RoomModalOverlay from './_components/RoomModalOverlay';
 import VoiceChat from '@/components/voice/VoiceChat';
 import { AnimatePresence, motion } from 'framer-motion';
-import { User, Users, Shield, Home, DoorOpen, Phone, Mic, MicOff, Zap, Crown, TrendingUp, Coins, Gem, Trophy, X } from 'lucide-react';
+import { User, Users, Shield, Home, DoorOpen, Phone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { FloatingDock } from '@/components/ui/floating-dock';
 
 export default function MultiplayerArenaPage() {
   const { userId } = useAuth();
-  const { connect, disconnect, isConnected } = useSocket();
+  const { isConnected } = useSocket();
   
   // Multiplayer store state
   const currentRoom = useCurrentRoom();
   const participants = useParticipants();
-  const chat = useChat();
-  const voting = useVoting();
   const game = useGame();
   const voice = useVoice();
   const ui = useUI();
   const actions = useMultiplayerActions();
   
   const [activePanel, setActivePanel] = useState<string | null>(null);
-  const [userStats, setUserStats] = useState({
-    rank: 'Bronze',
-    xp: 1250,
-    level: 15,
-    coins: 500,
-    gems: 25,
-    winRate: 68.5,
-    totalMatches: 156,
-    currentStreak: 5
-  });
 
   // Initialize socket connection
   useEffect(() => {
     if (userId && !isConnected) {
       const initializeConnection = async () => {
         try {
-          // Use the new authentication method - no token needed for client
           actions.connect(userId);
         } catch (error) {
           console.error('Failed to initialize connection:', error);
@@ -89,24 +75,9 @@ export default function MultiplayerArenaPage() {
     if (lastPanel) setActivePanel(lastPanel);
   }, []);
 
-  const handleVoiceToggle = () => {
-    if (currentRoom) {
-      if (voice.isConnected) {
-        actions.leaveVoice(currentRoom.id);
-      } else {
-        actions.joinVoice(currentRoom.id);
-      }
-    }
-  };
-
   const handleVoiceButtonClick = () => {
-    // Toggle the voice chat panel
     console.log('Voice button clicked, current UI state:', ui);
     actions.toggleVoiceChat();
-  };
-
-  const handleMuteToggle = () => {
-    actions.muteVoice(!voice.isMuted);
   };
 
   // Dock items
@@ -147,68 +118,13 @@ export default function MultiplayerArenaPage() {
     },
   ];
 
-  // Main UI fades out when a panel is open
   return (
-    <main className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white p-4 pt-20 relative">
-      {/* Header with Connection Status */}
-      <div className="fixed top-0 left-0 right-0 z-40 bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Zap className="w-6 h-6 text-purple-400" />
-                <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  QuizMania Arena
-                </h1>
-              </div>
-              <Badge variant="outline" className={`${isConnected ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'}`}>
-                <div className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div>
-                {isConnected ? 'Online' : 'Offline'}
-              </Badge>
-              {currentRoom && (
-                <Badge variant="secondary" className="bg-purple-500/20 text-purple-400 border-purple-500/50">
-                  {currentRoom.name}
-                </Badge>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Voice Controls */}
-              {currentRoom && voice.isConnected && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant={voice.isMuted ? "destructive" : "outline"}
-                    onClick={handleMuteToggle}
-                    className="w-8 h-8 p-0"
-                  >
-                    {voice.isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                  </Button>
-                </div>
-              )}
-              
-              {/* User Stats */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1">
-                  <Crown className="w-4 h-4 text-yellow-400" />
-                  <span className="text-sm font-medium">{userStats.rank}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm">{userStats.xp}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Coins className="w-4 h-4 text-yellow-500" />
-                  <span className="text-sm">{userStats.coins}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Gem className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm">{userStats.gems}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <main className="min-h-screen w-screen overflow-x-hidden pt-16 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-[#0a0a0f] dark:via-[#1a1a2e] dark:to-[#16213e] text-gray-900 dark:text-white relative">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/2 right-0 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
       {/* Overlays */}
@@ -221,10 +137,10 @@ export default function MultiplayerArenaPage() {
       <AnimatePresence>
         {ui.showVoiceChat && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed top-20 right-4 z-30 w-80 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-lg"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed top-20 sm:top-24 right-2 sm:right-6 z-30 w-72 sm:w-80 bg-white/90 dark:bg-slate-800/90 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl"
           >
             {currentRoom ? (
               <VoiceChat 
@@ -232,11 +148,11 @@ export default function MultiplayerArenaPage() {
                 onClose={() => actions.toggleVoiceChat()}
               />
             ) : (
-              <div className="p-4">
+              <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    <h3 className="font-semibold text-slate-900 dark:text-white">Voice Chat</h3>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
+                    <h3 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base">Voice Chat</h3>
                   </div>
                   <Button
                     size="sm"
@@ -244,12 +160,12 @@ export default function MultiplayerArenaPage() {
                     onClick={() => actions.toggleVoiceChat()}
                     className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </div>
-                <div className="text-center py-8">
-                  <Phone className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-600 dark:text-slate-400 mb-4">
+                <div className="text-center py-6 sm:py-8">
+                  <Phone className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400 mx-auto mb-3 sm:mb-4" />
+                  <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mb-3 sm:mb-4">
                     Join a room to start voice chat
                   </p>
                   <Button 
@@ -275,71 +191,62 @@ export default function MultiplayerArenaPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4"
-            style={{ height: 'calc(100vh - 8rem)' }}
+            className="w-full h-full pt-4 sm:pt-6 pb-20 sm:pb-24 px-2 sm:px-4 md:px-6"
           >
-            {/* Left Column */}
-            <div className="lg:col-span-1 h-full">
-              <GameSetup />
-            </div>
-            {/* Middle Column */}
-            <div className="lg:col-span-2 flex flex-col gap-4 h-full">
-              <div className="flex-1">
-                <Lobby 
-                  participants={participants}
-                  currentRoom={currentRoom}
-                  gameState={game.phase}
-                />
-              </div>
-              <div className="flex-1">
-                <VotingSystem 
-                  gameState={game.phase}
-                  voting={voting}
-                  onVote={actions.castVote}
-                />
-              </div>
-            </div>
-            {/* Right Column: Chat only (Rank/Clan moved to dock) */}
-            <div className="lg:col-span-1 flex flex-col gap-4 h-full">
-              <div className="flex-1">
-                <SocialChat 
-                  messages={chat.messages}
-                  onSendMessage={actions.sendMessage}
-                />
-              </div>
-              <div className="flex-1">
-                <PublicChat 
-                  messages={chat.messages}
-                  onSendMessage={actions.sendMessage}
-                />
+            <div className="w-[90vw] max-w-[1600px] mx-auto h-full">
+              <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-3 sm:gap-4 lg:gap-6 h-full">
+                {/* Left Column - Game Setup */}
+                <div className="lg:col-span-3 xl:col-span-3 h-full">
+                  <GameSetup />
+                </div>
+                
+                {/* Center Column - Battle Arena */}
+                <div className="lg:col-span-6 xl:col-span-6 flex flex-col gap-3 sm:gap-4 lg:gap-6 h-full">
+                  <div className="flex-1 min-h-0">
+                    <Lobby 
+                      participants={participants}
+                      currentRoom={currentRoom}
+                      gameState={game.phase}
+                    />
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <VotingSystem 
+                      roomId={currentRoom?.id || ''}
+                    />
+                  </div>
+                </div>
+                
+                {/* Right Column - Communication Hub */}
+                <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-3 sm:gap-4 lg:gap-6 h-full">
+                  <div className="flex-1 min-h-0">
+                    <SocialChat 
+                      roomId={currentRoom?.id}
+                    />
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <PublicChat />
+                  </div>
+                </div>
               </div>
             </div>
           </motion.section>
         )}
       </AnimatePresence>
 
-      {/* Floating Dock (bottom center, always visible) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-        <FloatingDock
-          items={dockItems.map(({ title, icon, onClick }) => ({
-            title,
-            icon: (
-              <button
-                type="button"
-                aria-label={title}
-                className="focus:outline-none"
-                onClick={e => {
-                  e.preventDefault();
-                  onClick();
-                }}
-              >
-                {icon}
-              </button>
-            ),
-            href: '#',
-          }))}
-        />
-      </div>
+      {/* Animated Floating Dock (bottom center, always visible) */}
+      <FloatingDock
+        items={dockItems.map((item) => ({
+          title: item.title,
+          icon: item.icon,
+          href: '#',
+          onClick: (e: React.MouseEvent) => {
+            e.preventDefault();
+            item.onClick();
+          },
+        }))}
+        desktopClassName="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
+        mobileClassName="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
+      />
     </main>
   );
 } 

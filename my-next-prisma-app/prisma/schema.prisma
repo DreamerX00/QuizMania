@@ -438,6 +438,10 @@ model Room {
   type            String           @default("Public")
   maxParticipants Int              @default(8)
   quizTypes       String[]         @default([])
+  quizType        String?          // Single quiz type for host controls
+  isLocked        Boolean          @default(false)
+  status          String           @default("WAITING") // WAITING, STARTED, FINISHED
+  startedAt       DateTime?
   password        String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt

@@ -30,6 +30,35 @@ interface RoomAvatarGridProps {
   room?: { id: string };
 }
 
+const fallbackAvatars = [
+  '/avatars/wink%20(2).png',
+  '/avatars/voila.png',
+  '/avatars/sleep.png',
+  '/avatars/maybe.png',
+  '/avatars/bored%20.png',
+  '/avatars/tears.png',
+  '/avatars/pissed.png',
+  '/avatars/hmmm.png',
+  '/avatars/shocked.png',
+  '/avatars/gotit.png',
+  '/avatars/amazed.png',
+  '/avatars/hi.png',
+  '/avatars/wink.png',
+  '/avatars/kiss.png',
+  '/avatars/sleeping.png',
+  '/avatars/thinking.png',
+  '/avatars/sad.png',
+  '/avatars/crying.png',
+  '/avatars/angry.png',
+];
+
+function getRandomAvatar(seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+  hash = Math.abs(hash);
+  return fallbackAvatars[hash % fallbackAvatars.length];
+}
+
 export default function RoomAvatarGrid({ players, hostId, teamMode = false, user, room }: RoomAvatarGridProps) {
   // Mock team state for demo
   const [teamA, setTeamA] = useState(players.filter((_, i) => i % 2 === 0));
@@ -53,6 +82,10 @@ export default function RoomAvatarGrid({ players, hostId, teamMode = false, user
     const rankInfo = getRankByXP(xp);
     const colorA = rankInfo.current.colorScheme[0];
     const colorB = rankInfo.current.colorScheme[1];
+    // Fallback logic
+    const avatarUrl = player.avatar && player.avatar.trim() !== ''
+      ? player.avatar
+      : getRandomAvatar(player.id || player.name || Math.random().toString());
     return (
       <motion.div className="relative flex flex-col items-center">
         {/* Animated border/glow for host or always for rank */}
@@ -86,7 +119,7 @@ export default function RoomAvatarGrid({ players, hostId, teamMode = false, user
           />
         )}
         {/* Avatar image */}
-        <img src={player.avatar} alt={player.name} className="w-12 h-12 rounded-full border-2 shadow relative z-30" style={{ borderColor: colorA }} />
+        <img src={avatarUrl} alt={player.name} className="w-12 h-12 rounded-full border-2 shadow relative z-30" style={{ borderColor: colorA }} />
         {/* Host crown */}
         {isHost && (
           <span className="absolute -top-2 -right-2 bg-yellow-400 text-slate-900 p-1 rounded-full z-30 shadow-lg" title="Host">
@@ -235,12 +268,29 @@ export default function RoomAvatarGrid({ players, hostId, teamMode = false, user
       return;
     }
 
+    console.log('Kick request data:', { 
+      roomId: room?.id, 
+      playerId: player.id,
+      playerName: player.name,
+      room: room 
+    });
+
+    if (!room?.id) {
+      toast.error('Room ID is missing');
+      return;
+    }
+
+    if (!player.id) {
+      toast.error('Player ID is missing');
+      return;
+    }
+
     try {
       const response = await fetch(`/api/rooms/members`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          roomId: room?.id, 
+          roomId: room.id, 
           userId: player.id 
         }),
       });
@@ -249,7 +299,9 @@ export default function RoomAvatarGrid({ players, hostId, teamMode = false, user
         toast.success(`Kicked ${player.name} from the room`);
         // Update local state or trigger refresh
       } else {
-        toast.error('Failed to kick player');
+        const errorData = await response.json();
+        console.error('Kick failed:', errorData);
+        toast.error(errorData.error || 'Failed to kick player');
       }
     } catch (error) {
       console.error('Error kicking player:', error);

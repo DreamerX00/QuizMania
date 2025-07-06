@@ -113,7 +113,7 @@ io.on('connection', (socket) => {
 
 registerHealthEndpoint(app);
 
-const PORT = process.env.WS_PORT || 4000;
+const PORT = process.env.WS_PORT || 3001;
 server.listen(PORT, () => {
   logger.info(`WebSocket server running on port ${PORT}`);
 }); 
