@@ -2,6 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { useEffect, useState } from 'react';
+import type { Quiz } from '@/components/neuron-arena/types/quiz.types';
 
 // Types
 interface Quiz {
@@ -109,4 +111,37 @@ export function useDeleteQuiz() {
       queryClient.invalidateQueries({ queryKey: ['quizzes'] });
     },
   });
+}
+
+export function useStaticQuiz() {
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchQuiz() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/user_resources/sample-quiz-100.json');
+        if (!res.ok) throw new Error('Failed to load quiz');
+        const data = await res.json();
+        // Adapt structure if needed
+        setQuiz({
+          id: 'sample-quiz-100',
+          title: 'Neuron Arena Sample Quiz',
+          description: '',
+          questions: data.questions,
+          duration: 1800, // 30 min default
+        });
+      } catch (e: any) {
+        setError(e.message || 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchQuiz();
+  }, []);
+
+  return { quiz, loading, error };
 } 
