@@ -4,6 +4,7 @@ import { getPricingConfig } from '@/constants/pricing';
 import { DifficultyLevel } from '@prisma/client';
 import { toast } from "react-hot-toast";
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
 
 // Define a type for the Razorpay options and the window object
 interface RazorpayOptions {
@@ -103,6 +104,7 @@ export default function QuizDetailModal({ quiz, onClose, isPremiumUser = false, 
   const isPremium = quiz.difficultyLevel && getPricingConfig(quiz.difficultyLevel as DifficultyLevel).requiresPremium;
   const pricingConfig = quiz.difficultyLevel ? getPricingConfig(quiz.difficultyLevel as DifficultyLevel) : null;
   const isPaidQuiz = pricingConfig && pricingConfig.pricePerAttempt > 0;
+  const router = useRouter();
 
   const handlePurchase = async () => {
     setIsBuying(true);
@@ -327,7 +329,10 @@ export default function QuizDetailModal({ quiz, onClose, isPremiumUser = false, 
               )}
             </button>
           ) : (
-            <button className="w-full futuristic-button bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-4 rounded-xl text-xl hover:scale-105 transition-transform duration-300 shadow-lg">
+            <button
+              className="w-full futuristic-button bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-4 rounded-xl text-xl hover:scale-105 transition-transform duration-300 shadow-lg"
+              onClick={() => router.push(`/quiz/${quiz.id}/take`)}
+            >
               ▶️ Attempt Quiz
             </button>
           )}
