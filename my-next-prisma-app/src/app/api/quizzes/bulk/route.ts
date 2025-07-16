@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { QuizAttemptService } from '@/services/quizAttemptService';
 
 export async function GET(req: NextRequest) {
   const { userId } = await auth();
@@ -9,18 +10,21 @@ export async function GET(req: NextRequest) {
   if (!idsParam) return NextResponse.json([]);
   const ids = idsParam.split(',').filter(Boolean);
   if (ids.length === 0) return NextResponse.json([]);
-  const quizzes = await prisma.quiz.findMany({
-    where: {
-      id: { in: ids },
-      creatorId: userId,
-    },
-    select: {
-      id: true,
-      title: true,
-      imageUrl: true,
-      description: true,
-      isPublished: true,
-    },
-  });
+  const quizzes: any[] = [];
+  for (const id of ids) {
+    try {
+      const quiz = await QuizAttemptService.resolveQuizIdentifier(id);
+      if (quiz && quiz.creatorId === userId) {
+        quizzes.push({
+          id: quiz.id,
+          title: quiz.title,
+          imageUrl: quiz.imageUrl,
+          description: quiz.description,
+          isPublished: quiz.isPublished,
+          slug: quiz.slug,
+        });
+      }
+    } catch {}
+  }
   return NextResponse.json(quizzes);
 } 

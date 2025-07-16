@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { PrismaClient } from '@prisma/client';
+import { QuizAttemptService } from '@/services/quizAttemptService';
 
 const prisma = new PrismaClient();
 
@@ -22,26 +23,15 @@ export async function PATCH(request: NextRequest) {
     }
 
     // 🔍 Fetch the quiz for the user
-    const quiz = await prisma.quiz.findUnique({
-      where: {
-        id: quizId,
-        creatorId: userId,
-      },
-    });
-
-    if (!quiz) {
+    const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
+    if (!quiz || quiz.creatorId !== userId) {
       return new NextResponse('Quiz Not Found', { status: 404 });
     }
 
     // 🔄 Toggle the isPinned field
     const updatedQuiz = await prisma.quiz.update({
-      where: {
-        id: quizId,
-        creatorId: userId,
-      },
-      data: {
-        isPinned: !quiz.isPinned,
-      },
+      where: { id: quiz.id, creatorId: userId },
+      data: { isPinned: !quiz.isPinned },
     });
 
     return NextResponse.json(updatedQuiz);

@@ -5,29 +5,28 @@
   "submittedAt": "2025-07-07T16:38:00Z",
   "durationInSeconds": 480,
   "responses": [
-    { "id": "sq1", "answer": "sq1-opt2" },                            // mcq-single
-    { "id": "sq2", "answer": false },                                 // true-false
-    { "id": "sq3", "answer": ["length", "width"] },                   // fill-blanks
-    { "id": "sq4", "answer": ["sq4-opt1", "sq4-opt3"] },              // mcq-multiple
-    { "id": "sq5", "answer": ["item1", "item2", "item3", "item4"] },  // ordering
-    { "id": "sq6", "answer": "number" },                              // code-output
-    { "id": "sq7", "answer": "sun.jpg" },                             // image-based
-    { "id": "sq8", "answer": {                                        // matrix
+    { "id": "sq1", "answer": "sq1-opt2" },                           
+    { "id": "sq2", "answer": false },                                
+    { "id": "sq3", "answer": ["length", "width"] },                   
+    { "id": "sq4", "answer": ["sq4-opt1", "sq4-opt3"] },             
+    { "id": "sq5", "answer": ["item1", "item2", "item3", "item4"] },
+    { "id": "sq6", "answer": "number" },                              
+    { "id": "sq7", "answer": "sun.jpg" },                            
+    { "id": "sq8", "answer": {                                      
       "sq8-row1": "sq8-col2",
       "sq8-row2": "sq8-col1",
       "sq8-row3": "sq8-col3"
     }},
-    { "id": "sq9", "answer": {                                        // drag-drop
+    { "id": "sq9", "answer": {                                      
       "sq9-src1": "sq9-target2",
       "sq9-src2": "sq9-target1",
       "sq9-src3": "sq9-target3"
     }},
     
-    // Unsupported types (skipped in evaluation but can be logged if needed)
-    { "id": "sq10", "answer": "This is a detailed paragraph response." }, // paragraph
-    { "id": "sq11", "answer": "An essay about climate change." },         // essay
-    { "id": "sq12", "answer": "audio-file.mp3" },                          // audio
-    { "id": "sq13", "answer": "video-file.mp4" },                          // video
-    { "id": "sq14", "answer": "poll-opt1" }                                // poll
+    { "id": "sq10", "answer": "This is a detailed paragraph response." }, 
+    { "id": "sq11", "answer": "An essay about climate change." },         
+    { "id": "sq12", "answer": "audio-file.mp3" },                          
+    { "id": "sq13", "answer": "video-file.mp4" },                          
+    { "id": "sq14", "answer": "poll-opt1" }                                
   ]
 }

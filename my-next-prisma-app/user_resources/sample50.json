@@ -1,0 +1,466 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "type": "mcq-single",
+      "question": "What is the capital of France?",
+      "options": [
+        { "id": "q1o1", "text": "Berlin" },
+        { "id": "q1o2", "text": "Madrid" },
+        { "id": "q1o3", "text": "Paris" },
+        { "id": "q1o4", "text": "Rome" }
+      ],
+      "correctAnswer": "q1o3",
+      "marks": 5
+    },
+    {
+      "id": "q2",
+      "type": "mcq-multiple",
+      "question": "Which of the following are programming languages?",
+      "options": [
+        { "id": "q2o1", "text": "Python" },
+        { "id": "q2o2", "text": "HTML" },
+        { "id": "q2o3", "text": "Java" },
+        { "id": "q2o4", "text": "CSS" }
+      ],
+      "correctAnswer": ["q2o1", "q2o3"],
+      "marks": 10
+    },
+    {
+      "id": "q3",
+      "type": "true-false",
+      "question": "The sun rises in the east.",
+      "correctAnswer": true,
+      "marks": 5
+    },
+    {
+      "id": "q4",
+      "type": "fill-blanks",
+      "question": "Water boils at ___ degrees Celsius.",
+      "fillBlanksAnswers": ["100"],
+      "marks": 5
+    },
+    {
+      "id": "q5",
+      "type": "ordering",
+      "question": "Arrange the numbers in ascending order.",
+      "orderedItems": ["2", "4", "6", "8"],
+      "marks": 5
+    },
+    {
+      "id": "q6",
+      "type": "code-output",
+      "question": "What is the output of this code?\nconsole.log(2 + 2);",
+      "codeSnippet": "console.log(2 + 2);",
+      "correctAnswer": "4",
+      "marks": 5
+    },
+    {
+      "id": "q7",
+      "type": "image-based",
+      "question": "What animal is shown in the image?",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg",
+      "correctAnswer": "Lion",
+      "marks": 5
+    },
+    {
+      "id": "q8",
+      "type": "matrix",
+      "question": "Match the country to its capital.",
+      "matrixOptions": {
+        "rows": [
+          { "id": "q8r1", "text": "Germany" },
+          { "id": "q8r2", "text": "Italy" }
+        ],
+        "cols": [
+          { "id": "q8c1", "text": "Berlin" },
+          { "id": "q8c2", "text": "Rome" }
+        ]
+      },
+      "correctAnswer": { "q8r1": "q8c1", "q8r2": "q8c2" },
+      "marks": 10
+    },
+    {
+      "id": "q9",
+      "type": "drag-drop",
+      "question": "Drag the fruits to the correct basket.",
+      "draggableItems": [
+        { "id": "q9i1", "text": "Apple" },
+        { "id": "q9i2", "text": "Carrot" }
+      ],
+      "dropZones": [
+        { "id": "q9z1", "text": "Fruit" },
+        { "id": "q9z2", "text": "Vegetable" }
+      ],
+      "correctMapping": { "q9i1": "q9z1", "q9i2": "q9z2" },
+      "marks": 10
+    },
+    {
+      "id": "q10",
+      "type": "paragraph",
+      "question": "Describe the process of photosynthesis.",
+      "marks": 10
+    },
+    {
+      "id": "q11",
+      "type": "essay",
+      "question": "Discuss the impact of the internet on global communication.",
+      "marks": 15
+    },
+    {
+      "id": "q12",
+      "type": "audio",
+      "question": "Record yourself pronouncing the word 'photosynthesis'.",
+      "marks": 5
+    },
+    {
+      "id": "q13",
+      "type": "video",
+      "question": "Upload a short video explaining Newton's First Law.",
+      "marks": 10
+    },
+    {
+      "id": "q14",
+      "type": "poll",
+      "question": "Which is your favorite season?",
+      "options": [
+        { "id": "q14o1", "text": "Spring" },
+        { "id": "q14o2", "text": "Summer" },
+        { "id": "q14o3", "text": "Autumn" },
+        { "id": "q14o4", "text": "Winter" }
+      ],
+      "marks": 2
+    },
+    {
+      "id": "q15",
+      "type": "mcq-single",
+      "question": "Which planet is known as the Red Planet?",
+      "options": [
+        { "id": "q15o1", "text": "Earth" },
+        { "id": "q15o2", "text": "Mars" },
+        { "id": "q15o3", "text": "Jupiter" },
+        { "id": "q15o4", "text": "Venus" }
+      ],
+      "correctAnswer": "q15o2",
+      "marks": 5
+    },
+    {
+      "id": "q16",
+      "type": "mcq-multiple",
+      "question": "Select all prime numbers.",
+      "options": [
+        { "id": "q16o1", "text": "2" },
+        { "id": "q16o2", "text": "3" },
+        { "id": "q16o3", "text": "4" },
+        { "id": "q16o4", "text": "5" }
+      ],
+      "correctAnswer": ["q16o1", "q16o2", "q16o4"],
+      "marks": 10
+    },
+    {
+      "id": "q17",
+      "type": "true-false",
+      "question": "The chemical symbol for gold is Au.",
+      "correctAnswer": true,
+      "marks": 5
+    },
+    {
+      "id": "q18",
+      "type": "fill-blanks",
+      "question": "The largest planet in our solar system is ___.",
+      "fillBlanksAnswers": ["Jupiter"],
+      "marks": 5
+    },
+    {
+      "id": "q19",
+      "type": "ordering",
+      "question": "Order the following historical periods chronologically.",
+      "orderedItems": ["Stone Age", "Bronze Age", "Iron Age", "Middle Ages"],
+      "marks": 5
+    },
+    {
+      "id": "q20",
+      "type": "code-output",
+      "question": "What is the output of this code?\nprint(len('hello'))",
+      "codeSnippet": "print(len('hello'))",
+      "correctAnswer": "5",
+      "marks": 5
+    },
+    {
+      "id": "q21",
+      "type": "image-based",
+      "question": "Identify the structure in the image.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Eiffel_Tower_Paris.jpg",
+      "correctAnswer": "Eiffel Tower",
+      "marks": 5
+    },
+    {
+      "id": "q22",
+      "type": "matrix",
+      "question": "Match the scientist to their discovery.",
+      "matrixOptions": {
+        "rows": [
+          { "id": "q22r1", "text": "Newton" },
+          { "id": "q22r2", "text": "Einstein" }
+        ],
+        "cols": [
+          { "id": "q22c1", "text": "Gravity" },
+          { "id": "q22c2", "text": "Relativity" }
+        ]
+      },
+      "correctAnswer": { "q22r1": "q22c1", "q22r2": "q22c2" },
+      "marks": 10
+    },
+    {
+      "id": "q23",
+      "type": "drag-drop",
+      "question": "Drag the animals to their correct class.",
+      "draggableItems": [
+        { "id": "q23i1", "text": "Frog" },
+        { "id": "q23i2", "text": "Eagle" }
+      ],
+      "dropZones": [
+        { "id": "q23z1", "text": "Amphibian" },
+        { "id": "q23z2", "text": "Bird" }
+      ],
+      "correctMapping": { "q23i1": "q23z1", "q23i2": "q23z2" },
+      "marks": 10
+    },
+    {
+      "id": "q24",
+      "type": "paragraph",
+      "question": "Explain the process of evaporation.",
+      "marks": 10
+    },
+    {
+      "id": "q25",
+      "type": "essay",
+      "question": "Analyze the causes and effects of World War II.",
+      "marks": 15
+    },
+    {
+      "id": "q26",
+      "type": "audio",
+      "question": "Record yourself reading the first paragraph of the Declaration of Independence.",
+      "marks": 5
+    },
+    {
+      "id": "q27",
+      "type": "video",
+      "question": "Upload a video demonstrating a simple science experiment.",
+      "marks": 10
+    },
+    {
+      "id": "q28",
+      "type": "poll",
+      "question": "Which programming language do you prefer?",
+      "options": [
+        { "id": "q28o1", "text": "Python" },
+        { "id": "q28o2", "text": "JavaScript" },
+        { "id": "q28o3", "text": "Java" },
+        { "id": "q28o4", "text": "C++" }
+      ],
+      "marks": 2
+    },
+    {
+      "id": "q29",
+      "type": "mcq-single",
+      "question": "Which element has the chemical symbol 'O'?",
+      "options": [
+        { "id": "q29o1", "text": "Gold" },
+        { "id": "q29o2", "text": "Oxygen" },
+        { "id": "q29o3", "text": "Silver" },
+        { "id": "q29o4", "text": "Iron" }
+      ],
+      "correctAnswer": "q29o2",
+      "marks": 5
+    },
+    {
+      "id": "q30",
+      "type": "mcq-multiple",
+      "question": "Select all mammals.",
+      "options": [
+        { "id": "q30o1", "text": "Whale" },
+        { "id": "q30o2", "text": "Shark" },
+        { "id": "q30o3", "text": "Bat" },
+        { "id": "q30o4", "text": "Crocodile" }
+      ],
+      "correctAnswer": ["q30o1", "q30o3"],
+      "marks": 10
+    },
+    {
+      "id": "q31",
+      "type": "true-false",
+      "question": "The Great Wall of China is visible from space.",
+      "correctAnswer": false,
+      "marks": 5
+    },
+    {
+      "id": "q32",
+      "type": "fill-blanks",
+      "question": "The process by which plants make food is called ___.",
+      "fillBlanksAnswers": ["photosynthesis"],
+      "marks": 5
+    },
+    {
+      "id": "q33",
+      "type": "ordering",
+      "question": "Order the following numbers from smallest to largest.",
+      "orderedItems": ["-5", "0", "3", "10"],
+      "marks": 5
+    },
+    {
+      "id": "q34",
+      "type": "code-output",
+      "question": "What is the output of this code?\nconsole.log(typeof null);",
+      "codeSnippet": "console.log(typeof null);",
+      "correctAnswer": "object",
+      "marks": 5
+    },
+    {
+      "id": "q35",
+      "type": "image-based",
+      "question": "What is the name of this famous painting?",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg",
+      "correctAnswer": "Mona Lisa",
+      "marks": 5
+    },
+    {
+      "id": "q36",
+      "type": "matrix",
+      "question": "Match the author to their work.",
+      "matrixOptions": {
+        "rows": [
+          { "id": "q36r1", "text": "Shakespeare" },
+          { "id": "q36r2", "text": "Homer" }
+        ],
+        "cols": [
+          { "id": "q36c1", "text": "Iliad" },
+          { "id": "q36c2", "text": "Hamlet" }
+        ]
+      },
+      "correctAnswer": { "q36r1": "q36c2", "q36r2": "q36c1" },
+      "marks": 10
+    },
+    {
+      "id": "q37",
+      "type": "drag-drop",
+      "question": "Drag the following to the correct category.",
+      "draggableItems": [
+        { "id": "q37i1", "text": "Mercury" },
+        { "id": "q37i2", "text": "Venus" }
+      ],
+      "dropZones": [
+        { "id": "q37z1", "text": "Planet" },
+        { "id": "q37z2", "text": "Star" }
+      ],
+      "correctMapping": { "q37i1": "q37z1", "q37i2": "q37z1" },
+      "marks": 10
+    },
+    {
+      "id": "q38",
+      "type": "paragraph",
+      "question": "Summarize the plot of 'Romeo and Juliet'.",
+      "marks": 10
+    },
+    {
+      "id": "q39",
+      "type": "essay",
+      "question": "Evaluate the effects of climate change on polar regions.",
+      "marks": 15
+    },
+    {
+      "id": "q40",
+      "type": "audio",
+      "question": "Record yourself saying the alphabet backwards.",
+      "marks": 5
+    },
+    {
+      "id": "q41",
+      "type": "video",
+      "question": "Upload a video of you performing a science experiment.",
+      "marks": 10
+    },
+    {
+      "id": "q42",
+      "type": "poll",
+      "question": "Which continent do you live on?",
+      "options": [
+        { "id": "q42o1", "text": "Asia" },
+        { "id": "q42o2", "text": "Europe" },
+        { "id": "q42o3", "text": "Africa" },
+        { "id": "q42o4", "text": "America" }
+      ],
+      "marks": 2
+    },
+    {
+      "id": "q43",
+      "type": "mcq-single",
+      "question": "Who wrote 'Pride and Prejudice'?",
+      "options": [
+        { "id": "q43o1", "text": "Jane Austen" },
+        { "id": "q43o2", "text": "Emily Bronte" },
+        { "id": "q43o3", "text": "Charles Dickens" },
+        { "id": "q43o4", "text": "Mark Twain" }
+      ],
+      "correctAnswer": "q43o1",
+      "marks": 5
+    },
+    {
+      "id": "q44",
+      "type": "mcq-multiple",
+      "question": "Select all colors in the rainbow.",
+      "options": [
+        { "id": "q44o1", "text": "Red" },
+        { "id": "q44o2", "text": "Green" },
+        { "id": "q44o3", "text": "Blue" },
+        { "id": "q44o4", "text": "Black" }
+      ],
+      "correctAnswer": ["q44o1", "q44o2", "q44o3"],
+      "marks": 10
+    },
+    {
+      "id": "q45",
+      "type": "true-false",
+      "question": "Mount Everest is the tallest mountain in the world.",
+      "correctAnswer": true,
+      "marks": 5
+    },
+    {
+      "id": "q46",
+      "type": "fill-blanks",
+      "question": "The chemical formula for water is ___.",
+      "fillBlanksAnswers": ["H2O"],
+      "marks": 5
+    },
+    {
+      "id": "q47",
+      "type": "ordering",
+      "question": "Order the following planets from closest to farthest from the sun.",
+      "orderedItems": ["Mercury", "Venus", "Earth", "Mars"],
+      "marks": 5
+    },
+    {
+      "id": "q48",
+      "type": "code-output",
+      "question": "What is the output of this code?\nprint(3 * 3)",
+      "codeSnippet": "print(3 * 3)",
+      "correctAnswer": "9",
+      "marks": 5
+    },
+    {
+      "id": "q49",
+      "type": "image-based",
+      "question": "What is the name of this structure?",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/10/Colosseum_in_Rome%2C_Italy_-_April_2007.jpg",
+      "correctAnswer": "Colosseum",
+      "marks": 5
+    },
+    {
+      "id": "q50",
+      "type": "paragraph",
+      "question": "Describe the process of cell division.",
+      "marks": 10
+    }
+  ]
+} 

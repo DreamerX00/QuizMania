@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 // GET: List all clans, or clans the user is a member of
 export async function GET(req: NextRequest) {
@@ -54,12 +56,21 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ clans: result, total });
 }
 
-// POST: Create a new clan
-export async function POST(req: NextRequest) {
+const createClanSchema = z.object({
+  name: z.string().min(2).max(50),
+  motto: z.string().max(200).optional(),
+  region: z.string().min(2).max(50),
+  emblemUrl: z.string().url().optional(),
+});
+
+const deleteClanSchema = z.object({
+  clanId: z.string().min(1),
+});
+
+export const POST = withValidation(createClanSchema, async (req: any) => {
   const { userId } = getAuth(req);
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { name, motto, region, emblemUrl } = await req.json();
-  if (!name || !region) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+  const { name, motto, region, emblemUrl } = req.validated;
   // Check for duplicate name
   const exists = await prisma.clan.findUnique({ where: { name } });
   if (exists) return NextResponse.json({ error: 'Clan name already exists' }, { status: 409 });
@@ -74,19 +85,15 @@ export async function POST(req: NextRequest) {
     include: { memberships: true },
   });
   return NextResponse.json({ clan });
-}
+});
 
-// DELETE: Disband a clan (only by leader)
-export async function DELETE(request: NextRequest) {
+export const DELETE = withValidation(deleteClanSchema, async (request: any) => {
   try {
     const { userId } = await getAuth(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { clanId } = await request.json();
-    if (!clanId) {
-      return NextResponse.json({ error: 'Clan ID required' }, { status: 400 });
-    }
+    const { clanId } = request.validated;
     // Check if user is leader
     const membership = await prisma.clanMembership.findFirst({ where: { clanId, userId, role: 'LEADER' } });
     if (!membership) {
@@ -98,4 +105,4 @@ export async function DELETE(request: NextRequest) {
     console.error('Error disbanding clan:', error);
     return NextResponse.json({ error: 'Failed to disband clan' }, { status: 500 });
   }
-} 
+}); 

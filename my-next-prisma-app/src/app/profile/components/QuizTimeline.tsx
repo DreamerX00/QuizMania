@@ -64,8 +64,16 @@ export function QuizTimeline() {
                 <div className="text-gray-400 text-[10px] md:text-xs">Date: {quiz.date ? new Date(quiz.date).toLocaleDateString() : <span className='text-gray-500'>Unknown</span>}</div>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <button className="futuristic-button px-3 py-1 text-xs md:text-sm font-semibold" tabIndex={-1}>Retake</button>
-                <button className="px-3 py-1 rounded-full bg-pink-600/80 text-white hover:bg-pink-700 transition text-xs md:text-sm font-semibold" tabIndex={-1}>Challenge</button>
+                <a
+                  href={quiz.slug ? `/quiz/${quiz.slug}/take` : `/quiz/${quiz.id}/take`}
+                  className="futuristic-button px-3 py-1 text-xs md:text-sm font-semibold"
+                  tabIndex={-1}
+                >Retake</a>
+                <a
+                  href={quiz.slug ? `/quiz/${quiz.slug}/challenge` : `/quiz/${quiz.id}/challenge`}
+                  className="px-3 py-1 rounded-full bg-pink-600/80 text-white hover:bg-pink-700 transition text-xs md:text-sm font-semibold"
+                  tabIndex={-1}
+                >Challenge</a>
               </div>
             </motion.div>
           ))

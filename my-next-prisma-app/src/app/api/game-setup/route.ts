@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 export async function GET(req: NextRequest) {
   const { userId } = getAuth(req);
@@ -9,11 +11,16 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ setup });
 }
 
-export async function POST(req: NextRequest) {
+const gameSetupSchema = z.object({
+  mode: z.string().min(1).max(50),
+  difficulty: z.string().min(1).max(50),
+  region: z.string().min(1).max(50),
+});
+
+export const POST = withValidation(gameSetupSchema, async (req: any) => {
   const { userId } = getAuth(req);
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { mode, difficulty, region } = await req.json();
-  if (!mode || !difficulty || !region) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+  const { mode, difficulty, region } = req.validated;
   const setup = await prisma.gameSetup.create({ data: { userId, mode, difficulty, region } });
   return NextResponse.json({ setup });
-} 
+}); 

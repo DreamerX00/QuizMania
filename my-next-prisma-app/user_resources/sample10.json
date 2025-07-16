@@ -1,0 +1,105 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "type": "mcq-single",
+      "question": "What is the capital of France?",
+      "options": [
+        { "id": "q1o1", "text": "Berlin" },
+        { "id": "q1o2", "text": "Madrid" },
+        { "id": "q1o3", "text": "Paris" },
+        { "id": "q1o4", "text": "Rome" }
+      ],
+      "correctAnswer": "q1o3",
+      "marks": 5
+    },
+    {
+      "id": "q2",
+      "type": "mcq-multiple",
+      "question": "Which of the following are programming languages?",
+      "options": [
+        { "id": "q2o1", "text": "Python" },
+        { "id": "q2o2", "text": "HTML" },
+        { "id": "q2o3", "text": "Java" },
+        { "id": "q2o4", "text": "CSS" }
+      ],
+      "correctAnswer": ["q2o1", "q2o3"],
+      "marks": 10
+    },
+    {
+      "id": "q3",
+      "type": "true-false",
+      "question": "The sun rises in the east.",
+      "correctAnswer": true,
+      "marks": 5
+    },
+    {
+      "id": "q4",
+      "type": "fill-blanks",
+      "question": "Water boils at ___ degrees Celsius.",
+      "fillBlanksAnswers": ["100"],
+      "marks": 5
+    },
+    {
+      "id": "q5",
+      "type": "ordering",
+      "question": "Arrange the numbers in ascending order.",
+      "orderedItems": ["2", "4", "6", "8"],
+      "marks": 5
+    },
+    {
+      "id": "q6",
+      "type": "code-output",
+      "question": "What is the output of this code?\nconsole.log(2 + 2);",
+      "codeSnippet": "console.log(2 + 2);",
+      "correctAnswer": "4",
+      "marks": 5
+    },
+    {
+      "id": "q7",
+      "type": "image-based",
+      "question": "What animal is shown in the image?",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg",
+      "correctAnswer": "Lion",
+      "marks": 5
+    },
+    {
+      "id": "q8",
+      "type": "matrix",
+      "question": "Match the country to its capital.",
+      "matrixOptions": {
+        "rows": [
+          { "id": "q8r1", "text": "Germany" },
+          { "id": "q8r2", "text": "Italy" }
+        ],
+        "cols": [
+          { "id": "q8c1", "text": "Berlin" },
+          { "id": "q8c2", "text": "Rome" }
+        ]
+      },
+      "correctAnswer": { "q8r1": "q8c1", "q8r2": "q8c2" },
+      "marks": 10
+    },
+    {
+      "id": "q9",
+      "type": "drag-drop",
+      "question": "Drag the fruits to the correct basket.",
+      "draggableItems": [
+        { "id": "q9i1", "text": "Apple" },
+        { "id": "q9i2", "text": "Carrot" }
+      ],
+      "dropZones": [
+        { "id": "q9z1", "text": "Fruit" },
+        { "id": "q9z2", "text": "Vegetable" }
+      ],
+      "correctMapping": { "q9i1": "q9z1", "q9i2": "q9z2" },
+      "marks": 10
+    },
+    {
+      "id": "q10",
+      "type": "paragraph",
+      "question": "Describe the process of photosynthesis.",
+      "marks": 10
+    }
+  ]
+} 

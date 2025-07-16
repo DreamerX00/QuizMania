@@ -45,7 +45,11 @@ export function CreatedQuizzes() {
               <div className="text-gray-600 dark:text-gray-400 text-xs md:text-sm">Avg. Score: {quiz.averageScore ?? <span className='text-gray-500 dark:text-gray-500'>Not calculated</span>}</div>
               <div className="text-yellow-600 dark:text-yellow-400 text-xs md:text-sm">Rating: {quiz.rating ?? <span className='text-gray-500 dark:text-gray-500'>Not rated</span>} ⭐</div>
               <div className="flex gap-2 mt-2 flex-wrap">
-                <button className="futuristic-button px-3 py-1 text-xs font-semibold" tabIndex={-1}>Edit</button>
+                <a
+                  href={quiz.slug ? `/quiz/${quiz.slug}/edit` : `/quiz/${quiz.id}/edit`}
+                  className="futuristic-button px-3 py-1 text-xs font-semibold"
+                  tabIndex={-1}
+                >Edit</a>
                 <button className="px-3 py-1 rounded-full bg-red-600/80 text-white hover:bg-red-700 transition text-xs font-semibold" tabIndex={-1}>Delete</button>
                 <button className="px-3 py-1 rounded-full bg-green-600/80 text-white hover:bg-green-700 transition text-xs font-semibold" tabIndex={-1}>Promote</button>
               </div>

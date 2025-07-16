@@ -2,19 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 import { RazorpayService } from '@/services/razorpayService';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
-export async function POST(request: NextRequest) {
+const verifySchema = z.object({
+  orderId: z.string().min(1),
+  paymentId: z.string().min(1),
+  signature: z.string().min(1),
+});
+
+export const POST = withValidation(verifySchema, async (request: any) => {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { orderId, paymentId, signature } = await request.json();
-
-    if (!orderId || !paymentId || !signature) {
-      return NextResponse.json({ error: 'Missing payment details' }, { status: 400 });
-    }
+    const { orderId, paymentId, signature } = request.validated;
 
     // Verify payment signature
     const isValidSignature = RazorpayService.verifyPaymentSignature(
@@ -132,4 +135,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}); 

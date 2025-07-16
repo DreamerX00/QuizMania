@@ -29,8 +29,15 @@ const Timer = () => {
     return () => clearInterval(interval);
   }, [startTime, duration, submit]);
 
+  // Warning color/animation when time is low
+  const warning = remaining <= 30;
+
   return (
-    <div className="flex items-center gap-2 font-heading text-lg">
+    <div
+      className={`flex items-center gap-2 font-heading text-lg ${warning ? 'text-red-400 animate-pulse' : ''}`}
+      aria-live="polite"
+      title={warning ? 'Hurry up! Less than 30 seconds left.' : `Time remaining: ${formatTime(remaining)}`}
+    >
       <span role="img" aria-label="timer">⏳</span>
       <span>{formatTime(remaining)}</span>
     </div>

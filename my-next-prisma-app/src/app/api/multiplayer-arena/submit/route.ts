@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { QuizAttemptService } from '@/services/quizAttemptService';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
-export async function POST(request: NextRequest) {
+const submitArenaSchema = z.object({
+  quizRecordId: z.string().min(1),
+  answers: z.array(z.any()), // You may want to further validate the structure
+  duration: z.number().min(0),
+  status: z.string().min(1),
+});
+
+export const POST = withValidation(submitArenaSchema, async (request: any) => {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { quizRecordId, answers, duration, status } = await request.json();
-    if (!quizRecordId || !Array.isArray(answers) || typeof duration !== 'number' || !status) {
-      return NextResponse.json({ error: 'Invalid input data' }, { status: 400 });
-    }
-
+    const { quizRecordId, answers, duration, status } = request.validated;
     // Submit the attempt with per-question answers
     const result = await QuizAttemptService.submitArenaAttempt(
       userId,
@@ -22,7 +26,6 @@ export async function POST(request: NextRequest) {
       duration,
       status
     );
-
     return NextResponse.json({
       success: true,
       ...result
@@ -34,4 +37,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}); 

@@ -9,6 +9,11 @@ import CodeOutput from './questions/CodeOutput';
 import ImageBased from './questions/ImageBased';
 import Matrix from './questions/Matrix';
 import DragDrop from './questions/DragDrop';
+import Paragraph from './questions/Paragraph';
+import Essay from './questions/Essay';
+import AudioInput from './questions/AudioInput';
+import VideoInput from './questions/VideoInput';
+import Poll from './questions/Poll';
 
 const QuestionRenderer = () => {
   const quiz = useQuizStore((s) => s.quiz);
@@ -36,6 +41,16 @@ const QuestionRenderer = () => {
       return <Matrix question={question} />;
     case 'drag-drop':
       return <DragDrop question={question} />;
+    case 'paragraph':
+      return <Paragraph question={question} />;
+    case 'essay':
+      return <Essay question={question} />;
+    case 'audio':
+      return <AudioInput question={question} />;
+    case 'video':
+      return <VideoInput question={question} />;
+    case 'poll':
+      return <Poll question={question} />;
     default:
       return <div>Unsupported question type: {question.type}</div>;
   }

@@ -370,7 +370,30 @@ export class QuizAttemptService {
     });
   }
 
-  static async startAttempt(userId: string, quizId: string): Promise<StartAttemptResult> {
+  /**
+   * Resolve a quiz by cuid or slug
+   */
+  static async resolveQuizIdentifier(identifier: string) {
+    try {
+      const quiz = await prisma.quiz.findFirst({
+        where: {
+          OR: [
+            { id: identifier },
+            { slug: identifier },
+          ],
+        },
+      });
+      if (!quiz) {
+        throw new Error(`Quiz not found for identifier: ${identifier}`);
+      }
+      return quiz;
+    } catch (error) {
+      console.error(`Error resolving quiz identifier "${identifier}":`, error);
+      throw new Error(`Quiz not found for identifier: ${identifier}`);
+    }
+  }
+
+  static async startAttempt(userId: string, quizId: string, fingerprint?: string, deviceInfo?: any, ip?: string): Promise<StartAttemptResult & { sessionId?: string }> {
     const existingAttempt = await prisma.quizRecord.findFirst({
       where: {
         userId,
@@ -430,11 +453,27 @@ export class QuizAttemptService {
       },
     });
 
+    // Create a QuizLinkSession
+    let sessionId: string | undefined = undefined;
+    if (fingerprint && deviceInfo && ip) {
+      const session = await prisma.quizLinkSession.create({
+        data: {
+          userId,
+          quizId,
+          fingerprint,
+          deviceInfo,
+          ip,
+        },
+      });
+      sessionId = session.id;
+    }
+
     return {
       success: true,
       quizRecordId: quizRecord.id,
       remainingAttempts: validation.remainingAttempts ? validation.remainingAttempts - 1 : undefined,
       dailyLimit: validation.dailyLimit,
+      sessionId,
     };
   }
 
@@ -530,5 +569,66 @@ export class QuizAttemptService {
       averageScore: answers.filter(a => a.isCorrect).length,
       quizUnlocked: true,
     };
+  }
+
+  static async submitStructuredAttempt({
+    userId,
+    quizId,
+    submittedAt,
+    responses,
+    summary,
+    violations
+  }: {
+    userId: string;
+    quizId: string;
+    submittedAt: Date;
+    responses: Array<{ questionId: string; answer: any; type: string; requiresManualReview: boolean }>;
+    summary: any;
+    violations?: any;
+  }) {
+    // Find the in-progress QuizRecord
+    const quizRecord = await prisma.quizRecord.findFirst({
+      where: {
+        userId,
+        quizId,
+        status: 'IN_PROGRESS',
+      },
+    });
+    if (!quizRecord) throw new Error('No in-progress quiz record found');
+
+    // Update QuizRecord
+    await prisma.quizRecord.update({
+      where: { id: quizRecord.id },
+      data: {
+        responses,
+        summary,
+        violations,
+        status: 'COMPLETED',
+        dateTaken: submittedAt ? new Date(submittedAt) : new Date(),
+        isManualReviewPending: responses.some((r) => r.requiresManualReview),
+        score: summary.obtainedMarks,
+        duration: summary.durationInSeconds || 0,
+      },
+    });
+
+    // Add manual review items
+    const manualItems = responses.filter((r) => r.requiresManualReview);
+    if (manualItems.length > 0) {
+      await prisma.$transaction(
+        manualItems.map((r) =>
+          prisma.manualReviewQueue.create({
+            data: {
+              quizRecordId: quizRecord.id,
+              questionId: r.questionId,
+              userId,
+              quizId,
+              answer: r.answer,
+              type: r.type,
+            },
+          })
+        )
+      );
+    }
+    return { success: true, summary, manualReviewPending: manualItems.length > 0 };
   }
 } 

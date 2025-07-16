@@ -8,12 +8,16 @@ interface QuizState {
   markedForReview: string[];
   startTime: number | null;
   duration: number;
+  submitted: boolean;
+  violations: { type: string; reason: string; timestamp: number }[];
   setQuiz: (quiz: Quiz) => void;
   setCurrentIndex: (idx: number) => void;
   setResponse: (response: UserResponse) => void;
   toggleMarkForReview: (questionId: string) => void;
   submit: () => void;
   reset: () => void;
+  addViolation: (type: string, reason: string) => void;
+  clearViolations: () => void;
 }
 
 export const useQuizStore = create<QuizState>((set, get) => ({
@@ -23,7 +27,9 @@ export const useQuizStore = create<QuizState>((set, get) => ({
   markedForReview: [],
   startTime: null,
   duration: 0,
-  setQuiz: (quiz) => set({ quiz, duration: quiz.duration, startTime: Date.now() }),
+  submitted: false,
+  violations: [],
+  setQuiz: (quiz) => set({ quiz, duration: quiz.duration, startTime: Date.now(), submitted: false }),
   setCurrentIndex: (idx) => set({ currentIndex: idx }),
   setResponse: (response) => {
     set((state) => {
@@ -40,6 +46,7 @@ export const useQuizStore = create<QuizState>((set, get) => ({
     });
   },
   submit: () => {
+    set({ submitted: true });
     // Submission logic placeholder
   },
   reset: () => set({
@@ -49,5 +56,13 @@ export const useQuizStore = create<QuizState>((set, get) => ({
     markedForReview: [],
     startTime: null,
     duration: 0,
+    submitted: false,
+    violations: [],
   }),
+  addViolation: (type, reason) => {
+    set((state) => ({
+      violations: [...state.violations, { type, reason, timestamp: Date.now() }],
+    }));
+  },
+  clearViolations: () => set({ violations: [] }),
 })); 

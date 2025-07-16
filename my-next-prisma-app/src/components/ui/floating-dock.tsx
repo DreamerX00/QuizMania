@@ -10,20 +10,24 @@ import {
 } from "motion/react";
 
 import { useRef, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 export const FloatingDock = ({
   items,
   desktopClassName,
   mobileClassName,
 }: {
-  items: { title: string; icon: React.ReactNode; href?: string; onClick?: (e: React.MouseEvent) => void }[];
+  items: { title: string; icon: React.ReactNode; href?: string; onClick?: (e: React.MouseEvent) => void; restricted?: boolean }[];
   desktopClassName?: string;
   mobileClassName?: string;
 }) => {
+  const { isSignedIn } = useUser();
+  // Filter out restricted items for signed-out users
+  const filteredItems = items.filter((item) => isSignedIn || !item.restricted);
   return (
     <>
-      <FloatingDockDesktop items={items} className={desktopClassName} />
-      <FloatingDockMobile items={items} className={mobileClassName} />
+      <FloatingDockDesktop items={filteredItems} className={desktopClassName} />
+      <FloatingDockMobile items={filteredItems} className={mobileClassName} />
     </>
   );
 };

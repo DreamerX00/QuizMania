@@ -7,7 +7,12 @@ export type QuestionType =
   | 'code-output'
   | 'image-based'
   | 'matrix'
-  | 'drag-drop';
+  | 'drag-drop'
+  | 'essay'
+  | 'paragraph'
+  | 'audio'
+  | 'video'
+  | 'poll';
 
 export interface Quiz {
   id: string;
@@ -20,10 +25,20 @@ export interface Quiz {
 export interface Question {
   id: string;
   type: QuestionType;
-  text: string;
-  options?: string[];
+  question: string; // changed from 'text' to 'question' for consistency
+  options?: any[]; // for MCQ, poll, image-based, etc.
   correctAnswer?: any;
   explanation?: string;
+  // Advanced fields for specific types
+  minWordCount?: number; // essay, paragraph
+  maxWordCount?: number; // essay, paragraph
+  fileSizeLimitMB?: number; // audio, video
+  maxDurationSeconds?: number; // audio, video
+  imageUrl?: string; // image-based
+  matrixOptions?: { rows: any[]; cols: any[] }; // matrix
+  draggableItems?: any[]; // drag-drop
+  dropZones?: any[]; // drag-drop
+  fillBlanksAnswers?: any[]; // fill-blanks
   // Add more fields as needed for each type
   [key: string]: any;
 }

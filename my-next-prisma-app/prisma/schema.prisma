@@ -105,6 +105,22 @@ enum RoomInviteStatus {
   DECLINED
 }
 
+enum ReportStatus {
+  Resoloved
+  New
+  Pending
+  Canceled
+  UnderReview
+}
+
+model reports {
+  id          String       @id @default(uuid())
+  description String
+  status      ReportStatus @default(New)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
 model User {
   clerkId                String               @id @unique
   email                  String               @unique
@@ -151,6 +167,8 @@ model User {
   votes                  Vote[]
   moderationActionsTaken ModerationAction[]   @relation("ModerationTarget")
   moderationActionsPerformed ModerationAction[] @relation("ModerationPerformer")
+  quizLinkSessions       QuizLinkSession[]
+  quizViolations         QuizViolation[]
 }
 
 model QuizRecord {
@@ -166,6 +184,25 @@ model QuizRecord {
   user            User             @relation(fields: [userId], references: [clerkId])
   likeCount       Int              @default(0)
   questionRecords QuestionRecord[]
+  isFlagged       Boolean          @default(false) // <-- NEW FIELD
+  violations      QuizViolation[]  // <-- NEW RELATION
+  // --- New fields ---
+  responses       Json?            // All per-question responses
+  isManualReviewPending Boolean    @default(false)
+}
+
+model QuizViolation {
+  id           String   @id @default(cuid())
+  quizRecordId String
+  userId       String
+  quizId       String
+  type         String   // e.g., "tab-switch", "copy-paste", "timeout"
+  reason       String
+  createdAt    DateTime @default(now())
+  isFlagged    Boolean  @default(false)
+  quizRecord   QuizRecord @relation(fields: [quizRecordId], references: [id])
+  user         User     @relation(fields: [userId], references: [clerkId])
+  quiz         Quiz     @relation(fields: [quizId], references: [id])
 }
 
 model Attempt {
@@ -208,6 +245,7 @@ model PaymentTransaction {
 
 model Quiz {
   id              String   @id @default(cuid())
+  slug            String   @unique // URL-friendly unique slug
   title           String   @default("Untitled Quiz")
   description     String?
   tags            String[]
@@ -233,6 +271,9 @@ model Quiz {
   ratings  QuizRating[]
   attempts Attempt[] // Daily attempt tracking
   unlocks  QuizUnlock[] // Premium quiz unlocks
+  quizLinkSessions QuizLinkSession[]
+  questions        Question[] // Add this line for the relation
+  quizViolations  QuizViolation[] // <-- Add this line for relation
 
   // Aggregated fields
   usersTaken        Int              @default(0)
@@ -540,4 +581,58 @@ model ModerationAction {
 
   @@index([targetUserId])
   @@index([performedById])
+}
+
+model QuizLinkSession {
+  id           String   @id @default(cuid())
+  userId       String
+  quizId       String
+  fingerprint  String
+  deviceInfo   Json
+  ip           String
+  createdAt    DateTime @default(now())
+  isActive     Boolean  @default(true)
+  user         User     @relation(fields: [userId], references: [clerkId])
+  quiz         Quiz     @relation(fields: [quizId], references: [id])
+
+  @@index([quizId, userId, isActive])
+}
+
+model ManualReviewQueue {
+  id           String   @id @default(cuid())
+  quizRecordId String
+  questionId   String
+  userId       String
+  quizId       String
+  answer       Json
+  type         String
+  createdAt    DateTime @default(now())
+  reviewed     Boolean  @default(false)
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  marksAwarded Int?
+  feedback     String?
+}
+
+model QuizDraft {
+  id           String   @id @default(cuid())
+  quizId       String
+  userId       String
+  savedAt      DateTime @default(now())
+  responses    Json
+  expiresAt    DateTime
+}
+
+model Question {
+  id              String   @id @default(cuid())
+  quizId          String
+  type            String
+  question        String
+  options         Json?
+  correctAnswer   Json?
+  explanation     String?
+  showExplanation Boolean  @default(false) // <-- New field
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  quiz            Quiz     @relation(fields: [quizId], references: [id])
 }

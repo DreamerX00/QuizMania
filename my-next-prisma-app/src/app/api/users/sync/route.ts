@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
-export async function POST(request: Request) {
-  const { clerkId, email, name, avatarUrl } = await request.json();
-  console.log('Received sync request:', { clerkId, email, name, avatarUrl });
-  if (!clerkId || !email) {
-    console.log('Missing clerkId or email');
-    return NextResponse.json({ error: 'Missing clerkId or email' }, { status: 400 });
-  }
+const syncUserSchema = z.object({
+  clerkId: z.string().min(1),
+  email: z.string().email(),
+  name: z.string().min(1).max(100),
+  avatarUrl: z.string().url().optional(),
+});
+
+export const POST = withValidation(syncUserSchema, async (request: any) => {
+  const { clerkId, email, name, avatarUrl } = request.validated;
   try {
     const user = await prisma.user.upsert({
       where: { clerkId },
@@ -23,10 +27,9 @@ export async function POST(request: Request) {
         avatarUrl,
       },
     });
-    console.log('User upserted:', user);
     return NextResponse.json(user);
   } catch (error) {
     console.error('Failed to sync user:', error);
     return NextResponse.json({ error: 'Failed to sync user' }, { status: 500 });
   }
-} 
+}); 

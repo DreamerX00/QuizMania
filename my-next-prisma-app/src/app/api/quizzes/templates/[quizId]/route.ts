@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { PrismaClient } from '@prisma/client';
+import { QuizAttemptService } from '@/services/quizAttemptService';
 
 const prisma = new PrismaClient();
 
@@ -21,14 +22,8 @@ export async function GET(
       return new NextResponse('Quiz ID missing', { status: 400 });
     }
 
-    const quiz = await prisma.quiz.findUnique({
-      where: {
-        id: quizId,
-        creatorId: userId,
-      },
-    });
-
-    if (!quiz) {
+    const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
+    if (!quiz || quiz.creatorId !== userId) {
       return new NextResponse('Not Found', { status: 404 });
     }
 
@@ -56,21 +51,13 @@ export async function DELETE(
       return new NextResponse('Quiz ID missing', { status: 400 });
     }
     
-    const quiz = await prisma.quiz.findUnique({
-      where: {
-        id: quizId,
-        creatorId: userId,
-      },
-    });
-
-    if (!quiz) {
+    const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
+    if (!quiz || quiz.creatorId !== userId) {
       return new NextResponse('Not Found', { status: 404 });
     }
 
     const deletedQuiz = await prisma.quiz.delete({
-      where: {
-        id: quizId,
-      },
+      where: { id: quiz.id },
     });
 
     return NextResponse.json(deletedQuiz);

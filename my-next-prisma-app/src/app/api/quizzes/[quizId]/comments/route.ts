@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { QuizAttemptService } from '@/services/quizAttemptService';
 
 const prisma = new PrismaClient();
 const PAGE_SIZE = 10;
@@ -14,13 +15,18 @@ export async function GET(request: NextRequest) {
       return new NextResponse('Quiz ID is required', { status: 400 });
     }
 
+    const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
+    if (!quiz) {
+      return new NextResponse('Quiz not found', { status: 404 });
+    }
+
     // ✅ Extract query param for cursor
     const { searchParams } = new URL(request.url);
     const cursor = searchParams.get('cursor');
 
-    // ✅ Fetch paginated comments
+    // ✅ Fetch paginated comments for quiz.id
     const comments = await prisma.quizComment.findMany({
-      where: { quizId },
+      where: { quizId: quiz.id },
       take: PAGE_SIZE,
       ...(cursor && {
         skip: 1,

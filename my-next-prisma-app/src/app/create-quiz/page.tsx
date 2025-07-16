@@ -222,6 +222,8 @@ interface QuizData {
 }
 
 // --- Validation ---
+const QUESTION_TYPE_IDS = QUESTION_TYPES.map(q => q.id);
+
 const validateQuestion = (
   question: Question
 ): { isValid: boolean; message: string } => {
@@ -509,8 +511,34 @@ const validateQuestion = (
     case "essay":
       // These types only need the basic validations that were done above
       break;
-
+    case "audio":
+      // Allow if audioUrl is missing (student will upload/record answer)
+      // Optionally: check for correctAnswer if needed
+      break;
+    case "video":
+      // Allow if videoUrl is missing (student will upload/record answer)
+      // Optionally: check for correctAnswer if needed
+      break;
+    case "poll":
+      if (!question.options || !Array.isArray(question.options)) {
+        return {
+          isValid: false,
+          message: "Poll questions must have an options array.",
+        };
+      }
+      if (question.options.filter((o) => o.text.trim()).length < 2) {
+        return {
+          isValid: false,
+          message: "Poll questions must have at least 2 non-empty options.",
+        };
+      }
+      // No correct answer required for poll
+      break;
     default:
+      // If the type is in QUESTION_TYPES, allow it (future-proof)
+      if (QUESTION_TYPE_IDS.includes(question.type)) {
+        return { isValid: true, message: "Question is valid." };
+      }
       return {
         isValid: false,
         message: `Unknown question type: ${question.type}`,
@@ -592,6 +620,13 @@ function CreateQuizPageComponent() {
             else if (Array.isArray(data.jsonContent)) {
               questions = data.jsonContent;
             }
+          }
+
+          // Fix duplicate IDs on load
+          const origLen = questions.length;
+          questions = fixDuplicateQuestionIds(questions);
+          if (new Set(questions.map(q => q.id)).size !== origLen) {
+            toast.error("Duplicate question IDs found and fixed on load.");
           }
 
           setQuizData({
@@ -743,7 +778,7 @@ function CreateQuizPageComponent() {
   const duplicateQuestion = useCallback((question: Question) => {
     const duplicatedQuestion: Question = {
       ...question,
-      id: Date.now().toString(),
+      id: nanoid(),
       question: `${question.question} (Copy)`,
     };
 
@@ -830,8 +865,8 @@ function CreateQuizPageComponent() {
         const seenIds = new Set<string>();
 
         questionsToValidate.forEach((q: any, index: number) => {
-          // Check for duplicate IDs
-          if (seenIds.has(q.id)) {
+          // Check for duplicate IDs (in seenIds or already in quizData)
+          if (seenIds.has(q.id) || quizData.questions.some(existing => existing.id === q.id)) {
             invalidQuestions.push({
               question: q,
               reason: `Duplicate question ID: ${q.id}`,
@@ -890,7 +925,7 @@ function CreateQuizPageComponent() {
     };
 
     reader.readAsText(file);
-  }, []);
+  }, [quizData.questions]);
 
   const totalMarks = quizData.questions.reduce(
     (sum, q) => sum + (q.marks || 0),
@@ -926,8 +961,12 @@ function CreateQuizPageComponent() {
         isPublished ? "Quiz published successfully!" : "Quiz saved as draft!"
       );
       setShowFinalizeModal(false);
-      // Optional: Redirect to the new quiz page
-      // window.location.href = `/quizzes/${newQuiz.id}`;
+      // Redirect to the new quiz page using slug if available
+      if (newQuiz.slug) {
+        window.location.href = `/quizzes/${newQuiz.slug}`;
+      } else {
+        window.location.href = `/quizzes/${newQuiz.id}`;
+      }
     } catch (error) {
       if (error instanceof Error) {
         toast.error(`Error: ${error.message}`);
@@ -1248,27 +1287,7 @@ function CreateQuizPageComponent() {
                           "No question text"}
                       </p>
                     </div>
-
-                    {quizData.questions[currentQuestionIndex]?.options && (
-                      <div>
-                        <h4 className="text-lg font-semibold mb-2">Options:</h4>
-                        <div className="space-y-2">
-                          {quizData.questions[
-                            currentQuestionIndex
-                          ].options?.map((option, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-2 p-2 bg-white/5 rounded"
-                            >
-                              <span className="text-sm font-medium">
-                                {String.fromCharCode(65 + index)}.
-                              </span>
-                              <span>{option.text}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <QuestionPreview question={quizData.questions[currentQuestionIndex]} />
                   </div>
                 </div>
               )}
@@ -3537,5 +3556,225 @@ function MarksModal({
     </motion.div>
   );
 }
+
+// Add this component before CreateQuizPageComponent
+function QuestionPreview({ question }: { question: Question }) {
+  if (!question) return <div>No question selected.</div>;
+  switch (question.type) {
+    case "mcq-single":
+      return (
+        <div>
+          <h4 className="text-lg font-semibold mb-2">Options:</h4>
+          <div className="space-y-2">
+            {question.options?.map((option, idx) => (
+              <label key={option.id} className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer">
+                <input type="radio" name="mcq-single-preview" disabled />
+                <span>{option.text}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      );
+    case "mcq-multiple":
+      return (
+        <div>
+          <h4 className="text-lg font-semibold mb-2">Options:</h4>
+          <div className="space-y-2">
+            {question.options?.map((option, idx) => (
+              <label key={option.id} className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer">
+                <input type="checkbox" disabled />
+                <span>{option.text}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      );
+    case "true-false":
+      return (
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2">
+            <input type="radio" name="tf-preview" disabled /> True
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="radio" name="tf-preview" disabled /> False
+          </label>
+        </div>
+      );
+    case "match":
+      return (
+        <div>
+          <h4 className="text-lg font-semibold mb-2">Match the Following:</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {question.matchPairs?.map((pair, idx) => (
+              <div key={pair.id} className="flex gap-2 items-center">
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">{pair.premise}</span>
+                <span className="text-gray-500">↔</span>
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">{pair.response}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    case "matrix":
+      return (
+        <div>
+          <h4 className="text-lg font-semibold mb-2">Matrix:</h4>
+          <table className="min-w-max border border-white/10 rounded">
+            <thead>
+              <tr>
+                <th className="border px-2 py-1"></th>
+                {question.matrixOptions?.cols.map((col) => (
+                  <th key={col.id} className="border px-2 py-1">{col.text}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {question.matrixOptions?.rows.map((row) => (
+                <tr key={row.id}>
+                  <td className="border px-2 py-1 font-semibold">{row.text}</td>
+                  {question.matrixOptions?.cols.map((col) => (
+                    <td key={col.id} className="border px-2 py-1 text-center">
+                      <input type="checkbox" disabled />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    case "poll":
+      return (
+        <div>
+          <h4 className="text-lg font-semibold mb-2">Poll Options:</h4>
+          <div className="space-y-2">
+            {question.options?.map((option, idx) => (
+              <label key={option.id} className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer">
+                <input type="radio" name="poll-preview" disabled />
+                <span>{option.text}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      );
+    case "paragraph":
+      return (
+        <div>
+          <textarea className="w-full p-2 rounded border border-white/10" rows={4} disabled placeholder="User will write a paragraph here..." />
+        </div>
+      );
+    case "essay":
+      return (
+        <div>
+          <textarea className="w-full p-2 rounded border border-white/10" rows={8} disabled placeholder="User will write an essay here..." />
+          {question.correctAnswer && <div className="mt-2 text-xs text-gray-400">Word limit: {question.correctAnswer}</div>}
+        </div>
+      );
+    case "fill-blanks":
+      {
+        let parts = question.question.split("___");
+        return (
+          <div className="flex flex-wrap items-center gap-2">
+            {parts.map((part, idx) => (
+              <React.Fragment key={idx}>
+                <span>{part}</span>
+                {idx < parts.length - 1 && <input type="text" className="w-24 p-1 rounded border border-white/10" disabled placeholder="Blank" />}
+              </React.Fragment>
+            ))}
+          </div>
+        );
+      }
+    case "code-output":
+      return (
+        <div>
+          <pre className="bg-black/80 text-green-200 rounded p-3 mb-2 overflow-x-auto"><code>{question.codeSnippet}</code></pre>
+          <div className="mt-2">
+            <label className="block text-xs font-medium mb-1">Expected Output:</label>
+            <pre className="bg-gray-900 text-yellow-200 rounded p-2 overflow-x-auto"><code>{question.correctAnswer}</code></pre>
+          </div>
+        </div>
+      );
+    case "drag-drop":
+      return (
+        <div>
+          <h4 className="text-lg font-semibold mb-2">Drag & Drop:</h4>
+          <div className="flex gap-4">
+            <div>
+              <div className="font-semibold mb-1">Draggable Items</div>
+              <ul>
+                {question.draggableItems?.map((item) => (
+                  <li key={item.id} className="bg-blue-100 text-blue-800 px-2 py-1 rounded mb-1">{item.text}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="font-semibold mb-1">Drop Zones</div>
+              <ul>
+                {question.dropZones?.map((zone) => (
+                  <li key={zone.id} className="bg-green-100 text-green-800 px-2 py-1 rounded mb-1">{zone.text}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      );
+    case "ordering":
+      return (
+        <div>
+          <h4 className="text-lg font-semibold mb-2">Ordering:</h4>
+          <ol className="list-decimal ml-6">
+            {question.orderedItems?.map((item, idx) => (
+              <li key={idx} className="bg-white/10 rounded px-2 py-1 mb-1">{item}</li>
+            ))}
+          </ol>
+        </div>
+      );
+    case "image-based":
+      return (
+        <div>
+          {question.imageUrl && <img src={question.imageUrl} alt="Question" className="max-h-48 rounded mb-2" />}
+        </div>
+      );
+    case "audio":
+      return (
+        <div>
+          {question.audioUrl ? (
+            <audio src={question.audioUrl} controls className="w-full mb-2" />
+          ) : (
+            <div className="p-4 bg-blue-100 text-blue-800 rounded mb-2 text-center">
+              Student will upload or record their answer here.
+            </div>
+          )}
+        </div>
+      );
+    case "video":
+      return (
+        <div>
+          {question.videoUrl ? (
+            <video src={question.videoUrl} controls className="max-h-48 rounded mb-2" />
+          ) : (
+            <div className="p-4 bg-blue-100 text-blue-800 rounded mb-2 text-center">
+              Student will upload or record their answer here.
+            </div>
+          )}
+        </div>
+      );
+    default:
+      return <div>Preview not available for this question type.</div>;
+  }
+}
+
+const fixDuplicateQuestionIds = (questions: Question[]): Question[] => {
+  const seen = new Set<string>();
+  return questions.map((q) => {
+    if (seen.has(q.id)) {
+      // Assign a new unique ID
+      return { ...q, id: nanoid() };
+    } else {
+      seen.add(q.id);
+      return q;
+    }
+  });
+};
 
 export default CreateQuizPageComponent;

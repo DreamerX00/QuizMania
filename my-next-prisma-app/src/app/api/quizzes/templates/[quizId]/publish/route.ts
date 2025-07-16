@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { PrismaClient } from '@prisma/client';
+import { QuizAttemptService } from '@/services/quizAttemptService';
 
 const prisma = new PrismaClient();
 
@@ -24,26 +25,15 @@ export async function PATCH(
     }
 
     // 🔍 Check if the quiz exists and belongs to the user
-    const quiz = await prisma.quiz.findUnique({
-      where: {
-        id: quizId,
-        creatorId: userId,
-      },
-    });
-
-    if (!quiz) {
+    const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
+    if (!quiz || quiz.creatorId !== userId) {
       return new NextResponse('Not Found', { status: 404 });
     }
 
     // ✅ Update the quiz to mark it as published
     const publishedQuiz = await prisma.quiz.update({
-      where: {
-        id: quizId,
-        creatorId: userId,
-      },
-      data: {
-        isPublished: true,
-      },
+      where: { id: quiz.id, creatorId: userId },
+      data: { isPublished: true },
     });
 
     return NextResponse.json(publishedQuiz);

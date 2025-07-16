@@ -34,6 +34,7 @@ const fetchQuizzes = async (): Promise<Quiz[]> => {
   return response.data;
 };
 
+// NOTE: /api/quizzes/[id] endpoint must support both cuid and slug for this to work with slugs.
 const fetchQuizById = async (id: string): Promise<Quiz> => {
   const response = await axios.get(`/api/quizzes/${id}`);
   return response.data;
@@ -113,27 +114,21 @@ export function useDeleteQuiz() {
   });
 }
 
-export function useStaticQuiz() {
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
+export function useStaticQuiz(quizId: string) {
+  const [quiz, setQuiz] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!quizId) return;
     async function fetchQuiz() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('/user_resources/sample-quiz-100.json');
-        if (!res.ok) throw new Error('Failed to load quiz');
+        const res = await fetch(`/api/quizzes/${quizId}`);
+        if (!res.ok) throw new Error('Quiz not found');
         const data = await res.json();
-        // Adapt structure if needed
-        setQuiz({
-          id: 'sample-quiz-100',
-          title: 'Neuron Arena Sample Quiz',
-          description: '',
-          questions: data.questions,
-          duration: 1800, // 30 min default
-        });
+        setQuiz(data);
       } catch (e: any) {
         setError(e.message || 'Unknown error');
       } finally {
@@ -141,7 +136,7 @@ export function useStaticQuiz() {
       }
     }
     fetchQuiz();
-  }, []);
+  }, [quizId]);
 
   return { quiz, loading, error };
 } 

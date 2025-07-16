@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 // GET: List all friends for the authenticated user
 export async function GET(request: NextRequest) {
@@ -45,15 +47,22 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Send a friend request
-export async function POST(request: NextRequest) {
+const friendRequestSchema = z.object({
+  addresseeId: z.string().min(1),
+});
+
+const friendDeleteSchema = z.object({
+  otherUserId: z.string().min(1),
+});
+
+export const POST = withValidation(friendRequestSchema, async (request: any) => {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { addresseeId } = await request.json();
-    if (!addresseeId || addresseeId === userId) {
+    const { addresseeId } = request.validated;
+    if (addresseeId === userId) {
       return NextResponse.json({ error: 'Invalid addressee' }, { status: 400 });
     }
     // Check for existing relationship
@@ -81,17 +90,16 @@ export async function POST(request: NextRequest) {
     console.error('Error sending friend request:', error);
     return NextResponse.json({ error: 'Failed to send friend request' }, { status: 500 });
   }
-}
+});
 
-// DELETE: Remove a friend (or cancel request)
-export async function DELETE(request: NextRequest) {
+export const DELETE = withValidation(friendDeleteSchema, async (request: any) => {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { otherUserId } = await request.json();
-    if (!otherUserId || otherUserId === userId) {
+    const { otherUserId } = request.validated;
+    if (otherUserId === userId) {
       return NextResponse.json({ error: 'Invalid user' }, { status: 400 });
     }
     // Remove any friend relationship (bidirectional)
@@ -108,4 +116,4 @@ export async function DELETE(request: NextRequest) {
     console.error('Error removing friend:', error);
     return NextResponse.json({ error: 'Failed to remove friend' }, { status: 500 });
   }
-} 
+}); 

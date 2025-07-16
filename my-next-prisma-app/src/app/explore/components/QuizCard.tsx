@@ -47,8 +47,9 @@ type QuizCardProps = {
     difficultyLevel?: string;
     pricePerAttempt?: number;
     pointPerAttempt?: number;
+    slug?: string; // Added slug to the type
   };
-  onClick: () => void;
+  onClick: (quiz: QuizCardProps['quiz']) => void;
   isUnlocked?: boolean;
   isPremiumUser?: boolean;
 };
@@ -60,7 +61,7 @@ export default function QuizCard({ quiz, onClick, isUnlocked = false, isPremiumU
 
   return (
     <div
-      onClick={onClick}
+      onClick={() => onClick?.(quiz)}
       className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border border-gray-200 dark:border-slate-700 group"
     >
       {/* Image */}
@@ -216,6 +217,9 @@ export default function QuizCard({ quiz, onClick, isUnlocked = false, isPremiumU
           </div>
         )}
       </div>
+      <a href={quiz.slug ? `/quiz/${quiz.slug}/take` : `/quiz/${quiz.id}/take`} className="block mt-4 text-blue-500 hover:underline text-center">
+        Take Quiz
+      </a>
     </div>
   );
 } 

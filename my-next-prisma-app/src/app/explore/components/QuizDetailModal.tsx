@@ -92,6 +92,7 @@ type QuizDetailModalProps = {
     difficultyLevel?: string;
     pricePerAttempt?: number;
     pointPerAttempt?: number;
+    slug?: string; // Added slug to the type
   };
   onClose: () => void;
   isPremiumUser?: boolean;
@@ -331,7 +332,7 @@ export default function QuizDetailModal({ quiz, onClose, isPremiumUser = false, 
           ) : (
             <button
               className="w-full futuristic-button bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-4 rounded-xl text-xl hover:scale-105 transition-transform duration-300 shadow-lg"
-              onClick={() => router.push(`/quiz/${quiz.id}/take`)}
+              onClick={() => router.push(`/quiz/${quiz.slug ? quiz.slug : quiz.id}/take`)}
             >
               ▶️ Attempt Quiz
             </button>

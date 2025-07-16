@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 import { RazorpayService } from '@/services/razorpayService';
+import { QuizAttemptService } from '@/services/quizAttemptService';
 
 // This is the platform's main account where commission will be sent.
 // In a real app, this should come from a secure config or environment variable.
@@ -28,31 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if the user has already unlocked this quiz
-    const existingUnlock = await prisma.quizUnlock.findUnique({
-      where: {
-        userId_quizId: {
-          userId,
-          quizId,
-        },
-      },
-    });
-
-    if (existingUnlock) {
-      return NextResponse.json({ error: 'You have already unlocked this quiz.' }, { status: 400 });
-    }
-
-    // 1. Fetch Quiz and Creator's Payout Info
-    const quiz = await prisma.quiz.findUnique({
-      where: { id: quizId },
-      include: {
-        creator: {
-          include: {
-            payoutAccount: true,
-          },
-        },
-      },
-    });
-
+    const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
     if (!quiz) {
       return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
     }

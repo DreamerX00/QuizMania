@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { updatePackageStats } from '@/services/updatePackageStats';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 // GET: List all packages for the authenticated user, with optional isPublished filter
 export async function GET(req: NextRequest) {
@@ -18,14 +20,32 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(packages);
 }
 
-// POST: Create a new package
-export async function POST(req: NextRequest) {
+const createPackageSchema = z.object({
+  title: z.string().min(2).max(100),
+  description: z.string().max(1000).optional(),
+  imageUrl: z.string().url().optional(),
+  quizIds: z.array(z.string().min(1)),
+  price: z.number().min(0).optional(),
+});
+
+const updatePackageSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(2).max(100).optional(),
+  description: z.string().max(1000).optional(),
+  imageUrl: z.string().url().optional(),
+  quizIds: z.array(z.string().min(1)).optional(),
+  price: z.number().min(0).optional(),
+  isPublished: z.boolean().optional(),
+});
+
+const deletePackageSchema = z.object({
+  id: z.string().min(1),
+});
+
+export const POST = withValidation(createPackageSchema, async (req: any) => {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const data = await req.json();
-  if (!data.title || !Array.isArray(data.quizIds)) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-  }
+  const data = req.validated;
   const pkg = await prisma.quizPackage.create({
     data: {
       userId,
@@ -37,19 +57,14 @@ export async function POST(req: NextRequest) {
       isPublished: false,
     },
   });
-
-  // Update stats for the newly created package
   await updatePackageStats(pkg.id);
-
   return NextResponse.json(pkg);
-}
+});
 
-// PUT: Update a package (must be owned by user)
-export async function PUT(req: NextRequest) {
+export const PUT = withValidation(updatePackageSchema, async (req: any) => {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const data = await req.json();
-  if (!data.id) return NextResponse.json({ error: 'Missing package id' }, { status: 400 });
+  const data = req.validated;
   const pkg = await prisma.quizPackage.findUnique({ where: { id: data.id } });
   if (!pkg || pkg.userId !== userId) return NextResponse.json({ error: 'Package not found' }, { status: 404 });
   const updated = await prisma.quizPackage.update({
@@ -63,21 +78,16 @@ export async function PUT(req: NextRequest) {
       isPublished: typeof data.isPublished === 'boolean' ? data.isPublished : pkg.isPublished,
     },
   });
-
-  // Update stats for the updated package
   await updatePackageStats(updated.id);
-
   return NextResponse.json(updated);
-}
+});
 
-// DELETE: Delete a package (must be owned by user)
-export async function DELETE(req: NextRequest) {
+export const DELETE = withValidation(deletePackageSchema, async (req: any) => {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const data = await req.json();
-  if (!data.id) return NextResponse.json({ error: 'Missing package id' }, { status: 400 });
+  const data = req.validated;
   const pkg = await prisma.quizPackage.findUnique({ where: { id: data.id } });
   if (!pkg || pkg.userId !== userId) return NextResponse.json({ error: 'Package not found' }, { status: 404 });
   await prisma.quizPackage.delete({ where: { id: data.id } });
   return NextResponse.json({ success: true });
-} 
+}); 
