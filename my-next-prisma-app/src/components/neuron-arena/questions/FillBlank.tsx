@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuizStore } from '../state/quizStore';
 import type { Question } from '../types/quiz.types';
+import isEqual from 'lodash.isequal';
 
 const FillBlank = ({ question }: { question: Question }) => {
   const blanks = question.fillBlanksAnswers || [];
+  const responses = useQuizStore(s => s.responses);
+  const prev = responses.find(r => r.questionId === question.id)?.response ?? Array(blanks.length).fill('');
   const parts = question.question.split(/(___+)/g);
-  const [answers, setAnswers] = useState<string[]>(Array(blanks.length).fill(''));
+  const [answers, setAnswers] = useState<string[]>(prev);
+  useEffect(() => {
+    if (!isEqual(answers, prev)) {
+      setAnswers(prev);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev, question.id]);
   const setResponse = useQuizStore((s) => s.setResponse);
   function handleChange(idx: number, val: string) {
     const next = [...answers];

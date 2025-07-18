@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth, clerkClient } from '@clerk/nextjs/server';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 function withNotSetFields(user: any) {
   return {
@@ -61,16 +63,24 @@ export async function GET(request: Request, context: any) {
   return NextResponse.json(withNotSetFields(user));
 }
 
-export async function PATCH(request: Request, context: any) {
+const updateProfileSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  avatarUrl: z.string().url().optional(),
+  bannerUrl: z.string().url().optional(),
+  bio: z.string().max(500).optional(),
+  alias: z.string().max(50).optional(),
+  socials: z.string().max(200).optional(),
+  region: z.string().max(100).optional(),
+});
+
+export const PATCH = withValidation(updateProfileSchema, async (request: any, context: any) => {
   const { id } = await context.params;
   const { userId } = await auth();
-
   if (!userId || userId !== id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-
   try {
-    const data = await request.json();
+    const data = request.validated;
     const updated = await prisma.user.update({
       where: { clerkId: id },
       data: {
@@ -107,4 +117,4 @@ export async function PATCH(request: Request, context: any) {
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update user profile' }, { status: 500 });
   }
-} 
+}); 

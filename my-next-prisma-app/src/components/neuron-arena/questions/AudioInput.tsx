@@ -3,13 +3,22 @@ import { useQuizStore } from '../state/quizStore';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import WaveSurfer from 'wavesurfer.js';
+import isEqual from 'lodash.isequal';
 
 const AudioInput = ({ question }) => {
+  const responses = useQuizStore(s => s.responses);
+  const prev = responses.find(r => r.questionId === question.id)?.response ?? '';
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [duration, setDuration] = useState(null);
   const [waveform, setWaveform] = useState(null);
-  const [audioUrl, setAudioUrl] = useState('');
+  const [audioUrl, setAudioUrl] = useState(prev);
+  useEffect(() => {
+    if (!isEqual(audioUrl, prev)) {
+      setAudioUrl(prev);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev, question.id]);
   const setResponse = useQuizStore((s) => s.setResponse);
   const audioRef = useRef(null);
   const waveformRef = useRef(null);

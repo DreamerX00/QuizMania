@@ -24,9 +24,16 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const { data: profileData, mutate } = useSWR(
-    user ? `/api/users/${user.id}/profile` : null,
-    url => fetch(url).then(res => res.json())
+  // Add a key that includes user.id so SWR refetches when user changes
+  const {
+    data: profileData,
+    error: profileError,
+    isValidating: profileValidating,
+    mutate: mutateProfile
+  } = useSWR(
+    user ? ['/api/users/' + user.id + '/profile', user.id] : null,
+    ([url]) => fetch(url).then(res => res.json()),
+    { revalidateOnFocus: true, shouldRetryOnError: false }
   );
   const [showEdit, setShowEdit] = React.useState(false);
   const openEdit = () => setShowEdit(true);
@@ -38,7 +45,8 @@ export default function ProfilePage() {
     }, 200);
   };
 
-  if (loading) {
+  // Improved loading state: show spinner if user context or profile is loading/validating
+  if (loading || profileValidating) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-white dark:bg-gradient-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white">
         <div className="text-xl">Loading profile...</div>
@@ -54,12 +62,19 @@ export default function ProfilePage() {
     );
   }
 
-  if (profileData?.error) {
+  // Improved error handling: show retry button if fetch failed
+  if (profileData?.error || profileError) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-white dark:bg-gradient-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white">
         <div className="bg-white dark:bg-[#181a2a]/90 p-8 rounded-2xl shadow-2xl text-center border border-gray-200 dark:border-white/10">
           <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Profile Not Found</h1>
           <p className="mb-4 text-gray-600 dark:text-gray-300">We couldn't find your profile in the database. Try logging out and logging in again, or contact support if the issue persists.</p>
+          <button
+            className="mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+            onClick={() => mutateProfile()}
+          >
+            Retry
+          </button>
         </div>
       </main>
     );
@@ -75,7 +90,7 @@ export default function ProfilePage() {
         {/* Left Column */}
         <div className="flex flex-col gap-6 sm:gap-8 col-span-1">
           <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }}>
-            <UserCard openEdit={openEdit} openEditSocials={openEditSocials} mutateProfile={mutate} />
+            <UserCard openEdit={openEdit} openEditSocials={openEditSocials} mutateProfile={mutateProfile} />
           </motion.div>
           {profileData && <BioCard bio={profileData.bio} />}
           <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.1 }}>
@@ -115,7 +130,7 @@ export default function ProfilePage() {
       {showEdit && (
         <div className="fixed inset-0 bg-black/60 dark:bg-black/60 flex items-center justify-center z-50 animate-fade-in p-2 sm:p-6">
           <div className="w-full max-w-full sm:max-w-lg flex items-center justify-center">
-            <AccountSettings onClose={() => setShowEdit(false)} onSave={() => { setShowEdit(false); mutate(); }} />
+            <AccountSettings onClose={() => setShowEdit(false)} onSave={() => { setShowEdit(false); mutateProfile(); }} />
             <button className="absolute top-4 right-4 text-gray-900 dark:text-white text-2xl z-50" onClick={() => setShowEdit(false)}>&times;</button>
           </div>
         </div>

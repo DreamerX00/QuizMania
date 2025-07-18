@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 function generateRoomCode(length = 6) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -39,17 +41,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create a new room
-export async function POST(request: NextRequest) {
+const createRoomSchema = z.object({
+  name: z.string().min(1).max(100),
+  maxPlayers: z.number().min(2).max(100).optional(),
+  type: z.string().min(1).max(50).optional(),
+  quizTypes: z.array(z.string().min(1)).optional(),
+  password: z.string().max(100).optional().nullable(),
+});
+
+export const POST = withValidation(createRoomSchema, async (request: any) => {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { name, maxPlayers, type, quizTypes, password } = await request.json();
-    if (!name) {
-      return NextResponse.json({ error: 'Room name required' }, { status: 400 });
-    }
+    const { name, maxPlayers, type, quizTypes, password } = request.validated;
     // Generate unique code
     let code;
     while (true) {
@@ -80,16 +86,19 @@ export async function POST(request: NextRequest) {
     console.error('Error creating room:', error);
     return NextResponse.json({ error: 'Failed to create room' }, { status: 500 });
   }
-}
+});
 
-// DELETE: Delete a room (only by host)
-export async function DELETE(request: NextRequest) {
+const deleteRoomSchema = z.object({
+  roomId: z.string().min(1),
+});
+
+export const DELETE = withValidation(deleteRoomSchema, async (request: any) => {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { roomId } = await request.json();
+    const { roomId } = request.validated;
     if (!roomId) {
       return NextResponse.json({ error: 'Room ID required' }, { status: 400 });
     }
@@ -104,4 +113,4 @@ export async function DELETE(request: NextRequest) {
     console.error('Error deleting room:', error);
     return NextResponse.json({ error: 'Failed to delete room' }, { status: 500 });
   }
-} 
+}); 

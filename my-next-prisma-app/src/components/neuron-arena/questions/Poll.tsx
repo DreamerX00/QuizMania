@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuizStore } from '../state/quizStore';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import isEqual from 'lodash.isequal';
 
 // Simulate poll results for demo
 const fakeResults = (options, userAnswer) => {
@@ -15,7 +16,15 @@ const fakeResults = (options, userAnswer) => {
 };
 
 const Poll = ({ question }) => {
-  const [selected, setSelected] = useState('');
+  const responses = useQuizStore(s => s.responses);
+  const prev = responses.find(r => r.questionId === question.id)?.response ?? '';
+  const [selected, setSelected] = useState(prev);
+  useEffect(() => {
+    if (!isEqual(selected, prev)) {
+      setSelected(prev);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev, question.id]);
   const [submitted, setSubmitted] = useState(false);
   const setResponse = useQuizStore((s) => s.setResponse);
 

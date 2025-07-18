@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuizStore } from '../state/quizStore';
 import type { Question } from '../types/quiz.types';
+import isEqual from 'lodash.isequal';
 
 const DragDrop = ({ question }: { question: Question }) => {
   const items = question.draggableItems || [];
   const zones = question.dropZones || [];
-  const [positions, setPositions] = useState<{ [zoneId: string]: string | null }>(
-    Object.fromEntries(zones.map((z: any) => [z.id, null]))
-  );
+  const responses = useQuizStore(s => s.responses);
+  const prev = responses.find(r => r.questionId === question.id)?.response ?? Object.fromEntries(zones.map((z: any) => [z.id, null]));
+  const [positions, setPositions] = useState<{ [zoneId: string]: string | null }>(prev);
+  useEffect(() => {
+    if (!isEqual(positions, prev)) {
+      setPositions(prev);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev, question.id]);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const setResponse = useQuizStore((s) => s.setResponse);
   function handleItemClick(itemId: string) {

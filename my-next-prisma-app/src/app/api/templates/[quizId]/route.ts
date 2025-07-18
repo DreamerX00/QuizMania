@@ -1,28 +1,30 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 const prisma = new PrismaClient();
 
-export async function PUT(request: Request, { params }: { params: Promise<{ quizId: string }> }) {
+const quizIdParamSchema = z.object({ quizId: z.string().min(1) });
+const updateTemplateSchema = z.object({
+  isOfficial: z.boolean().optional(),
+  published: z.boolean().optional(),
+});
+
+export const PUT = withValidation(updateTemplateSchema, async (request: any, { params }: { params: Promise<{ quizId: string }> }) => {
   const { quizId } = await params;
-  
   if (!quizId) {
     return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
   }
-
   try {
-    const { isOfficial, published } = await request.json();
-    
+    const { isOfficial, published } = request.validated;
     let updatedRecord;
-
     if (typeof isOfficial === 'boolean') {
-      // Admin is making a template official
       updatedRecord = await prisma.template.update({
         where: { quizId },
         data: { isOfficial },
       });
     } else if (typeof published === 'boolean') {
-      // Any user is publishing their quiz to the Explore page
       updatedRecord = await prisma.quiz.update({
         where: { id: quizId },
         data: { published },
@@ -30,7 +32,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ quiz
     } else {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
-
     return NextResponse.json(updatedRecord);
   } catch (error) {
     console.error(`Error updating record for quiz ${quizId}:`, error);
@@ -39,20 +40,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ quiz
       { status: 500 }
     );
   }
-}
+});
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ quizId: string }> }) {
+export const DELETE = withValidation(quizIdParamSchema, async (request: any, { params }: { params: Promise<{ quizId: string }> }) => {
   const { quizId } = await params;
-  
   if (!quizId) {
     return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
   }
-
   try {
     await prisma.template.delete({
       where: { quizId },
     });
-
     return NextResponse.json({ message: 'Template deleted successfully' });
   } catch (error) {
     console.error(`Error deleting template ${quizId}:`, error);
@@ -61,4 +59,4 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ q
       { status: 500 }
     );
   }
-} 
+}); 

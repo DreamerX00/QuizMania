@@ -2,21 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { QuizAttemptService } from '@/services/quizAttemptService';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
-export async function POST(
-  request: NextRequest,
-  context: { params: { id: string } } | { params: Promise<{ id: string }> }
-) {
+const startQuizSchema = z.object({
+  fingerprint: z.string().min(1).max(256),
+  deviceInfo: z.record(z.any()).optional(),
+});
+
+export const POST = withValidation(startQuizSchema, async (request: any, context: { params: { id: string } } | { params: Promise<{ id: string }> }) => {
   try {
-    // Await params if it's a Promise (Next.js dynamic API route requirement)
     const params = 'then' in context.params ? await context.params : context.params;
-    console.log('Received quiz id/slug:', params.id);
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Ensure user exists in DB
     const user = await currentUser();
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -31,9 +31,7 @@ export async function POST(
         avatarUrl: user.imageUrl,
       },
     });
-
     const { id: quizId } = await params;
-    // Fetch quiz by id or slug
     let quiz;
     try {
       quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
@@ -46,12 +44,9 @@ export async function POST(
     if (!quiz) {
       return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
     }
-    const body = await request.json();
-    const { fingerprint, deviceInfo } = body;
-    // Get IP address from request
+    const { fingerprint, deviceInfo } = request.validated;
     const ip = request.headers.get('x-forwarded-for') || '';
     const result = await QuizAttemptService.startAttempt(userId, quiz.id, fingerprint, deviceInfo, ip);
-
     if (!result.success) {
       return NextResponse.json(
         { 
@@ -61,12 +56,9 @@ export async function POST(
         { status: 400 }
       );
     }
-
-    // Generate and return a unique quiz link with sessionId
     const quizLink = result.sessionId
       ? `https://quizmania.app/quiz/${quiz.slug}/take?session=${result.sessionId}`
       : null;
-
     return NextResponse.json({ ...result, quizLink });
   } catch (error: any) {
     console.error('Error starting quiz attempt:', error);
@@ -75,4 +67,4 @@ export async function POST(
       { status: error.message?.includes('Quiz not found') ? 404 : 500 }
     );
   }
-} 
+}); 

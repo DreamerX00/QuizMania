@@ -3,33 +3,26 @@ import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 import { updatePackageStatsForQuiz } from '@/services/updatePackageStats';
 import { QuizAttemptService } from '@/services/quizAttemptService';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ quizId: string }> }
-) {
+const rateQuizSchema = z.object({
+  quizId: z.string().min(1),
+  value: z.number().int().min(1).max(5),
+});
+
+export const POST = withValidation(rateQuizSchema, async (request: any, { params }: { params: Promise<{ quizId: string }> }) => {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { quizId } = await params;
-    if (!quizId) {
-      return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
-    }
-
-    const { value } = await request.json();
-    if (!value || value < 1 || value > 5) {
-      return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 });
-    }
-
+    const { quizId, value } = request.validated;
     // Check if quiz exists
     const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
     if (!quiz) {
       return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
     }
-
     // Upsert the rating (create or update)
     await prisma.quizRating.upsert({
       where: {
@@ -50,7 +43,6 @@ export async function POST(
     await prisma.quiz.update({ where: { id: quiz.id }, data: { rating: Math.round(averageRating * 10) / 10 } });
     // Update package stats for all packages containing this quiz
     await updatePackageStatsForQuiz(quiz.id);
-
     return NextResponse.json({ 
       success: true, 
       averageRating: Math.round(averageRating * 10) / 10 
@@ -59,4 +51,4 @@ export async function POST(
     console.error('Error rating quiz:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}); 

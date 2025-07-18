@@ -2,17 +2,27 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useQuizStore } from '../state/quizStore';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import isEqual from 'lodash.isequal';
 
 const VideoInput = ({ question }) => {
+  const responses = useQuizStore(s => s.responses);
+  const prev = responses.find(r => r.questionId === question.id)?.response ?? '';
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [duration, setDuration] = useState(null);
-  const [videoUrl, setVideoUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState(prev);
   const [thumbnail, setThumbnail] = useState('');
   const setResponse = useQuizStore((s) => s.setResponse);
   const videoRef = useRef(null);
   const maxSize = (question.fileSizeLimitMB || 20) * 1024 * 1024;
   const maxDuration = question.maxDurationSeconds || 180;
+
+  useEffect(() => {
+    if (!isEqual(videoUrl, prev)) {
+      setVideoUrl(prev);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev, question.id]);
 
   useEffect(() => {
     if (videoUrl && videoRef.current) {

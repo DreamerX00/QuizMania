@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 // GET: List all pending friend requests for the authenticated user
 export async function GET(request: NextRequest) {
@@ -45,17 +47,18 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Accept or decline a friend request
-export async function POST(request: NextRequest) {
+const friendRequestActionSchema = z.object({
+  requestId: z.string().min(1),
+  action: z.enum(['accept', 'decline']),
+});
+
+export const POST = withValidation(friendRequestActionSchema, async (request: any) => {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { requestId, action } = await request.json();
-    if (!requestId || !['accept', 'decline'].includes(action)) {
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-    }
+    const { requestId, action } = request.validated;
     const friendRequest = await prisma.friend.findUnique({ where: { id: requestId } });
     if (!friendRequest || friendRequest.addresseeId !== userId || friendRequest.status !== 'PENDING') {
       return NextResponse.json({ error: 'Request not found or not allowed' }, { status: 404 });
@@ -69,4 +72,4 @@ export async function POST(request: NextRequest) {
     console.error('Error updating friend request:', error);
     return NextResponse.json({ error: 'Failed to update friend request' }, { status: 500 });
   }
-} 
+}); 

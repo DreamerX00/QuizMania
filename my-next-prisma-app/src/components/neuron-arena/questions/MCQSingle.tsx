@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuizStore } from '../state/quizStore';
 import type { Question } from '../types/quiz.types';
+import isEqual from 'lodash.isequal';
 
 const MCQSingle = ({ question }: { question: Question }) => {
-  const [selected, setSelected] = useState<string | null>(null);
+  const responses = useQuizStore(s => s.responses);
+  const prev = responses.find(r => r.questionId === question.id)?.response ?? null;
+  const [selected, setSelected] = useState<string | null>(prev);
+  useEffect(() => {
+    if (!isEqual(selected, prev)) {
+      setSelected(prev);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev, question.id]);
   const setResponse = useQuizStore((s) => s.setResponse);
   function handleSelect(optId: string) {
     setSelected(optId);

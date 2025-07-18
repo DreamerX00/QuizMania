@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuizStore } from '../state/quizStore';
 import type { Question } from '../types/quiz.types';
+import isEqual from 'lodash.isequal';
 
 const ImageBased = ({ question }: { question: Question }) => {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [input, setInput] = useState('');
+  const responses = useQuizStore(s => s.responses);
+  const prev = responses.find(r => r.questionId === question.id)?.response;
+  const [selected, setSelected] = useState<string | null>(question.options ? (prev ?? null) : null);
+  const [input, setInput] = useState(question.options ? '' : (prev ?? ''));
+  useEffect(() => {
+    if (question.options) {
+      if (!isEqual(selected, prev)) setSelected(prev ?? null);
+    } else {
+      if (!isEqual(input, prev)) setInput(prev ?? '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev, question.id, question.options]);
   const setResponse = useQuizStore((s) => s.setResponse);
   function handleSelect(optId: string) {
     setSelected(optId);

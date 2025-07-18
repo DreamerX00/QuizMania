@@ -6,6 +6,7 @@ import { useStaticQuiz } from '@/hooks/useQuizData';
 import { useQuizStore } from '@/components/neuron-arena/state/quizStore';
 import QuizInitModal from '@/components/neuron-arena/QuizInitModal';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 // Define TypeScript interfaces
 interface SessionValidationResponse {
@@ -27,6 +28,7 @@ const QuizTakePage = () => {
   const [sessionError, setSessionError] = React.useState<string | null>(null);
   const [sessionId, setSessionId] = React.useState<string | undefined>(undefined);
   const [isValidating, setIsValidating] = React.useState(false); // New loading state
+  const [hasStarted, setHasStarted] = React.useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -74,6 +76,31 @@ const QuizTakePage = () => {
         .finally(() => setIsValidating(false));
     }
   }, [quiz?.id, searchParams]);
+
+  useEffect(() => {
+    if (!initOpen && quiz && !hasStarted) {
+      (async () => {
+        const fp = await FingerprintJS.load();
+        const result = await fp.get();
+        const fingerprint = result.visitorId;
+        const deviceInfo = {
+          userAgent: navigator.userAgent,
+          devicePixelRatio: window.devicePixelRatio,
+          screen: {
+            width: window.screen.width,
+            height: window.screen.height,
+          },
+        };
+        await fetch(`/api/quiz/${quiz.id}/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fingerprint, deviceInfo }),
+        });
+        setHasStarted(true);
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initOpen, quiz, hasStarted]);
 
   if (loading || isValidating) {
     return <div className="flex items-center justify-center min-h-screen">Loading quiz…</div>;

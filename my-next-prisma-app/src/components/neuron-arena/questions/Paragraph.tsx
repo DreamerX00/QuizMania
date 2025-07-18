@@ -3,11 +3,20 @@ import { useQuizStore } from '../state/quizStore';
 import MDEditor from '@uiw/react-md-editor';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import isEqual from 'lodash.isequal';
 
 const LOCAL_KEY = 'paragraph-draft';
 
 const Paragraph = ({ question }) => {
-  const [value, setValue] = useState('');
+  const responses = useQuizStore(s => s.responses);
+  const prev = responses.find(r => r.questionId === question.id)?.response ?? '';
+  const [value, setValue] = useState(prev);
+  useEffect(() => {
+    if (!isEqual(value, prev)) {
+      setValue(prev);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev, question.id]);
   const [lastSaved, setLastSaved] = useState(null);
   const [saving, setSaving] = useState(false);
   const setResponse = useQuizStore((s) => s.setResponse);

@@ -76,9 +76,9 @@ export default function HomePage() {
   const testimonials = [
     {
       quote: "QuizMania is just awesome! The AI quizzes are so accurate, I feel like I'm actually learning something new every day.",
-      name: "Aarav Sharma",
-      designation: "Engineering Student",
-      src: "https://plus.unsplash.com/premium_photo-1689977871600-e755257fb5f8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      name: "Tanisha Sahu",
+      designation: "MCA Student",
+      src: "https://media.licdn.com/dms/image/v2/D5603AQGtV1mE6n2M3Q/profile-displayphoto-scale_400_400/B56ZeVy7vfHoAk-/0/1750564848545?e=1758153600&v=beta&t=NLshKM2A83o16PzvD5CW-_e72nsWWx3mdesE9vGIjCM"
     },
     {
       quote: "Yaar, pehle padhai boring lagti thi, ab toh maza aa gaya! Leaderboard pe naam aane ka alag hi feel hai.",
@@ -90,13 +90,13 @@ export default function HomePage() {
       quote: "The best part is ki quizzes har subject ke liye mil jaate hain. Revision ke liye perfect hai!",
       name: "Rohan Verma",
       designation: "CA Finalist",
-      src: "https://images.unsplash.com/photo-1650404894317-9fbb99549f23?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      src: "https://images.unsplash.com/photo-1581581911147-772c259e7eec?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
       quote: "I love how easy it is to create my own quizzes and share with friends. Bahut hi user-friendly hai!",
       name: "Sneha Patel",
       designation: "School Teacher",
-      src: "https://plus.unsplash.com/premium_photo-1661964274927-84559011dd89?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      src: "https://plus.unsplash.com/premium_photo-1664478244612-d4b3238abd81?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
       quote: "Honestly, QuizMania ne meri preparation next level pe le gayi. Analytics feature is super helpful!",
@@ -105,47 +105,24 @@ export default function HomePage() {
       src: "https://plus.unsplash.com/premium_photo-1722682239201-21c8173e776b?q=80&w=1143&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     {
-      quote: "The community is so active! Doubts clear karne mein kabhi dikkat nahi hoti. Highly recommended.",
-      name: "Simran Kaur",
-      designation: "Medical Student",
-      src: "https://images.unsplash.com/photo-1736849544489-9cd7298c4026?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-    },
-    {
       quote: "I was able to crack my campus placement aptitude round thanks to the practice quizzes here.",
-      name: "Rahul Nair",
-      designation: "Software Developer",
-      src: "https://plus.unsplash.com/premium_photo-1722889134304-544e46f55deb?q=80&w=1026&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      name: "Kunal Raidas",
+      designation: "MCA Student",
+      src: "https://media.licdn.com/dms/image/v2/D4D35AQE9Yr3n-om2Tw/profile-framedphoto-shrink_400_400/B4DZav67G7HsAc-/0/1746708181814?e=1753293600&v=beta&t=7jEcNd_YB1c_nhS5SG2WPwF6mQbpjGSBn09WGDHH9zM"
     },
     {
       quote: "QuizMania pe quizzes dena matlab time ka best use. Fun bhi hai aur learning bhi!",
-      name: "Ananya Joshi",
-      designation: "B.Com Student",
-      src: "https://images.unsplash.com/photo-1676995229157-396a66e02c10?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjJ8fGluZGlhbiUyMHBlb3BsZSUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D"
+      name: "Soni Kumari",
+      designation: "Aspiring Developer",
+      src: "https://media.licdn.com/dms/image/v2/D5635AQEbbBIQFQ0HqQ/profile-framedphoto-shrink_400_400/B56ZgNcrimG0Ac-/0/1752572279443?e=1753293600&v=beta&t=6tkOK1zze7tVe0igEx8J0Wu6ho0LEfw7aF94V8oaMsk"
     },
     {
       quote: "The interface is so smooth and modern. Mere friends bhi ab yahi use karte hain!",
-      name: "Kunal Deshmukh",
-      designation: "Law Student",
-      src: "https://images.unsplash.com/photo-1676743217690-fb7bb4f20544?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      name: "Bhawna Sharma",
+      designation: "Aspiring Software Developer",
+      src: "https://media.licdn.com/dms/image/v2/D5635AQGt83llZpLYfw/profile-framedphoto-shrink_400_400/profile-framedphoto-shrink_400_400/0/1718551576382?e=1753293600&v=beta&t=wO8hdC0Kny7M_vyKKNgiHpgfaF_FJFY1xuvYxhaWIaI"
     },
-    {
-      quote: "Bahut saare quizzes, instant results, aur leaderboard pe compete karne ka maza hi alag hai!",
-      name: "Meera Iyer",
-      designation: "Competitive Exam Prep",
-      src: "https://images.unsplash.com/photo-1657367143987-5a39767e552f?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-    },
-    {
-      quote: "I never thought online quizzes could be this much fun. The variety of topics is mind-blowing!",
-      name: "Devansh Kulkarni",
-      designation: "History Buff",
-      src: "https://plus.unsplash.com/premium_photo-1682092093534-c16eb3ea13c8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-    },
-    {
-      quote: "QuizMania ki wajah se meri English improve ho gayi. Daily practice karne ka motivation milta hai!",
-      name: "Ishita Reddy",
-      designation: "College Student",
-      src: "https://images.unsplash.com/photo-1555024820-c8aaf1952d23?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8c291dGglMjBpbmRpYW4lMjBnaXJsfGVufDB8fDB8fHww"
-    },
+   
     {
       quote: "The leaderboard keeps me on my toes. Roz check karta hoon ki kaun top pe hai!",
       name: "Siddharth Jain",
@@ -164,35 +141,25 @@ export default function HomePage() {
       designation: "Graduate",
       src: "https://plus.unsplash.com/premium_photo-1734026668803-4ab767f3de76?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDI3fHx8ZW58MHx8fHx8"
     },
-    {
-      quote: "My kids love using QuizMania for their school subjects. Learning has become a game for them!",
-      name: "Pooja Menon",
-      designation: "Parent",
-      src: "https://plus.unsplash.com/premium_photo-1723568666044-1b066e26b1fb?q=80&w=721&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-    },
+
     {
       quote: "Bahut hi helpful platform hai, especially jab quick revision karna ho before exams.",
       name: "Tarun Sethi",
       designation: "B.Sc Student",
       src: "https://images.unsplash.com/flagged/photo-1571367034861-e6729ad9c2d5?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
-    {
-      quote: "QuizMania par har week naye quizzes milte hain. Never gets boring!",
-      name: "Ritika Dey",
-      designation: "Commerce Student",
-      src: "https://plus.unsplash.com/premium_photo-1682092039530-584ae1d9da7f?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-    },
+  
     {
       quote: "I recommended QuizMania to my entire study group. Sabko bahut pasand aaya!",
-      name: "Manav Kapoor",
-      designation: "MBA Student",
-      src: "https://images.unsplash.com/photo-1638368349569-e49499196d9f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      name: "Kishor Bharti",
+      designation: "Geek",
+      src: "https://media.licdn.com/dms/image/v2/D4D03AQGGalqYxAzT-A/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1708356722670?e=1758153600&v=beta&t=7pVh0Vw7UoGGHL_tPKpkkx2J03i11GkT2H5tabi4LYI"
     },
     {
       quote: "The instant feedback after every quiz helps me track my progress. Bahut motivating hai!",
-      name: "Gayatri Joshi",
-      designation: "SSC Aspirant",
-      src: "https://images.unsplash.com/photo-1613463376962-8a6452d716af?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      name: "Saurabh Khera",
+      designation: "APS Head IEEE BVICAM Student Branch",
+      src: "https://media.licdn.com/dms/image/v2/D5603AQFIJ3aOD5dCBw/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1723625088579?e=1758153600&v=beta&t=jdvTTMq2KXKa_eNhc8HbfMpcTG4-zk7dBWcgwk87K1c"
     }
   ];
 

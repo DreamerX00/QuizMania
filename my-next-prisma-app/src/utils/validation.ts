@@ -3,15 +3,19 @@ import validator from 'validator';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Recursively sanitize all string fields in an object
-export function sanitizeObject(obj: any): any {
+export function sanitizeObject(obj: any, parentKey: string | null = null): any {
   if (typeof obj === 'string') {
+    // Do not escape if the key is avatarUrl or bannerUrl
+    if (parentKey === 'avatarUrl' || parentKey === 'bannerUrl') {
+      return obj;
+    }
     return validator.escape(obj);
   } else if (Array.isArray(obj)) {
-    return obj.map(sanitizeObject);
+    return obj.map((item) => sanitizeObject(item, parentKey));
   } else if (typeof obj === 'object' && obj !== null) {
     const sanitized: any = {};
     for (const key in obj) {
-      sanitized[key] = sanitizeObject(obj[key]);
+      sanitized[key] = sanitizeObject(obj[key], key);
     }
     return sanitized;
   }

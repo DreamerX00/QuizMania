@@ -1,9 +1,10 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { muteUser, unmuteUser, blockUser, unblockUser, reportUser } from '../../../../services/moderationService';
+import { NextResponse } from 'next/server';
+import { muteUser, unmuteUser, blockUser, unblockUser, reportUser } from '@/services/moderationService';
 import { z } from 'zod';
-import validator from 'validator';
+import { withValidation } from '@/utils/validation';
+import { NextRequest } from 'next/server';
 
-const baseSchema = z.object({
+const moderationSchema = z.object({
   action: z.string().min(1),
   roomId: z.string().optional(),
   userId: z.string().optional(),
@@ -14,61 +15,49 @@ const baseSchema = z.object({
   context: z.any().optional(),
 });
 
-function sanitizeObject(obj: any): any {
-  if (typeof obj === 'string') {
-    return validator.escape(obj);
-  } else if (Array.isArray(obj)) {
-    return obj.map(sanitizeObject);
-  } else if (typeof obj === 'object' && obj !== null) {
-    const sanitized: any = {};
-    for (const key in obj) {
-      sanitized[key] = sanitizeObject(obj[key]);
-    }
-    return sanitized;
-  }
-  return obj;
-}
+type ModerationRequest = {
+  action: string;
+  roomId?: string;
+  userId?: string;
+  byId?: string;
+  reason?: string;
+  blockedId?: string;
+  targetId?: string;
+  context?: unknown;
+};
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
-  // TODO: Add authentication/authorization check here
-  const { action } = req.query;
-  const parsed = baseSchema.safeParse({ ...req.body, action });
-  if (!parsed.success) {
-    return res.status(400).json({
-      status: 'error',
-      code: 'VALIDATION_ERROR',
-      message: 'One or more fields failed validation',
-      details: parsed.error.errors.map(err => ({
-        field: err.path.join('.'),
-        message: err.message,
-      })),
-    });
-  }
-  const body = sanitizeObject(parsed.data);
+// TODO: Add authentication/authorization check here
+
+export const POST = withValidation(moderationSchema, async (request: NextRequest) => {
+  const { action, roomId, userId, byId, reason, blockedId, targetId, context } = (request as any).validated as ModerationRequest;
   try {
     if (action === 'mute') {
-      await muteUser(body.roomId, body.userId, body.byId, body.reason);
-      return res.status(200).json({ success: true });
+      if (!roomId || !userId || !byId) return NextResponse.json({ error: 'Missing required fields for mute' }, { status: 400 });
+      await muteUser(roomId, userId, byId, reason);
+      return NextResponse.json({ success: true });
     }
     if (action === 'unmute') {
-      await unmuteUser(body.roomId, body.userId, body.byId, body.reason);
-      return res.status(200).json({ success: true });
+      if (!roomId || !userId || !byId) return NextResponse.json({ error: 'Missing required fields for unmute' }, { status: 400 });
+      await unmuteUser(roomId, userId, byId, reason);
+      return NextResponse.json({ success: true });
     }
     if (action === 'block') {
-      await blockUser(body.userId, body.blockedId, body.byId, body.reason);
-      return res.status(200).json({ success: true });
+      if (!userId || !blockedId || !byId) return NextResponse.json({ error: 'Missing required fields for block' }, { status: 400 });
+      await blockUser(userId, blockedId, byId, reason);
+      return NextResponse.json({ success: true });
     }
     if (action === 'unblock') {
-      await unblockUser(body.userId, body.blockedId, body.byId, body.reason);
-      return res.status(200).json({ success: true });
+      if (!userId || !blockedId || !byId) return NextResponse.json({ error: 'Missing required fields for unblock' }, { status: 400 });
+      await unblockUser(userId, blockedId, byId, reason);
+      return NextResponse.json({ success: true });
     }
     if (action === 'report') {
-      await reportUser(body.targetId, body.byId, body.reason, body.context);
-      return res.status(200).json({ success: true });
+      if (!targetId || !byId) return NextResponse.json({ error: 'Missing required fields for report' }, { status: 400 });
+      await reportUser(targetId, byId, reason, context);
+      return NextResponse.json({ success: true });
     }
-    return res.status(400).json({ error: 'Unknown action' });
-  } catch (err) {
-    return res.status(500).json({ error: 'Moderation action failed', details: err?.message });
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: 'Moderation action failed', details: (err as Error)?.message }, { status: 500 });
   }
-} 
+}); 

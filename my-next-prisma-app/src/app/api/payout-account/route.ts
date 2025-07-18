@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 import { RazorpayService } from '@/services/razorpayService';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 // GET: Check if user has a payout account
 export async function GET(request: NextRequest) {
@@ -37,42 +39,36 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Onboard a creator and create their payout account
-export async function POST(request: NextRequest) {
+const payoutAccountSchema = z.object({
+  upiId: z.string().min(3).max(100),
+});
+
+export const POST = withValidation(payoutAccountSchema, async (request: any) => {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
     const user = await prisma.user.findUnique({ where: { clerkId: userId } });
     if (!user || !user.email) {
       return NextResponse.json({ error: 'User not found or email missing' }, { status: 404 });
     }
-
     // Check if user already has a payout account
     const existingAccount = await prisma.payoutAccount.findUnique({ where: { userId } });
     if (existingAccount) {
       return NextResponse.json({ error: 'Payout account already exists' }, { status: 400 });
     }
-
-    const { upiId } = await request.json();
-    if (!upiId) {
-      return NextResponse.json({ error: 'UPI ID is required' }, { status: 400 });
-    }
-
+    const { upiId } = request.validated;
     // 1. Create a Razorpay Contact
     const contact = await RazorpayService.createContact(user.name || 'Quiz Creator', user.email);
     if (!contact || !contact.id) {
       throw new Error('Failed to create Razorpay Contact');
     }
-
     // 2. Create a Razorpay Fund Account (VPA for UPI)
     const fundAccount = await RazorpayService.createUpiFundAccount(contact.id, upiId);
     if (!fundAccount || !fundAccount.id) {
       throw new Error('Failed to create Razorpay Fund Account');
     }
-
     // 3. Save the PayoutAccount in our database
     const newPayoutAccount = await prisma.payoutAccount.create({
       data: {
@@ -85,7 +81,6 @@ export async function POST(request: NextRequest) {
         },
       },
     });
-
     return NextResponse.json({
       success: true,
       message: 'Payout account created successfully!',
@@ -102,4 +97,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}); 

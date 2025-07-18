@@ -3,6 +3,8 @@ import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 import { RazorpayService } from '@/services/razorpayService';
 import { QuizAttemptService } from '@/services/quizAttemptService';
+import { z } from 'zod';
+import { withValidation } from '@/utils/validation';
 
 // This is the platform's main account where commission will be sent.
 // In a real app, this should come from a secure config or environment variable.
@@ -10,8 +12,11 @@ import { QuizAttemptService } from '@/services/quizAttemptService';
 // See: https://razorpay.com/docs/route/getting-started/#add-a-linked-account
 const PLATFORM_RAZORPAY_ACCOUNT_ID = process.env.RAZORPAY_PLATFORM_ACCOUNT_ID; 
 
-// POST: Create a split payment order for a quiz purchase
-export async function POST(request: NextRequest) {
+const purchaseQuizSchema = z.object({
+  quizId: z.string().min(1),
+});
+
+export const POST = withValidation(purchaseQuizSchema, async (request: any) => {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -23,7 +28,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Platform account not configured.' }, { status: 500 });
     }
 
-    const { quizId } = await request.json();
+    const { quizId } = request.validated;
     if (!quizId) {
       return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
     }
@@ -106,4 +111,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}); 
