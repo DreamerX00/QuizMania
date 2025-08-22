@@ -5,13 +5,18 @@ import { useQuizStore } from './state/quizStore';
 import Timer from './Timer';
 import Navigation from './Navigation';
 import SubmitButton from './SubmitButton';
-// DEV-ONLY: Violation rules toggle
-let ViolationDevToggle: React.FC | null = null;
-if (process.env.NODE_ENV === 'development') {
-  // @ts-ignore
-  ViolationDevToggle = require('../dev/ViolationDevToggle').default;
-}
-import { useViolationRulesStore } from '../dev/violationRulesStore';
+// Production-ready violation rules (hardcoded for security)
+const rules = { 
+  tabSwitch: true, 
+  copy: true, 
+  paste: true, 
+  rightClick: true, 
+  printScreen: true, 
+  ctrlC: true, 
+  ctrlV: true, 
+  ctrlS: true, 
+  ctrlP: true 
+};
 import ScoreSummary from './ScoreSummary';
 
 const QuizContainer = ({ children, sessionId }: { children: React.ReactNode; sessionId?: string }) => {
@@ -21,8 +26,19 @@ const QuizContainer = ({ children, sessionId }: { children: React.ReactNode; ses
   const total = quiz?.questions.length || 1;
   const percent = ((currentIndex + 1) / total) * 100;
   const [violationMsg, setViolationMsg] = React.useState<string | null>(null);
-  const rules = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? useViolationRulesStore() : { tabSwitch: true, copy: true, paste: true, rightClick: true, printScreen: true, ctrlC: true, ctrlV: true, ctrlS: true, ctrlP: true };
+  
+  // Production-ready violation rules (hardcoded for security)
+  const rules = React.useMemo(() => ({
+    tabSwitch: true, 
+    copy: true, 
+    paste: true, 
+    rightClick: true, 
+    printScreen: true, 
+    ctrlC: true, 
+    ctrlV: true, 
+    ctrlS: true, 
+    ctrlP: true 
+  }), []);
   const submitted = useQuizStore((s) => s.submitted);
 
   React.useEffect(() => {
@@ -113,7 +129,7 @@ const QuizContainer = ({ children, sessionId }: { children: React.ReactNode; ses
   return (
     <div className="fixed inset-0 h-screen w-screen overflow-hidden bg-background flex flex-col text-foreground">
       {/* DEV-ONLY: Floating violation toggle panel. Remove before production! */}
-      {ViolationDevToggle && <ViolationDevToggle />}
+      {/* Development components removed for production */}
       {/* Violation Banner */}
       {violationMsg && (
         <div className="fixed top-0 left-0 right-0 z-[100] bg-red-600 text-white text-center py-2 font-bold animate-pulse">
@@ -141,7 +157,7 @@ const QuizContainer = ({ children, sessionId }: { children: React.ReactNode; ses
       {/* Main Content: Question + Sidebar or ScoreSummary */}
       <main className="flex flex-1 pt-16">
         {/* Left: Question Panel or ScoreSummary */}
-        <section className="flex-1 h-[calc(100vh-64px-72px)] overflow-hidden p-6 flex flex-col justify-center">
+        <section className="flex-1 h-[calc(100vh-64px-72px)] overflow-y-auto p-6 flex flex-col justify-center">
           {submitted ? <ScoreSummary /> : children}
         </section>
         {/* Right: Sidebar (Desktop Only) */}

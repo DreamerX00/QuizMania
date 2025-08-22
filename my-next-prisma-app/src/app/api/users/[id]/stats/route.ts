@@ -72,12 +72,18 @@ export async function GET(request: Request, context: any) {
     });
     const rank = allUserStats.findIndex((stat: any) => stat.userId === userId) + 1;
 
-    const recentQuizzes = submissions.slice(0, 5).map((sub) => ({
-      id: sub.id,
-      title: sub.quiz.title,
-      score: sub.score,
-      date: sub.dateTaken,
-    }));
+    // Only include recentQuizzes where sub.quiz and sub.quiz.id are present
+    const recentQuizzes = submissions
+      .filter(sub => sub.quiz && sub.quiz.id)
+      .slice(0, 5)
+      .map((sub) => ({
+        attemptId: sub.id,
+        quizId: sub.quiz.id,
+        // slug: sub.quiz.slug, // Uncomment if slug is available in the schema
+        title: sub.quiz.title,
+        score: sub.score,
+        date: sub.dateTaken,
+      }));
 
     return NextResponse.json({
       stats: {

@@ -16,7 +16,7 @@ interface SessionValidationResponse {
 
 // DEV-ONLY: Violation rules toggle
 const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-const ViolationDevToggle = isDev ? React.lazy(() => import('@/components/dev/ViolationDevToggle')) : null;
+// Development components removed for production
 
 const QuizTakePage = () => {
   const params = useParams();
@@ -132,11 +132,7 @@ const QuizTakePage = () => {
   return (
     <>
       {/* DEV-ONLY: Floating violation toggle panel. Remove before production! */}
-      {isDev && ViolationDevToggle && (
-        <React.Suspense fallback={null}>
-          <ViolationDevToggle />
-        </React.Suspense>
-      )}
+            {/* Development components removed for production */}
       <QuizInitModal
         open={initOpen}
         onAcknowledge={() => setInitOpen(false)}

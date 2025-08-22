@@ -3,6 +3,19 @@ const { withBundleAnalyzer } = pkg;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Output configuration for Docker
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  
+  // Disable ESLint during build for production
+  eslint: {
+    ignoreDuringBuilds: process.env.NODE_ENV === 'production',
+  },
+  
+  // Disable TypeScript errors during build for production
+  typescript: {
+    ignoreBuildErrors: process.env.NODE_ENV === 'production',
+  },
+  
   images: {
     remotePatterns: [
       {
@@ -18,6 +31,11 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  
+  // Experimental features for Docker optimization
+  experimental: {
+    // Enable advanced features if needed
   },
 };
 

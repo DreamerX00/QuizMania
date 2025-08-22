@@ -26,7 +26,8 @@ export function registerVoiceEvents(io: Server, socket: Socket) {
           socket.emit('voice:livekit-join', { token, roomId });
           io.to(roomId).emit('voice:user-joined', { user, mode: 'livekit' });
           
-          console.log(`LiveKit: User ${user.id} joined room ${roomId}`);
+          // LiveKit connection successful
+          socket.emit('voice_join_success', { roomId, provider: 'livekit' });
         } catch (error) {
           console.warn(`LiveKit join failed for room ${roomId}, falling back to WebRTC:`, error);
           // Fallback to WebRTC

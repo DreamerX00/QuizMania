@@ -1,53 +1,97 @@
-# QuizMania Setup Instructions
+# QuizMania Setup Guide
 
-## Prerequisites
+Complete setup instructions for QuizMania - A Next.js quiz platform with real-time multiplayer, voice chat, and premium features.
 
-- Docker and Docker Compose
-- Node.js 18+ and npm
-- Git
+## 📋 Prerequisites
 
-## Quick Start with Docker
+### Required Software
+- **Docker** 20.10+ and **Docker Compose** 2.0+
+- **Node.js** 20+ and **npm** 9+
+- **Git** for version control
+- **PostgreSQL** 15+ (if not using Docker)
+- **Redis** 7+ (if not using Docker)
 
-### 1. Clone and Setup
+### Required Accounts
+- **Clerk** - For authentication ([clerk.com](https://clerk.com))
+- **LiveKit** - For voice chat ([livekit.io](https://livekit.io))
+- **Razorpay** - For payments ([razorpay.com](https://razorpay.com))
+- **Cloudinary** - For media storage ([cloudinary.com](https://cloudinary.com))
 
+## 🚀 Quick Start (Docker - Recommended)
+
+### 1. Repository Setup
 ```bash
-git clone <your-repo-url>
+git clone <your-repository-url>
 cd my-next-prisma-app
 ```
 
 ### 2. Environment Configuration
-
-Create a `.env.local` file in the root directory:
-
 ```bash
 # Copy the example environment file
 cp env.example .env.local
 ```
 
-Edit `.env.local` and add your configuration:
+### 3. Configure Environment Variables
+Edit `.env.local` with your credentials:
 
 ```env
-# WebSocket Server
-NEXT_PUBLIC_WS_SERVER_URL=http://localhost:4000
+# Database Configuration
+DATABASE_URL="postgresql://quizmania:secure_password@localhost:5432/quizmania"
+POSTGRES_USER=quizmania
+POSTGRES_PASSWORD=secure_password
+POSTGRES_DB=quizmania
 
-# LiveKit Configuration (for voice chat)
-NEXT_PUBLIC_LIVEKIT_URL=wss://localhost:7880
-LIVEKIT_API_KEY=your_livekit_api_key_here
-LIVEKIT_API_SECRET=your_livekit_api_secret_here
+# Authentication (Clerk)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_YOUR_KEY
+CLERK_SECRET_KEY=sk_live_YOUR_SECRET
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup
 
-# Redis Configuration
+# Real-time Services
+NEXT_PUBLIC_WS_URL=ws://localhost:3001
+LIVEKIT_API_KEY=your_livekit_api_key
+LIVEKIT_API_SECRET=your_livekit_secret
+LIVEKIT_URL=wss://your-livekit-server.com
+
+# Caching & Sessions
 REDIS_URL=redis://localhost:6379
 REDIS_PORT=6379
 
-# Database
-DATABASE_URL="postgresql://quizmania:quizmania@localhost:5432/quizmania"
+# Payment Processing
+RAZORPAY_KEY_ID=rzp_live_YOUR_KEY
+RAZORPAY_KEY_SECRET=your_razorpay_secret
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_live_YOUR_KEY
 
-# Clerk Authentication (get from clerk.com)
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
+# Security
+ADMIN_SECRET_KEY=your_32_character_admin_secret
+ENCRYPTION_KEY=your_32_character_encryption_key
+
+# Production Settings
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://your-domain.com
 ```
 
-### 3. Generate LiveKit Keys
+### 4. Deploy with Docker
+```bash
+# Build and start all services
+docker-compose up -d
+
+# Check service health
+docker-compose ps
+```
+
+### 5. Verify Deployment
+```bash
+# Application health
+curl http://localhost:3000/api/health
+
+# Admin access (requires authentication)
+open http://localhost:3000/admin
+
+# Monitoring dashboards
+open http://localhost:3001  # Grafana (admin/admin)
+open http://localhost:9090  # Prometheus
+```
 
 For development, you can generate LiveKit keys using:
 

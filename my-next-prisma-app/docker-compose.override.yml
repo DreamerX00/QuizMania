@@ -1,0 +1,175 @@
+networks:
+  quizmania-dev-network:
+    driver: bridge
+
+services:
+  # Next.js App (Development Mode)
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://quizmania:quizmania_dev@postgres:5432/quizmania_dev
+      - REDIS_URL=redis://redis:6379
+      - NEXT_PUBLIC_WS_SERVER_URL=http://localhost:4000
+      - NODE_ENV=development
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-dev_key}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-dev_secret}
+      - NEXT_PUBLIC_LIVEKIT_URL=${NEXT_PUBLIC_LIVEKIT_URL:-ws://localhost:7880}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET}
+      - RAZORPAY_PLATFORM_ACCOUNT_ID=${RAZORPAY_PLATFORM_ACCOUNT_ID}
+      - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - UPLOADTHING_SECRET=${UPLOADTHING_SECRET}
+      - UPLOADTHING_APP_ID=${UPLOADTHING_APP_ID}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      ws-server:
+        condition: service_started
+    networks:
+      - quizmania-dev-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    restart: unless-stopped
+
+  # WebSocket Server (Development Mode)
+  ws-server:
+    build: 
+      context: ./ws-server
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4000:4000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://quizmania:quizmania_dev@postgres:5432/quizmania_dev
+      - NODE_ENV=development
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-dev_key}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-dev_secret}
+      - NEXT_PUBLIC_LIVEKIT_URL=${NEXT_PUBLIC_LIVEKIT_URL:-ws://livekit:7880}
+      - WS_PORT=4000
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - quizmania-dev-network
+    volumes:
+      - ./ws-server:/app
+      - /app/node_modules
+      - /app/dist
+    restart: unless-stopped
+
+  # LiveKit Server (Development)
+  livekit:
+    image: livekit/livekit-server:v1.5.2
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    environment:
+      - LIVEKIT_KEYS=${LIVEKIT_API_KEY:-dev_key}:${LIVEKIT_API_SECRET:-dev_secret}
+      - LIVEKIT_KEYS_USE_HS256=true
+    command: --dev --redis-address=redis:6379
+    depends_on:
+      redis:
+        condition: service_started
+    networks:
+      - quizmania-dev-network
+    restart: unless-stopped
+
+  # Redis (Development)
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - quizmania-dev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # PostgreSQL Database (Development)
+  postgres:
+    image: postgres:15.6-alpine
+    environment:
+      POSTGRES_USER: quizmania
+      POSTGRES_PASSWORD: quizmania_dev
+      POSTGRES_DB: quizmania_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-dev.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - quizmania-dev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quizmania -d quizmania_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Database Admin Interface
+  adminer:
+    image: adminer:4.8.1-standalone
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - quizmania-dev-network
+    restart: unless-stopped
+
+  # Redis Commander (Redis GUI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - quizmania-dev-network
+    restart: unless-stopped
+
+  # MailHog (Email testing)
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - quizmania-dev-network
+    restart: unless-stopped
+
+volumes:
+  redis_dev_data:
+    driver: local
+  postgres_dev_data:
+    driver: local

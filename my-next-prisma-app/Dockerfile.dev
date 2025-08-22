@@ -1,0 +1,36 @@
+# Development Dockerfile for QuizMania Next.js App
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat wget
+WORKDIR /app
+
+# Install dependencies based on the preferred package manager
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+# Development image with hot reloading
+FROM base AS development
+WORKDIR /app
+
+ENV NODE_ENV=development
+
+RUN apk add --no-cache wget
+
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
+
+EXPOSE 3000
+EXPOSE 9229
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+
+# Development command with debugger support
+CMD ["npm", "run", "dev"]

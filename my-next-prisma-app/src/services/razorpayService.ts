@@ -39,44 +39,23 @@ export class RazorpayService {
   }
 
   /**
-   * Get test card information for development
+   * Get test card information for development (secured)
+   * Only available in development environment
    */
   static getTestCards(): TestCardInfo[] {
+    // Only return test cards in development mode
+    if (process.env.NODE_ENV !== 'development') {
+      return [];
+    }
+    
+    // Return minimal test card info for development only
     return [
       {
         number: '4111 1111 1111 1111',
         name: 'Test User',
         expiry: '12/25',
         cvv: '123',
-        description: 'Success - Standard card'
-      },
-      {
-        number: '4000 0000 0000 0002',
-        name: 'Test User',
-        expiry: '12/25',
-        cvv: '123',
-        description: 'Failure - Insufficient funds'
-      },
-      {
-        number: '4000 0000 0000 9995',
-        name: 'Test User',
-        expiry: '12/25',
-        cvv: '123',
-        description: 'Failure - Card declined'
-      },
-      {
-        number: '4000 0000 0000 9987',
-        name: 'Test User',
-        expiry: '12/25',
-        cvv: '123',
-        description: 'Failure - Lost card'
-      },
-      {
-        number: '4000 0000 0000 9979',
-        name: 'Test User',
-        expiry: '12/25',
-        cvv: '123',
-        description: 'Failure - Stolen card'
+        description: 'Development test card only'
       }
     ];
   }

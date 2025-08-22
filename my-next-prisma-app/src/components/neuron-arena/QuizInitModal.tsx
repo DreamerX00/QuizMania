@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Brain, Link2, BookOpen, UserCircle2 } from 'lucide-react';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { useUser, SignInButton } from '@clerk/nextjs';
-import { useViolationRulesStore } from '../dev/violationRulesStore';
+// Development components removed for production
 
 interface CreatorInfo {
   name: string;
@@ -74,8 +74,8 @@ export default function QuizInitModal({ open, onAcknowledge, creatorInfo, rules,
     setLinkError(null);
     try {
       // DEV-ONLY: Clear in-progress attempts if toggle is enabled
-      const rules: any = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-        ? useViolationRulesStore.getState() : { allowMultipleAttempts: false };
+      // Production-ready rules (hardcoded for security)
+      const rules = { allowMultipleAttempts: false };
       if (rules.allowMultipleAttempts) {
         await fetch('/api/dev/clear-in-progress', {
           method: 'POST',

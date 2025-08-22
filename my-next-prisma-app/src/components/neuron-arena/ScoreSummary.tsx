@@ -58,14 +58,6 @@ const ScoreSummary = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  // Auto-redirect after 8 seconds
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      router.push('/');
-    }, 8000);
-    return () => clearTimeout(timeout);
-  }, [router]);
-
   // Animated progress bar
   const [progress, setProgress] = useState(0);
   useEffect(() => {

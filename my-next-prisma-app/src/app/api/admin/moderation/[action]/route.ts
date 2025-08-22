@@ -3,6 +3,7 @@ import { muteUser, unmuteUser, blockUser, unblockUser, reportUser } from '@/serv
 import { z } from 'zod';
 import { withValidation } from '@/utils/validation';
 import { NextRequest } from 'next/server';
+import { requireAdmin, rateLimit, logAdminAction } from '@/lib/adminAuth';
 
 const moderationSchema = z.object({
   action: z.string().min(1),
@@ -26,38 +27,55 @@ type ModerationRequest = {
   context?: unknown;
 };
 
-// TODO: Add authentication/authorization check here
+// SECURITY: Admin authentication required
 
 export const POST = withValidation(moderationSchema, async (request: NextRequest) => {
-  const { action, roomId, userId, byId, reason, blockedId, targetId, context } = (request as any).validated as ModerationRequest;
+  // Require admin authentication
+  const { user: admin, error } = await requireAdmin();
+  if (error) return error;
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Rate limiting - 20 actions per minute for admin
+  if (!rateLimit(admin.clerkId, 20, 60000)) {
+    return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+  }
+
+  const { action, roomId, userId, reason, blockedId, targetId, context } = (request as any).validated as ModerationRequest;
+  
   try {
     if (action === 'mute') {
-      if (!roomId || !userId || !byId) return NextResponse.json({ error: 'Missing required fields for mute' }, { status: 400 });
-      await muteUser(roomId, userId, byId, reason);
-      return NextResponse.json({ success: true });
+      if (!roomId || !userId) return NextResponse.json({ error: 'Missing required fields for mute' }, { status: 400 });
+      await muteUser(roomId, userId, admin.clerkId, reason);
+      await logAdminAction(admin.clerkId, 'mute', userId, { roomId, reason });
+      return NextResponse.json({ success: true, moderator: admin.name });
     }
     if (action === 'unmute') {
-      if (!roomId || !userId || !byId) return NextResponse.json({ error: 'Missing required fields for unmute' }, { status: 400 });
-      await unmuteUser(roomId, userId, byId, reason);
-      return NextResponse.json({ success: true });
+      if (!roomId || !userId) return NextResponse.json({ error: 'Missing required fields for unmute' }, { status: 400 });
+      await unmuteUser(roomId, userId, admin.clerkId, reason);
+      await logAdminAction(admin.clerkId, 'unmute', userId, { roomId, reason });
+      return NextResponse.json({ success: true, moderator: admin.name });
     }
     if (action === 'block') {
-      if (!userId || !blockedId || !byId) return NextResponse.json({ error: 'Missing required fields for block' }, { status: 400 });
-      await blockUser(userId, blockedId, byId, reason);
-      return NextResponse.json({ success: true });
+      if (!userId || !blockedId) return NextResponse.json({ error: 'Missing required fields for block' }, { status: 400 });
+      await blockUser(userId, blockedId, admin.clerkId, reason);
+      await logAdminAction(admin.clerkId, 'block', userId, { blockedId, reason });
+      return NextResponse.json({ success: true, moderator: admin.name });
     }
     if (action === 'unblock') {
-      if (!userId || !blockedId || !byId) return NextResponse.json({ error: 'Missing required fields for unblock' }, { status: 400 });
-      await unblockUser(userId, blockedId, byId, reason);
-      return NextResponse.json({ success: true });
+      if (!userId || !blockedId) return NextResponse.json({ error: 'Missing required fields for unblock' }, { status: 400 });
+      await unblockUser(userId, blockedId, admin.clerkId, reason);
+      await logAdminAction(admin.clerkId, 'unblock', userId, { blockedId, reason });
+      return NextResponse.json({ success: true, moderator: admin.name });
     }
     if (action === 'report') {
-      if (!targetId || !byId) return NextResponse.json({ error: 'Missing required fields for report' }, { status: 400 });
-      await reportUser(targetId, byId, reason, context);
-      return NextResponse.json({ success: true });
+      if (!targetId) return NextResponse.json({ error: 'Missing required fields for report' }, { status: 400 });
+      await reportUser(targetId, admin.clerkId, reason, context);
+      await logAdminAction(admin.clerkId, 'report', targetId, { reason });
+      return NextResponse.json({ success: true, moderator: admin.name });
     }
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
   } catch (err: unknown) {
+    await logAdminAction(admin.clerkId, 'failed_action', undefined, { action, error: (err as Error)?.message });
     return NextResponse.json({ error: 'Moderation action failed', details: (err as Error)?.message }, { status: 500 });
   }
 }); 

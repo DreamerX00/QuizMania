@@ -1,48 +1,92 @@
-version: '3.8'
+networks:
+  quizmania-network:
+    driver: bridge
+
 services:
   # Next.js App
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+        DATABASE_URL: postgresql://quizmania:quizmania_secure_2025@postgres:5432/quizmania
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_WS_SERVER_URL: http://ws-server:4000
+        NEXT_PUBLIC_LIVEKIT_URL: ${NEXT_PUBLIC_LIVEKIT_URL:-ws://livekit:7880}
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://quizmania:quizmania@postgres:5432/quizmania
+      - DATABASE_URL=postgresql://quizmania:quizmania_secure_2025@postgres:5432/quizmania
       - REDIS_URL=redis://redis:6379
       - NEXT_PUBLIC_WS_SERVER_URL=http://localhost:4000
-      - NODE_ENV=development
+      - NODE_ENV=production
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-dev_key}
       - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-dev_secret}
-      - LIVEKIT_URL=${LIVEKIT_URL:-wss://localhost:7880}
+      - NEXT_PUBLIC_LIVEKIT_URL=${NEXT_PUBLIC_LIVEKIT_URL:-ws://localhost:7880}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET}
+      - RAZORPAY_PLATFORM_ACCOUNT_ID=${RAZORPAY_PLATFORM_ACCOUNT_ID}
+      - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - UPLOADTHING_SECRET=${UPLOADTHING_SECRET}
+      - UPLOADTHING_APP_ID=${UPLOADTHING_APP_ID}
     depends_on:
-      - postgres
-      - redis
-      - ws-server
-    volumes:
-      - .:/app
-      - /app/node_modules
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      ws-server:
+        condition: service_healthy
+    networks:
+      - quizmania-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # WebSocket Server
   ws-server:
-    build: ./ws-server
+    build: 
+      context: ./ws-server
+      dockerfile: Dockerfile
     ports:
       - "4000:4000"
     environment:
       - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgresql://quizmania:quizmania@postgres:5432/quizmania
-      - NODE_ENV=development
+      - DATABASE_URL=postgresql://quizmania:quizmania_secure_2025@postgres:5432/quizmania
+      - NODE_ENV=production
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
       - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-dev_key}
       - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-dev_secret}
-      - LIVEKIT_URL=${LIVEKIT_URL:-wss://localhost:7880}
+      - NEXT_PUBLIC_LIVEKIT_URL=${NEXT_PUBLIC_LIVEKIT_URL:-ws://livekit:7880}
+      - WS_PORT=4000
     depends_on:
-      - redis
-      - postgres
-    volumes:
-      - ./ws-server:/app
-      - /app/node_modules
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - quizmania-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   # LiveKit Server (for voice chat)
   livekit:
-    image: livekit/livekit-server:latest
+    image: livekit/livekit-server:v1.5.2
     ports:
       - "7880:7880"
       - "7881:7881"
@@ -52,44 +96,146 @@ services:
       - LIVEKIT_KEYS_USE_HS256=true
     command: --dev --redis-address=redis:6379
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+    networks:
+      - quizmania-network
+    restart: unless-stopped
 
   # Redis (for caching and WebSocket state)
   redis:
-    image: redis:7-alpine
+    image: redis:7.2-alpine
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - quizmania-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15.6-alpine
     environment:
       POSTGRES_USER: quizmania
-      POSTGRES_PASSWORD: quizmania
+      POSTGRES_PASSWORD: quizmania_secure_2025
       POSTGRES_DB: quizmania
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - quizmania-network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U quizmania"]
+      test: ["CMD-SHELL", "pg_isready -U quizmania -d quizmania"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:1.25.3-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+      - ws-server
+    networks:
+      - quizmania-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/monitoring/alerting-rules.yml:/etc/prometheus/alerting-rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - quizmania-network
+    restart: unless-stopped
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:10.2.3
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/monitoring/grafana:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - quizmania-network
+    restart: unless-stopped
 
   # Redis Exporter (for monitoring)
   redis_exporter:
-    image: oliver006/redis_exporter
+    image: oliver006/redis_exporter:v1.55.0
     ports:
       - "9121:9121"
     environment:
       - REDIS_ADDR=redis:6379
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+    networks:
+      - quizmania-network
+    restart: unless-stopped
+
+  # Postgres Exporter (for monitoring)  
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://quizmania:quizmania_secure_2025@postgres:5432/quizmania?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - quizmania-network
+    restart: unless-stopped
 
 volumes:
   redis_data:
-  postgres_data: 
+    driver: local
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local 

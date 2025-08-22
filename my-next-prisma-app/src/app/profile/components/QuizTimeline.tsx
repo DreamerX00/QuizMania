@@ -2,6 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useAuth } from '@/context/AuthContext';
 import useSWR from 'swr';
+import Modal from '@/components/ui/Modal';
+import ScoreSummaryModalContent from './ScoreSummaryModalContent';
 
 const fetcher = (url: string, token: string) =>
   fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json());
@@ -16,6 +18,7 @@ export function QuizTimeline() {
     ([url, token]) => fetcher(url, token)
   );
   const [activeTab, setActiveTab] = React.useState("All");
+  const [scoreModal, setScoreModal] = React.useState<{quizId: string, attemptId: string} | null>(null);
 
   if (isLoading || !data) {
     return <div className="bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />;
@@ -51,7 +54,7 @@ export function QuizTimeline() {
         ) : (
           quizzes.map((quiz: any, i: number) => (
             <motion.div
-              key={quiz.id}
+              key={quiz.attemptId || quiz.id || i}
               className="bg-gradient-to-br from-blue-900/60 to-pink-900/40 rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-center gap-3 md:gap-4 hover:scale-[1.02] transition shadow border border-white/10 backdrop-blur-md"
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -65,20 +68,37 @@ export function QuizTimeline() {
               </div>
               <div className="flex gap-2 flex-wrap">
                 <a
-                  href={quiz.slug ? `/quiz/${quiz.slug}/take` : `/quiz/${quiz.id}/take`}
+                  href={quiz.quizId ? `/quiz/${quiz.quizId}/take` : '#'}
                   className="futuristic-button px-3 py-1 text-xs md:text-sm font-semibold"
                   tabIndex={-1}
                 >Retake</a>
                 <a
-                  href={quiz.slug ? `/quiz/${quiz.slug}/challenge` : `/quiz/${quiz.id}/challenge`}
+                  href={quiz.quizId ? `/quiz/${quiz.quizId}/challenge` : '#'}
                   className="px-3 py-1 rounded-full bg-pink-600/80 text-white hover:bg-pink-700 transition text-xs md:text-sm font-semibold"
                   tabIndex={-1}
                 >Challenge</a>
+                <button
+                  type="button"
+                  className={`px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${quiz.quizId && quiz.attemptId ? 'bg-green-600/80 text-white hover:bg-green-700 transition' : 'bg-gray-400/60 text-gray-200 cursor-not-allowed'}`}
+                  onClick={() => quiz.quizId && quiz.attemptId && setScoreModal({quizId: quiz.quizId, attemptId: quiz.attemptId})}
+                  disabled={!quiz.quizId || !quiz.attemptId}
+                  title={!quiz.quizId || !quiz.attemptId ? 'Score unavailable for this quiz' : 'View Score'}
+                >
+                  View Score
+                </button>
               </div>
             </motion.div>
           ))
         )}
       </div>
+      {/* Score Summary Modal */}
+      <Modal open={!!scoreModal} onClose={() => setScoreModal(null)} wide>
+        {scoreModal && (
+          <div style={{height: '80vh', width: '90vw', maxWidth: '90vw', overflowY: 'auto'}}>
+            <ScoreSummaryModalContent quizId={scoreModal.quizId} attemptId={scoreModal.attemptId} onClose={() => setScoreModal(null)} />
+          </div>
+        )}
+      </Modal>
     </motion.div>
   );
 } 
