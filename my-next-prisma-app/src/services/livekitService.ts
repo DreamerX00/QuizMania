@@ -82,7 +82,9 @@ class LiveKitService {
         if (fallbackDuration > FALLBACK_COOLDOWN) {
           this.healthStatus.fallbackActive = false;
           this.healthStatus.fallbackSince = undefined;
-          console.log('LiveKit recovered, switching back from fallback mode');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('LiveKit recovered, switching back from fallback mode');
+          }
         }
       }
       
@@ -144,7 +146,9 @@ class LiveKitService {
   forceFallback(): void {
     this.healthStatus.fallbackActive = true;
     this.healthStatus.fallbackSince = new Date();
-    console.log('LiveKit fallback mode forced manually');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('LiveKit fallback mode forced manually');
+    }
   }
 
   /**
@@ -154,7 +158,9 @@ class LiveKitService {
     this.healthStatus.fallbackActive = false;
     this.healthStatus.fallbackSince = undefined;
     this.healthStatus.consecutiveFailures = 0;
-    console.log('LiveKit fallback mode reset manually');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('LiveKit fallback mode reset manually');
+    }
   }
 }
 

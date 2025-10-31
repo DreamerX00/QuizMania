@@ -181,15 +181,25 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
   };
 
   const updateParticipants = () => {
-    const liveKitParticipants = Array.from(getParticipants().values()).map(participant => ({
-      id: participant.identity,
-      name: participant.identity,
-      avatar: participant.metadata ? JSON.parse(participant.metadata).avatar : undefined,
-      isMuted: participant.isMicrophoneMuted,
-      isSpeaking: participant.isSpeaking,
-      isLocal: participant === liveKitService.getLocalParticipant(),
-      volume: 100, // Default volume
-    }));
+    const liveKitParticipants = Array.from(getParticipants().values()).map(participant => {
+      let avatar: string | undefined;
+      try {
+        avatar = participant.metadata ? JSON.parse(participant.metadata).avatar : undefined;
+      } catch (error) {
+        console.error('Failed to parse participant metadata:', error);
+        avatar = undefined;
+      }
+      
+      return {
+        id: participant.identity,
+        name: participant.identity,
+        avatar,
+        isMuted: participant.isMicrophoneMuted,
+        isSpeaking: participant.isSpeaking,
+        isLocal: participant === liveKitService.getLocalParticipant(),
+        volume: 100, // Default volume
+      };
+    });
 
     setParticipants(liveKitParticipants);
   };

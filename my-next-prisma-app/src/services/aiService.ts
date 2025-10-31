@@ -39,7 +39,9 @@ export const generateQuizWithDeepSeek = async (quizParameters: QuizParameters): 
   })
   
   if (quizCache.has(cacheKey)) {
-    console.log("Using cached DeepSeek quiz data")
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Using cached DeepSeek quiz data")
+    }
     return quizCache.get(cacheKey)!
   }
 

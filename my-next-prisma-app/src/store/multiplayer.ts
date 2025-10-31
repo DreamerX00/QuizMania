@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { socketService, SocketUser, ChatMessage, VoteData, RoomEvent, VoiceEvent } from '@/lib/socket';
 import { liveKitService, VoiceState } from '@/lib/livekit';
+import type { Question } from '@/components/neuron-arena/types/quiz.types';
 
 // Types for multiplayer state
 export interface Room {
@@ -48,7 +49,7 @@ export interface VoteState {
 export interface GameState {
   isInGame: boolean;
   gameMode: string;
-  currentQuestion?: any;
+  currentQuestion?: Question;
   scores: Record<string, number>;
   timeRemaining: number;
   phase: 'waiting' | 'voting' | 'playing' | 'results';
@@ -120,7 +121,7 @@ interface MultiplayerState {
     endGame: () => void;
     updateScore: (userId: string, score: number) => void;
     setGamePhase: (phase: GameState['phase']) => void;
-    setCurrentQuestion: (question: any) => void;
+    setCurrentQuestion: (question: Question) => void;
     setTimeRemaining: (time: number) => void;
     
     // Voice management
@@ -405,7 +406,7 @@ export const useMultiplayerStore = create<MultiplayerState>()(
         }));
       },
       
-      setCurrentQuestion: (question: any) => {
+      setCurrentQuestion: (question: Question) => {
         set(state => ({
           game: { ...state.game, currentQuestion: question },
         }));

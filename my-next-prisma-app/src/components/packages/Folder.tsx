@@ -87,17 +87,18 @@ const Folder: React.FC<FolderProps> = ({
   };
 
   const folderStyle = {
-    // @ts-ignore
     "--folder-color": color,
-    // @ts-ignore
     "--folder-back-color": folderBackColor,
-    // @ts-ignore
     "--paper-1": paper1,
-    // @ts-ignore
     "--paper-2": paper2,
-    // @ts-ignore
     "--paper-3": paper3,
-  } as React.CSSProperties;
+  } as React.CSSProperties & {
+    "--folder-color": string;
+    "--folder-back-color": string;
+    "--paper-1": string;
+    "--paper-2": string;
+    "--paper-3": string;
+  };
 
   const scaleStyle = { transform: `scale(${size})` };
 

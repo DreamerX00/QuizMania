@@ -9,6 +9,33 @@ import { DifficultyLevel } from '@prisma/client';
 import { calculateArenaXP } from './xpAlgorithm';
 import { getRankByXP } from '@/utils/rank';
 
+// Type definitions for quiz attempt data
+export interface DeviceInfo {
+  userAgent?: string;
+  platform?: string;
+  screenResolution?: string;
+  language?: string;
+  timezone?: string;
+}
+
+export interface QuizSummary {
+  totalQuestions: number;
+  attemptedQuestions: number;
+  correctAnswers: number;
+  score: number;
+  percentage: number;
+  timeTaken: number;
+  obtainedMarks?: number;
+  durationInSeconds?: number;
+}
+
+export interface QuizViolation {
+  type: 'tab_switch' | 'copy_paste' | 'multiple_attempts' | 'suspicious_timing' | 'other';
+  timestamp: Date;
+  description?: string;
+  severity: 'low' | 'medium' | 'high';
+}
+
 export interface AttemptValidationResult {
   canAttempt: boolean;
   reason?: string;
@@ -240,7 +267,7 @@ export class QuizAttemptService {
 
     const totalAttempts = allRecords.length;
     const averageScore = allRecords.length > 0 
-      ? allRecords.reduce((sum, r) => sum + r.score, 0) / allRecords.length 
+      ? allRecords.reduce((sum: number, r: { score: number }) => sum + r.score, 0) / allRecords.length 
       : 0;
 
     await prisma.quiz.update({
@@ -393,7 +420,7 @@ export class QuizAttemptService {
     }
   }
 
-  static async startAttempt(userId: string, quizId: string, fingerprint?: string, deviceInfo?: any, ip?: string): Promise<StartAttemptResult & { sessionId?: string }> {
+  static async startAttempt(userId: string, quizId: string, fingerprint?: string, deviceInfo?: DeviceInfo, ip?: string): Promise<StartAttemptResult & { sessionId?: string }> {
     const existingAttempt = await prisma.quizRecord.findFirst({
       where: {
         userId,
@@ -488,7 +515,7 @@ export class QuizAttemptService {
       type: string;
       isCorrect: boolean;
       timeTaken: number;
-      answer: any;
+      answer: string | number | boolean | string[] | Record<string, unknown> | null;
     }>,
     duration: number,
     status: string = 'COMPLETED'
@@ -564,7 +591,7 @@ export class QuizAttemptService {
       success: true,
       earnedPoints: earnedXP,
       isNewBestScore: true, // For now, always true for arena
-      previousBestScore: null,
+      previousBestScore: undefined,
       totalAttempts: 1, // For now, always 1 for arena
       averageScore: answers.filter(a => a.isCorrect).length,
       quizUnlocked: true,
@@ -582,9 +609,9 @@ export class QuizAttemptService {
     userId: string;
     quizId: string;
     submittedAt: Date;
-    responses: Array<{ questionId: string; answer: any; type: string; requiresManualReview: boolean }>;
-    summary: any;
-    violations?: any;
+    responses: Array<{ questionId: string; answer: string | number | boolean | string[] | Record<string, unknown> | null; type: string; requiresManualReview: boolean }>;
+    summary: QuizSummary;
+    violations?: QuizViolation[];
   }) {
     // Find the in-progress QuizRecord
     const quizRecord = await prisma.quizRecord.findFirst({
