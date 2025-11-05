@@ -1,17 +1,18 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Mic, 
-  MicOff, 
-  Phone, 
-  PhoneOff, 
-  Users, 
-  Settings, 
-  Volume2, 
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
+import {
+  Mic,
+  MicOff,
+  Phone,
+  PhoneOff,
+  Users,
+  Settings,
+  Volume2,
   VolumeX,
   Wifi,
   WifiOff,
@@ -19,12 +20,12 @@ import {
   CheckCircle,
   Clock,
   Zap,
-  X
-} from 'lucide-react';
-import { useLiveKit } from '@/lib/livekit';
-import { useSocket } from '@/lib/socket';
-import { Participant } from 'livekit-client';
-import { toast } from 'react-hot-toast';
+  X,
+} from "lucide-react";
+import { useLiveKit } from "@/lib/livekit";
+import { useSocket } from "@/lib/socket";
+import { Participant } from "livekit-client";
+import { toast } from "react-hot-toast";
 
 interface VoiceChatProps {
   roomId: string;
@@ -42,20 +43,37 @@ interface ParticipantInfo {
   volume: number;
 }
 
-const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }) => {
-  const { liveKitService, connect, disconnect, setMuted, setPushToTalk, getVoiceState, isConnected, isMuted, isSpeaking, getParticipants } = useLiveKit();
+const VoiceChat: React.FC<VoiceChatProps> = ({
+  roomId,
+  className = "",
+  onClose,
+}) => {
+  const {
+    liveKitService,
+    connect,
+    disconnect,
+    setMuted,
+    setPushToTalk,
+    getVoiceState,
+    isConnected,
+    isMuted,
+    isSpeaking,
+    getParticipants,
+  } = useLiveKit();
   const { socketService } = useSocket();
-  
+
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isPushToTalkEnabled, setIsPushToTalkEnabled] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [voiceState, setVoiceState] = useState(getVoiceState());
   const [participants, setParticipants] = useState<ParticipantInfo[]>([]);
-  const [connectionMode, setConnectionMode] = useState<'livekit' | 'webrtc-fallback' | 'disconnected'>('disconnected');
+  const [connectionMode, setConnectionMode] = useState<
+    "livekit" | "webrtc-fallback" | "disconnected"
+  >("disconnected");
   const [error, setError] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Initialize voice chat
@@ -80,37 +98,41 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
   useEffect(() => {
     liveKitService.setCallbacks({
       onParticipantJoined: (participant) => {
-        console.log('Voice participant joined:', participant.identity);
+        console.log("Voice participant joined:", participant.identity);
         updateParticipants();
         toast.success(`${participant.identity} joined voice chat`);
       },
       onParticipantLeft: (participant) => {
-        console.log('Voice participant left:', participant.identity);
+        console.log("Voice participant left:", participant.identity);
         updateParticipants();
         toast(`${participant.identity} left voice chat`);
       },
       onParticipantMuted: (participant, muted) => {
-        console.log('Voice participant muted:', participant.identity, muted);
+        console.log("Voice participant muted:", participant.identity, muted);
         updateParticipants();
       },
       onParticipantSpeaking: (participant, speaking) => {
-        console.log('Voice participant speaking:', participant.identity, speaking);
+        console.log(
+          "Voice participant speaking:",
+          participant.identity,
+          speaking
+        );
         updateParticipants();
       },
       onConnectionStateChanged: (state) => {
-        console.log('Voice connection state:', state);
-        setConnectionMode(state === 'connected' ? 'livekit' : 'disconnected');
+        console.log("Voice connection state:", state);
+        setConnectionMode(state === "connected" ? "livekit" : "disconnected");
       },
       onError: (error) => {
-        console.error('Voice error:', error);
+        console.error("Voice error:", error);
         setError(error.message);
         toast.error(`Voice error: ${error.message}`);
       },
       onDisconnected: (reason) => {
-        console.log('Voice disconnected:', reason);
-        setConnectionMode('disconnected');
+        console.log("Voice disconnected:", reason);
+        setConnectionMode("disconnected");
         setIsVoiceEnabled(false);
-        toast('Voice chat disconnected');
+        toast("Voice chat disconnected");
       },
     });
   }, [liveKitService]);
@@ -119,35 +141,35 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
   useEffect(() => {
     socketService.setCallbacks({
       onVoiceUserJoined: (data) => {
-        console.log('Socket voice user joined:', data);
+        console.log("Socket voice user joined:", data);
         updateParticipants();
       },
       onVoiceUserLeft: (data) => {
-        console.log('Socket voice user left:', data);
+        console.log("Socket voice user left:", data);
         updateParticipants();
       },
       onVoiceUserMuted: (data) => {
-        console.log('Socket voice user muted:', data);
+        console.log("Socket voice user muted:", data);
         updateParticipants();
       },
       onVoiceUserSpeaking: (data) => {
-        console.log('Socket voice user speaking:', data);
+        console.log("Socket voice user speaking:", data);
         updateParticipants();
       },
       onVoiceFallbackActivated: (data) => {
-        console.log('Voice fallback activated:', data);
-        setConnectionMode('webrtc-fallback');
-        toast.warning('Switched to WebRTC fallback mode');
+        console.log("Voice fallback activated:", data);
+        setConnectionMode("webrtc-fallback");
+        toast.warning("Switched to WebRTC fallback mode");
       },
       onLiveKitJoin: async (data) => {
-        console.log('LiveKit join event:', data);
+        console.log("LiveKit join event:", data);
         try {
           await connect(data.token, data.roomId);
-          setConnectionMode('livekit');
-          toast.success('Connected to LiveKit voice chat');
+          setConnectionMode("livekit");
+          toast.success("Connected to LiveKit voice chat");
         } catch (error) {
-          console.error('Failed to connect to LiveKit:', error);
-          setError('Failed to connect to voice chat');
+          console.error("Failed to connect to LiveKit:", error);
+          setError("Failed to connect to voice chat");
         }
       },
     });
@@ -162,7 +184,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
     try {
       // Join voice room via Socket.IO
       socketService.joinVoiceRoom(roomId);
-      
+
       // Wait for LiveKit token or fallback
       setTimeout(() => {
         if (!isConnected) {
@@ -170,10 +192,9 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
           socketService.activateVoiceFallback(roomId);
         }
       }, 5000);
-
     } catch (error) {
-      console.error('Failed to initialize voice chat:', error);
-      setError('Failed to initialize voice chat');
+      console.error("Failed to initialize voice chat:", error);
+      setError("Failed to initialize voice chat");
       setIsVoiceEnabled(false);
     } finally {
       setIsConnecting(false);
@@ -181,15 +202,19 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
   };
 
   const updateParticipants = () => {
-    const liveKitParticipants = Array.from(getParticipants().values()).map(participant => ({
-      id: participant.identity,
-      name: participant.identity,
-      avatar: participant.metadata ? JSON.parse(participant.metadata).avatar : undefined,
-      isMuted: participant.isMicrophoneMuted,
-      isSpeaking: participant.isSpeaking,
-      isLocal: participant === liveKitService.getLocalParticipant(),
-      volume: 100, // Default volume
-    }));
+    const liveKitParticipants = Array.from(getParticipants().values()).map(
+      (participant) => ({
+        id: participant.identity,
+        name: participant.identity,
+        avatar: participant.metadata
+          ? JSON.parse(participant.metadata).avatar
+          : undefined,
+        isMuted: participant.isMicrophoneMuted,
+        isSpeaking: participant.isSpeaking,
+        isLocal: participant === liveKitService.getLocalParticipant(),
+        volume: 100, // Default volume
+      })
+    );
 
     setParticipants(liveKitParticipants);
   };
@@ -200,8 +225,8 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
       await disconnect();
       socketService.leaveVoiceRoom(roomId);
       setIsVoiceEnabled(false);
-      setConnectionMode('disconnected');
-              toast('Voice chat disabled');
+      setConnectionMode("disconnected");
+      toast("Voice chat disabled");
     } else {
       // Enable voice
       setIsVoiceEnabled(true);
@@ -211,10 +236,10 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
   const handleMuteToggle = async () => {
     try {
       await setMuted(!isMuted);
-      toast.success(isMuted ? 'Unmuted' : 'Muted');
+      toast.success(isMuted ? "Unmuted" : "Muted");
     } catch (error) {
-      console.error('Failed to toggle mute:', error);
-      toast.error('Failed to toggle mute');
+      console.error("Failed to toggle mute:", error);
+      toast.error("Failed to toggle mute");
     }
   };
 
@@ -222,20 +247,22 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
     try {
       await setPushToTalk(!isPushToTalkEnabled);
       setIsPushToTalkEnabled(!isPushToTalkEnabled);
-      toast.success(isPushToTalkEnabled ? 'Push-to-talk disabled' : 'Push-to-talk enabled');
+      toast.success(
+        isPushToTalkEnabled ? "Push-to-talk disabled" : "Push-to-talk enabled"
+      );
     } catch (error) {
-      console.error('Failed to toggle push-to-talk:', error);
-      toast.error('Failed to toggle push-to-talk');
+      console.error("Failed to toggle push-to-talk:", error);
+      toast.error("Failed to toggle push-to-talk");
     }
   };
 
   const getConnectionStatusIcon = () => {
     switch (connectionMode) {
-      case 'livekit':
+      case "livekit":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'webrtc-fallback':
+      case "webrtc-fallback":
         return <Zap className="w-4 h-4 text-yellow-500" />;
-      case 'disconnected':
+      case "disconnected":
         return <WifiOff className="w-4 h-4 text-red-500" />;
       default:
         return <Clock className="w-4 h-4 text-gray-500" />;
@@ -244,24 +271,28 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
 
   const getConnectionStatusText = () => {
     switch (connectionMode) {
-      case 'livekit':
-        return 'LiveKit';
-      case 'webrtc-fallback':
-        return 'WebRTC';
-      case 'disconnected':
-        return 'Disconnected';
+      case "livekit":
+        return "LiveKit";
+      case "webrtc-fallback":
+        return "WebRTC";
+      case "disconnected":
+        return "Disconnected";
       default:
-        return 'Connecting...';
+        return "Connecting...";
     }
   };
 
   return (
-    <div className={`bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 ${className}`}>
+    <div
+      className={`bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 ${className}`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Phone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-          <h3 className="font-semibold text-slate-900 dark:text-white">Voice Chat</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-white">
+            Voice Chat
+          </h3>
           <Badge variant="outline" className="flex items-center gap-1">
             {getConnectionStatusIcon()}
             {getConnectionStatusText()}
@@ -306,7 +337,9 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
           className="flex items-center gap-2 p-2 mb-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md"
         >
           <AlertCircle className="w-4 h-4 text-red-500" />
-          <span className="text-sm text-red-700 dark:text-red-400">{error}</span>
+          <span className="text-sm text-red-700 dark:text-red-400">
+            {error}
+          </span>
         </motion.div>
       )}
 
@@ -318,8 +351,8 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
           disabled={isConnecting}
           className={`flex-1 ${
             isVoiceEnabled
-              ? 'bg-green-600 hover:bg-green-700 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+              ? "bg-green-600 hover:bg-green-700 text-white"
+              : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
           }`}
         >
           {isConnecting ? (
@@ -330,7 +363,11 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
             <PhoneOff className="w-4 h-4" />
           )}
           <span className="ml-2">
-            {isConnecting ? 'Connecting...' : isVoiceEnabled ? 'Connected' : 'Connect'}
+            {isConnecting
+              ? "Connecting..."
+              : isVoiceEnabled
+              ? "Connected"
+              : "Connect"}
           </span>
         </Button>
 
@@ -342,7 +379,11 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
           size="icon"
           className="w-12 h-12"
         >
-          {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+          {isMuted ? (
+            <MicOff className="w-5 h-5" />
+          ) : (
+            <Mic className="w-5 h-5" />
+          )}
         </Button>
       </div>
 
@@ -351,7 +392,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
         {showSettings && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="mb-4 p-3 bg-slate-100 dark:bg-slate-700 rounded-md"
           >
@@ -360,7 +401,9 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Mic className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Push-to-Talk</span>
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    Push-to-Talk
+                  </span>
                 </div>
                 <Switch
                   checked={isPushToTalkEnabled}
@@ -373,7 +416,9 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Volume2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Voice Activity</span>
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    Voice Activity
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   {isSpeaking && (
@@ -384,14 +429,16 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
                     />
                   )}
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {isSpeaking ? 'Speaking' : 'Silent'}
+                    {isSpeaking ? "Speaking" : "Silent"}
                   </span>
                 </div>
               </div>
 
               {/* Connection Info */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-700 dark:text-slate-300">Connection</span>
+                <span className="text-sm text-slate-700 dark:text-slate-300">
+                  Connection
+                </span>
                 <div className="flex items-center gap-1">
                   {getConnectionStatusIcon()}
                   <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -409,11 +456,13 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
         {showParticipants && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="space-y-2"
           >
-            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">Participants</h4>
+            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Participants
+            </h4>
             {participants.length === 0 ? (
               <div className="text-center py-4 text-slate-500 dark:text-slate-400 text-sm">
                 No participants
@@ -429,9 +478,15 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
                   >
                     <div className="flex items-center gap-2">
                       <div className="relative">
-                        <div className="w-6 h-6 bg-slate-300 dark:bg-slate-600 rounded-full flex items-center justify-center text-xs font-medium">
+                        <div className="relative w-6 h-6 bg-slate-300 dark:bg-slate-600 rounded-full flex items-center justify-center text-xs font-medium overflow-hidden">
                           {participant.avatar ? (
-                            <img src={participant.avatar} alt={participant.name} className="w-full h-full rounded-full" />
+                            <Image
+                              src={participant.avatar}
+                              alt={participant.name}
+                              fill
+                              className="rounded-full object-cover"
+                              sizes="24px"
+                            />
                           ) : (
                             participant.name.charAt(0).toUpperCase()
                           )}
@@ -447,7 +502,9 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
                       <span className="text-sm text-slate-700 dark:text-slate-300">
                         {participant.name}
                         {participant.isLocal && (
-                          <Badge variant="secondary" className="ml-1 text-xs">You</Badge>
+                          <Badge variant="secondary" className="ml-1 text-xs">
+                            You
+                          </Badge>
                         )}
                       </span>
                     </div>
@@ -483,4 +540,4 @@ const VoiceChat: React.FC<VoiceChatProps> = ({ roomId, className = '', onClose }
   );
 };
 
-export default VoiceChat; 
+export default VoiceChat;

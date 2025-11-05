@@ -1,6 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, memo } from "react";
 import Folder from "./Folder";
 import { BookOpen } from "lucide-react";
+import Image from "next/image";
 
 interface PackageCardProps {
   pkg: {
@@ -18,7 +19,11 @@ interface PackageCardProps {
   hideImage?: boolean;
 }
 
-const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, hideImage }) => {
+const PackageCard = memo(function PackageCard({
+  pkg,
+  onSelect,
+  hideImage,
+}: PackageCardProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [showHint, setShowHint] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -26,22 +31,29 @@ const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, hideImage }) =
   // Check if title is truncated after mount
   React.useEffect(() => {
     if (titleRef.current) {
-      setIsTruncated(titleRef.current.scrollWidth > titleRef.current.clientWidth);
+      setIsTruncated(
+        titleRef.current.scrollWidth > titleRef.current.clientWidth
+      );
     }
   }, [pkg.title]);
 
   // Prepare quiz thumbnails for the folder papers
   const quizThumbs = (pkg.quizThumbnails || []).slice(0, 3).map((quiz, i) =>
     quiz.imageUrl ? (
-      <img
-        key={i}
-        src={quiz.imageUrl}
-        alt={quiz.title}
-        className="w-full h-full object-cover rounded-md"
-        style={{ maxWidth: 40, maxHeight: 32 }}
-      />
+      <div key={i} className="relative w-10 h-8">
+        <Image
+          src={quiz.imageUrl}
+          alt={quiz.title}
+          fill
+          className="object-cover rounded-md"
+          sizes="40px"
+        />
+      </div>
     ) : (
-      <span key={i} className="flex items-center justify-center w-full h-full text-gray-400">
+      <span
+        key={i}
+        className="flex items-center justify-center w-full h-full text-gray-400"
+      >
         <BookOpen size={24} />
       </span>
     )
@@ -77,17 +89,21 @@ const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, hideImage }) =
         </h3>
         {/* Price Badge */}
         <div className="mt-2">
-          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
-            pkg.price === 0 || !pkg.price
-              ? 'bg-green-500/20 text-green-700 dark:text-green-400'
-              : 'bg-blue-500/20 text-blue-700 dark:text-blue-400'
-          }`}>
-            {pkg.price === 0 || !pkg.price ? 'Free' : `₹${Math.floor(pkg.price / 100)}`}
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+              pkg.price === 0 || !pkg.price
+                ? "bg-green-500/20 text-green-700 dark:text-green-400"
+                : "bg-blue-500/20 text-blue-700 dark:text-blue-400"
+            }`}
+          >
+            {pkg.price === 0 || !pkg.price
+              ? "Free"
+              : `₹${Math.floor(pkg.price / 100)}`}
           </span>
         </div>
       </div>
     </div>
   );
-};
+});
 
-export default PackageCard; 
+export default PackageCard;

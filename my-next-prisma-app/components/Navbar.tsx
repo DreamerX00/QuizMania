@@ -1,17 +1,18 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useTheme } from '../src/context/ThemeContext'
-import { UserButton, SignedIn, SignedOut, useUser, useClerk } from "@clerk/nextjs";
-import { 
-  Brain, 
-  Sun, 
-  Moon, 
-  Sparkles,
-  Zap
-} from 'lucide-react'
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useTheme } from "../src/context/ThemeContext";
+import {
+  UserButton,
+  SignedIn,
+  SignedOut,
+  useUser,
+  useClerk,
+} from "@clerk/nextjs";
+import { Brain, Sun, Moon, Sparkles, Zap } from "lucide-react";
 import {
   Navbar,
   NavBody,
@@ -21,23 +22,23 @@ import {
   MobileNavMenu,
   MobileNavToggle,
   NavbarLogo,
-  NavbarButton
-} from './ui/resizable-navbar'
-import { AnimatedThemeToggle } from './ui/AnimatedThemeToggle'
+  NavbarButton,
+} from "./ui/resizable-navbar";
+import { AnimatedThemeToggle } from "./ui/AnimatedThemeToggle";
 
 export default function QuizManiaNavbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
-  const { theme, toggleTheme } = useTheme()
-  const router = useRouter()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
   const { user, isSignedIn } = useUser();
   const { signOut } = useClerk();
 
   const navItems = [
-    { name: 'Home', link: '/', icon: Sparkles },
-    { name: 'Explore', link: '/explore', icon: Zap },
-    { name: 'About', link: '/about', icon: Sparkles },
-  ]
+    { name: "Home", link: "/", icon: Sparkles },
+    { name: "Explore", link: "/explore", icon: Zap },
+    { name: "About", link: "/about", icon: Sparkles },
+  ];
 
   return (
     <Navbar>
@@ -54,12 +55,15 @@ export default function QuizManiaNavbar() {
             <div className="relative">
               <button
                 onClick={() => setProfileMenuOpen((v) => !v)}
-                className="focus:outline-none"
+                className="focus:outline-none relative w-9 h-9"
               >
-                <img
+                <Image
                   src={user?.imageUrl || "/default_avatar.png"}
                   alt="Profile"
-                  className="w-9 h-9 rounded-full border-2 border-white/20 shadow cursor-pointer hover:scale-105 transition"
+                  fill
+                  className="rounded-full border-2 border-white/20 shadow cursor-pointer hover:scale-105 transition object-cover"
+                  sizes="36px"
+                  priority
                 />
               </button>
               {profileMenuOpen && (
@@ -68,7 +72,7 @@ export default function QuizManiaNavbar() {
                     className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
                     onClick={() => {
                       setProfileMenuOpen(false);
-                      router.push('/profile');
+                      router.push("/profile");
                     }}
                   >
                     Profile
@@ -77,18 +81,21 @@ export default function QuizManiaNavbar() {
                     className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
                     onClick={() => {
                       setProfileMenuOpen(false);
-                      router.push('/user');
+                      router.push("/user");
                     }}
                   >
                     Account Settings
                   </button>
                   <button
-                    onClick={() => { signOut(); setProfileMenuOpen(false); }}
+                    onClick={() => {
+                      signOut();
+                      setProfileMenuOpen(false);
+                    }}
                     className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                   >
                     Logout
                   </button>
-              </div>
+                </div>
               )}
             </div>
           </SignedIn>
@@ -102,7 +109,7 @@ export default function QuizManiaNavbar() {
               </NavbarButton>
             </div>
           </SignedOut>
-                  </div>
+        </div>
       </NavBody>
 
       {/* Mobile Navigation */}
@@ -118,12 +125,15 @@ export default function QuizManiaNavbar() {
               <div className="relative">
                 <button
                   onClick={() => setProfileMenuOpen((v) => !v)}
-                  className="focus:outline-none"
+                  className="focus:outline-none relative w-9 h-9"
                 >
-                  <img
+                  <Image
                     src={user?.imageUrl || "/default_avatar.png"}
                     alt="Profile"
-                    className="w-9 h-9 rounded-full border-2 border-white/20 shadow cursor-pointer hover:scale-105 transition"
+                    fill
+                    className="rounded-full border-2 border-white/20 shadow cursor-pointer hover:scale-105 transition object-cover"
+                    sizes="36px"
+                    priority
                   />
                 </button>
                 {profileMenuOpen && (
@@ -132,7 +142,7 @@ export default function QuizManiaNavbar() {
                       className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
                       onClick={() => {
                         setProfileMenuOpen(false);
-                        router.push('/profile');
+                        router.push("/profile");
                       }}
                     >
                       Profile
@@ -141,13 +151,16 @@ export default function QuizManiaNavbar() {
                       className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
                       onClick={() => {
                         setProfileMenuOpen(false);
-                        router.push('/user');
+                        router.push("/user");
                       }}
                     >
                       Account Settings
                     </button>
                     <button
-                      onClick={() => { signOut(); setProfileMenuOpen(false); }}
+                      onClick={() => {
+                        signOut();
+                        setProfileMenuOpen(false);
+                      }}
                       className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                     >
                       Logout
@@ -174,61 +187,62 @@ export default function QuizManiaNavbar() {
           </div>
         </MobileNavHeader>
 
-        <MobileNavMenu
-          isOpen={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-        >
+        <MobileNavMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)}>
           <div className="space-y-2">
-              {navItems.map((item, index) => {
-                const IconComponent = item.icon
-                return (
-                  <Link
+            {navItems.map((item, index) => {
+              const IconComponent = item.icon;
+              return (
+                <Link
                   key={item.link}
                   href={item.link}
-                    onClick={() => setIsMenuOpen(false)}
+                  onClick={() => setIsMenuOpen(false)}
                   className="flex items-center space-x-3 px-3 py-2 rounded-lg text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-300"
-                  >
+                >
                   <IconComponent className="w-5 h-5" />
                   <span className="font-medium">{item.name}</span>
-                  </Link>
-                )
-              })}
-              
-              <SignedOut>
+                </Link>
+              );
+            })}
+
+            <SignedOut>
               <div className="pt-4 border-t border-gray-200 dark:border-neutral-700 space-y-2">
-                  <Link
-                    href="/login"
-                    onClick={() => setIsMenuOpen(false)}
+                <Link
+                  href="/login"
+                  onClick={() => setIsMenuOpen(false)}
                   className="block px-3 py-2 rounded-lg text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/signup"
-                    onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setIsMenuOpen(false)}
                   className="block px-3 py-2 rounded-lg bg-gradient-to-b from-purple-500 to-blue-600 text-white text-center font-medium"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              </SignedOut>
-              <SignedIn>
-              <Link 
-                href="/profile" 
-                onClick={() => setIsMenuOpen(false)} 
+                >
+                  Sign Up
+                </Link>
+              </div>
+            </SignedOut>
+            <SignedIn>
+              <Link
+                href="/profile"
+                onClick={() => setIsMenuOpen(false)}
                 className="flex items-center space-x-3 px-3 py-2 rounded-lg text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-300"
               >
-                  <img
+                <div className="relative w-8 h-8">
+                  <Image
                     src={user?.imageUrl || "/default_avatar.png"}
                     alt="Profile"
-                    className="w-8 h-8 rounded-full border-2 border-white/20 shadow cursor-pointer hover:scale-105 transition"
+                    fill
+                    className="rounded-full border-2 border-white/20 shadow cursor-pointer hover:scale-105 transition object-cover"
+                    sizes="32px"
                   />
-                  <span className="font-medium">Profile</span>
-                </Link>
-              </SignedIn>
-            </div>
+                </div>
+                <span className="font-medium">Profile</span>
+              </Link>
+            </SignedIn>
+          </div>
         </MobileNavMenu>
       </MobileNav>
     </Navbar>
-  )
-} 
+  );
+}

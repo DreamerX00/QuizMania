@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, ReactNode, RefObject } from "react";
+import React, { useEffect, useRef, ReactNode, RefObject, memo } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -25,7 +25,7 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
   ease = "back.inOut(2)",
   scrollStart = "center bottom+=50%",
   scrollEnd = "bottom bottom-=40%",
-  stagger = 0.03
+  stagger = 0.03,
 }) => {
   const containerRef = useRef<HTMLHeadingElement>(null);
 
@@ -46,7 +46,7 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
         yPercent: 120,
         scaleY: 2.3,
         scaleX: 0.7,
-        transformOrigin: "50% 0%"
+        transformOrigin: "50% 0%",
       },
       {
         duration: animationDuration,
@@ -60,17 +60,20 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
           scroller,
           start: scrollStart,
           end: scrollEnd,
-          scrub: true
+          scrub: true,
         },
       }
     );
-  }, [
-    scrollContainerRef,
-    animationDuration,
-    ease,
-    scrollStart,
-    scrollEnd
-  ]);
+
+    // Cleanup ScrollTrigger on unmount
+    return () => {
+      ScrollTrigger.getAll().forEach((trigger) => {
+        if (trigger.trigger === el) {
+          trigger.kill();
+        }
+      });
+    };
+  }, [scrollContainerRef, animationDuration, ease, scrollStart, scrollEnd]);
 
   return (
     <h2
@@ -86,4 +89,5 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
   );
 };
 
-export default ScrollFloat; 
+// Memoize to prevent unnecessary re-renders
+export default memo(ScrollFloat);

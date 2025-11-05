@@ -416,7 +416,7 @@ export default function HomePage() {
               <Link href="/multiplayer-arena">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[260px]"
+                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-[240px] md:min-h-[260px]"
                 >
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-700 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Swords className="w-8 h-8 text-white" />
@@ -434,7 +434,7 @@ export default function HomePage() {
               <Link href="/create-quiz/guide">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[260px]"
+                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-[240px] md:min-h-[260px]"
                 >
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Sparkles className="w-8 h-8 text-white" />
@@ -452,7 +452,7 @@ export default function HomePage() {
               <Link href="/generate-random-quiz">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[260px]"
+                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-[240px] md:min-h-[260px]"
                 >
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Brain className="w-8 h-8 text-white" />
@@ -470,7 +470,7 @@ export default function HomePage() {
               <Link href="/leaderboard">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[260px]"
+                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-[240px] md:min-h-[260px]"
                 >
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Zap className="w-8 h-8 text-white" />
@@ -513,7 +513,7 @@ export default function HomePage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                     viewport={{ once: true }}
-                    className="futuristic-card p-6 text-center group cursor-pointer h-full min-h-[300px] flex flex-col justify-center"
+                    className="futuristic-card p-6 text-center group cursor-pointer h-full min-h-[240px] sm:min-h-[280px] md:min-h-[300px] flex flex-col justify-center"
                   >
                     <div className="flex-1 flex flex-col justify-center">
                       <div

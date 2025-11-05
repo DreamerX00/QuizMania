@@ -28,6 +28,7 @@ import FactoryDialog from "./FactoryDialog";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { nanoid } from "nanoid";
+import Image from "next/image";
 
 // Question Types with guides
 const QUESTION_TYPES = [
@@ -222,7 +223,7 @@ interface QuizData {
 }
 
 // --- Validation ---
-const QUESTION_TYPE_IDS = QUESTION_TYPES.map(q => q.id);
+const QUESTION_TYPE_IDS = QUESTION_TYPES.map((q) => q.id);
 
 const validateQuestion = (
   question: Question
@@ -577,13 +578,15 @@ function CreateQuizPageComponent() {
   );
 
   // Sparkle state for animated background stars
-  const [sparkles, setSparkles] = useState<{
-    top: number;
-    left: number;
-    opacity: number;
-    duration: number;
-    delay: number;
-  }[]>([]);
+  const [sparkles, setSparkles] = useState<
+    {
+      top: number;
+      left: number;
+      opacity: number;
+      duration: number;
+      delay: number;
+    }[]
+  >([]);
 
   useEffect(() => {
     setSparkles(
@@ -625,7 +628,7 @@ function CreateQuizPageComponent() {
           // Fix duplicate IDs on load
           const origLen = questions.length;
           questions = fixDuplicateQuestionIds(questions);
-          if (new Set(questions.map(q => q.id)).size !== origLen) {
+          if (new Set(questions.map((q) => q.id)).size !== origLen) {
             toast.error("Duplicate question IDs found and fixed on load.");
           }
 
@@ -825,107 +828,113 @@ function CreateQuizPageComponent() {
     URL.revokeObjectURL(url);
   }, [quizData]);
 
-  const importJSON = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        // Parse JSON and validate basic structure
-        if (!e.target?.result) {
-          toast.error("Failed to read file contents.");
-          return;
-        }
-
-        let importedData: any;
+  const importJSON = useCallback(
+    (file: File) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
         try {
-          importedData = JSON.parse(e.target.result as string);
-        } catch (parseError) {
-          toast.error("Invalid JSON format. Please check your file syntax.");
-          console.error("JSON parse error:", parseError);
-          return;
-        }
-
-        // Validate questions array
-        const questionsToValidate =
-          importedData.questions ||
-          (Array.isArray(importedData) ? importedData : []);
-        if (!Array.isArray(questionsToValidate)) {
-          toast.error(
-            "The file must contain a questions array or be an array of questions."
-          );
-          return;
-        }
-        if (questionsToValidate.length === 0) {
-          toast.error("No questions found in the file.");
-          return;
-        }
-
-        // Validate each question
-        const validQuestions: Question[] = [];
-        const invalidQuestions: { question: any; reason: string }[] = [];
-        const seenIds = new Set<string>();
-
-        questionsToValidate.forEach((q: any, index: number) => {
-          // Check for duplicate IDs (in seenIds or already in quizData)
-          if (seenIds.has(q.id) || quizData.questions.some(existing => existing.id === q.id)) {
-            invalidQuestions.push({
-              question: q,
-              reason: `Duplicate question ID: ${q.id}`,
-            });
+          // Parse JSON and validate basic structure
+          if (!e.target?.result) {
+            toast.error("Failed to read file contents.");
             return;
           }
-          seenIds.add(q.id);
 
-          // Validate question structure
-          const validationResult = validateQuestion(q);
-          if (validationResult.isValid) {
-            validQuestions.push(q);
-          } else {
-            invalidQuestions.push({
-              question: q,
-              reason: `Question ${index + 1}: ${validationResult.message}`,
-            });
+          let importedData: any;
+          try {
+            importedData = JSON.parse(e.target.result as string);
+          } catch (parseError) {
+            toast.error("Invalid JSON format. Please check your file syntax.");
+            console.error("JSON parse error:", parseError);
+            return;
           }
-        });
 
-        // Report results
-        if (validQuestions.length > 0) {
-          setQuizData((prev) => ({
-            ...prev,
-            questions: [...prev.questions, ...validQuestions],
-          }));
-
-          if (invalidQuestions.length === 0) {
-            toast.success(
-              `Successfully imported ${validQuestions.length} questions!`
+          // Validate questions array
+          const questionsToValidate =
+            importedData.questions ||
+            (Array.isArray(importedData) ? importedData : []);
+          if (!Array.isArray(questionsToValidate)) {
+            toast.error(
+              "The file must contain a questions array or be an array of questions."
             );
+            return;
+          }
+          if (questionsToValidate.length === 0) {
+            toast.error("No questions found in the file.");
+            return;
+          }
+
+          // Validate each question
+          const validQuestions: Question[] = [];
+          const invalidQuestions: { question: any; reason: string }[] = [];
+          const seenIds = new Set<string>();
+
+          questionsToValidate.forEach((q: any, index: number) => {
+            // Check for duplicate IDs (in seenIds or already in quizData)
+            if (
+              seenIds.has(q.id) ||
+              quizData.questions.some((existing) => existing.id === q.id)
+            ) {
+              invalidQuestions.push({
+                question: q,
+                reason: `Duplicate question ID: ${q.id}`,
+              });
+              return;
+            }
+            seenIds.add(q.id);
+
+            // Validate question structure
+            const validationResult = validateQuestion(q);
+            if (validationResult.isValid) {
+              validQuestions.push(q);
+            } else {
+              invalidQuestions.push({
+                question: q,
+                reason: `Question ${index + 1}: ${validationResult.message}`,
+              });
+            }
+          });
+
+          // Report results
+          if (validQuestions.length > 0) {
+            setQuizData((prev) => ({
+              ...prev,
+              questions: [...prev.questions, ...validQuestions],
+            }));
+
+            if (invalidQuestions.length === 0) {
+              toast.success(
+                `Successfully imported ${validQuestions.length} questions!`
+              );
+            } else {
+              toast.error(
+                `Imported ${validQuestions.length} valid questions. ${invalidQuestions.length} questions were invalid and skipped. Check console for details.`,
+                { duration: 6000 }
+              );
+              console.warn("Invalid questions:", invalidQuestions);
+            }
           } else {
             toast.error(
-              `Imported ${validQuestions.length} valid questions. ${invalidQuestions.length} questions were invalid and skipped. Check console for details.`,
+              `Import failed. All ${invalidQuestions.length} questions were invalid. Check console for details.`,
               { duration: 6000 }
             );
-            console.warn("Invalid questions:", invalidQuestions);
+            console.error("All questions were invalid:", invalidQuestions);
           }
-        } else {
-          toast.error(
-            `Import failed. All ${invalidQuestions.length} questions were invalid. Check console for details.`,
-            { duration: 6000 }
-          );
-          console.error("All questions were invalid:", invalidQuestions);
+
+          setShowImportModal(false);
+        } catch (error) {
+          toast.error("An unexpected error occurred while importing the file.");
+          console.error("Import error:", error);
         }
+      };
 
-        setShowImportModal(false);
-      } catch (error) {
-        toast.error("An unexpected error occurred while importing the file.");
-        console.error("Import error:", error);
-      }
-    };
+      reader.onerror = () => {
+        toast.error("Failed to read the file. Please try again.");
+      };
 
-    reader.onerror = () => {
-      toast.error("Failed to read the file. Please try again.");
-    };
-
-    reader.readAsText(file);
-  }, [quizData.questions]);
+      reader.readAsText(file);
+    },
+    [quizData.questions]
+  );
 
   const totalMarks = quizData.questions.reduce(
     (sum, q) => sum + (q.marks || 0),
@@ -986,17 +995,27 @@ function CreateQuizPageComponent() {
       <motion.div
         className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-purple-500/30 to-blue-600/30 rounded-full blur-3xl animate-float z-0"
         animate={{ y: [0, 30, 0], x: [0, 20, 0] }}
-        transition={{ duration: 10, repeat: Infinity, repeatType: 'mirror' }}
+        transition={{ duration: 10, repeat: Infinity, repeatType: "mirror" }}
       />
       <motion.div
         className="absolute top-1/2 right-0 w-72 h-72 bg-gradient-to-br from-blue-500/30 to-purple-600/30 rounded-full blur-2xl animate-float z-0"
         animate={{ y: [0, -40, 0], x: [0, -30, 0] }}
-        transition={{ duration: 12, repeat: Infinity, repeatType: 'mirror', delay: 2 }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          repeatType: "mirror",
+          delay: 2,
+        }}
       />
       <motion.div
         className="absolute bottom-0 left-1/3 w-60 h-60 bg-gradient-to-br from-yellow-500/20 to-orange-600/20 rounded-full blur-2xl animate-float z-0"
         animate={{ y: [0, 20, 0], x: [0, 10, 0] }}
-        transition={{ duration: 14, repeat: Infinity, repeatType: 'mirror', delay: 4 }}
+        transition={{
+          duration: 14,
+          repeat: Infinity,
+          repeatType: "mirror",
+          delay: 4,
+        }}
       />
       {/* Subtle Sparkle/Starfield Layer */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -1010,7 +1029,12 @@ function CreateQuizPageComponent() {
               opacity: s.opacity,
             }}
             animate={{ scale: [1, 1.8, 1], opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: s.duration, repeat: Infinity, repeatType: 'mirror', delay: s.delay }}
+            transition={{
+              duration: s.duration,
+              repeat: Infinity,
+              repeatType: "mirror",
+              delay: s.delay,
+            }}
           />
         ))}
       </div>
@@ -1018,10 +1042,10 @@ function CreateQuizPageComponent() {
         position="top-center"
         reverseOrder={false}
         toastOptions={{
-          className: '',
+          className: "",
           style: {
-            background: '#333',
-            color: '#fff',
+            background: "#333",
+            color: "#fff",
           },
         }}
       />
@@ -1075,7 +1099,7 @@ function CreateQuizPageComponent() {
                 <button
                   onClick={() => {
                     if (quizData.questions.length < 2) {
-                      toast.error('add at least 2 questions to continue');
+                      toast.error("add at least 2 questions to continue");
                     } else {
                       setShowFinalizeModal(true);
                     }
@@ -1101,22 +1125,38 @@ function CreateQuizPageComponent() {
       <div className="relative z-10 max-w-7xl mx-auto px-2 sm:px-4 py-6 sm:py-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10">
           {/* Left Sidebar - Question Grid/List Toggle */}
-          <div className={`transition-all duration-300 mb-6 md:mb-0 ${questionPanelView === 'grid' ? 'col-span-12 md:col-span-4' : 'col-span-12 md:col-span-4'} min-w-0 md:min-w-[280px]`}> 
+          <div
+            className={`transition-all duration-300 mb-6 md:mb-0 ${
+              questionPanelView === "grid"
+                ? "col-span-12 md:col-span-4"
+                : "col-span-12 md:col-span-4"
+            } min-w-0 md:min-w-[280px]`}
+          >
             <div className="bg-white/10 bg-clip-padding backdrop-blur-xl rounded-3xl p-4 pt-8 border border-white/10 shadow-xl flex flex-col mb-6 h-full">
               <div className="flex items-center justify-between mb-4 px-2">
-                <h3 className="text-lg font-bold tracking-wide text-blue-900 dark:text-cyan-100">Questions</h3>
+                <h3 className="text-lg font-bold tracking-wide text-blue-900 dark:text-cyan-100">
+                  Questions
+                </h3>
                 <div className="inline-flex rounded-full bg-white/10 border border-white/20 shadow-sm overflow-hidden ml-2">
                   <button
-                    className={`px-3 py-1 flex items-center gap-2 transition-all ${questionPanelView === 'grid' ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white' : 'text-white/60 hover:bg-white/10'}`}
-                    onClick={() => setQuestionPanelView('grid')}
+                    className={`px-3 py-1 flex items-center gap-2 transition-all ${
+                      questionPanelView === "grid"
+                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                        : "text-white/60 hover:bg-white/10"
+                    }`}
+                    onClick={() => setQuestionPanelView("grid")}
                     aria-label="Grid View"
                     type="button"
                   >
                     <FiGrid size={18} />
                   </button>
                   <button
-                    className={`px-3 py-1 flex items-center gap-2 transition-all ${questionPanelView === 'list' ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white' : 'text-white/60 hover:bg-white/10'}`}
-                    onClick={() => setQuestionPanelView('list')}
+                    className={`px-3 py-1 flex items-center gap-2 transition-all ${
+                      questionPanelView === "list"
+                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                        : "text-white/60 hover:bg-white/10"
+                    }`}
+                    onClick={() => setQuestionPanelView("list")}
                     aria-label="List View"
                     type="button"
                   >
@@ -1124,7 +1164,13 @@ function CreateQuizPageComponent() {
                   </button>
                 </div>
               </div>
-              <div className={questionPanelView === 'grid' ? 'grid grid-cols-4 sm:grid-cols-6 md:grid-cols-4 gap-3' : 'space-y-3'}>
+              <div
+                className={
+                  questionPanelView === "grid"
+                    ? "grid grid-cols-4 sm:grid-cols-6 md:grid-cols-4 gap-3"
+                    : "space-y-3"
+                }
+              >
                 {quizData.questions.map((question, index) => {
                   const isExpanded = expandedQuestionIndex === index;
                   return (
@@ -1133,22 +1179,35 @@ function CreateQuizPageComponent() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`group rounded-2xl cursor-pointer border border-white/10 transition-all duration-300 ${questionPanelView === 'grid' ? 'flex flex-col items-center justify-center px-0 py-6 min-h-[60px] text-lg font-bold' : 'flex flex-col px-3 py-2'} shadow-sm hover:shadow-lg hover:bg-white/10 ${questionPanelView === 'grid' ? 'bg-gradient-to-r from-purple-500/30 to-blue-500/30 border-purple-400/40 shadow-lg' : 'bg-white/5'}`}
+                      className={`group rounded-2xl cursor-pointer border border-white/10 transition-all duration-300 ${
+                        questionPanelView === "grid"
+                          ? "flex flex-col items-center justify-center px-0 py-6 min-h-[60px] text-lg font-bold"
+                          : "flex flex-col px-3 py-2"
+                      } shadow-sm hover:shadow-lg hover:bg-white/10 ${
+                        questionPanelView === "grid"
+                          ? "bg-gradient-to-r from-purple-500/30 to-blue-500/30 border-purple-400/40 shadow-lg"
+                          : "bg-white/5"
+                      }`}
                       onClick={() => setCurrentQuestionIndex(index)}
                       whileHover={{ scale: 1.03 }}
                     >
-                      {questionPanelView === 'grid' ? (
-                        <span className="text-base font-semibold text-white/90">Q{index + 1}</span>
+                      {questionPanelView === "grid" ? (
+                        <span className="text-base font-semibold text-white/90">
+                          Q{index + 1}
+                        </span>
                       ) : (
                         <>
                           <div className="flex items-center w-full gap-2">
-                            <span className="text-base font-semibold text-white/90">Q{index + 1}</span>
+                            <span className="text-base font-semibold text-white/90">
+                              Q{index + 1}
+                            </span>
                             <span className="text-xs bg-yellow-500/30 text-yellow-300 px-2 py-1 rounded-full font-semibold">
-                              {question.marks || 0} {question.marks === 1 ? 'pt' : 'pts'}
+                              {question.marks || 0}{" "}
+                              {question.marks === 1 ? "pt" : "pts"}
                             </span>
                             <div className="flex items-center gap-1 ml-auto">
                               <button
-                                onClick={e => {
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   duplicateQuestion(question);
                                 }}
@@ -1160,12 +1219,16 @@ function CreateQuizPageComponent() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setExpandedQuestionIndex(isExpanded ? null : index);
+                                  setExpandedQuestionIndex(
+                                    isExpanded ? null : index
+                                  );
                                 }}
                                 className="p-1 hover:bg-white/20 rounded-full"
-                                title={isExpanded ? 'Collapse' : 'Expand'}
+                                title={isExpanded ? "Collapse" : "Expand"}
                               >
-                                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
+                                <motion.div
+                                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                                >
                                   <FiChevronDown size={16} />
                                 </motion.div>
                               </button>
@@ -1173,13 +1236,20 @@ function CreateQuizPageComponent() {
                           </div>
                           <motion.div
                             initial={false}
-                            animate={{ height: isExpanded ? 'auto' : 0, opacity: isExpanded ? 1 : 0 }}
+                            animate={{
+                              height: isExpanded ? "auto" : 0,
+                              opacity: isExpanded ? 1 : 0,
+                            }}
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
                             {isExpanded && (
                               <span className="block mt-3 mb-1 text-sm text-white/90 font-medium bg-white/10 rounded-xl px-3 py-2 shadow-inner">
-                                {question.question || <span className="italic text-white/50">Untitled Question</span>}
+                                {question.question || (
+                                  <span className="italic text-white/50">
+                                    Untitled Question
+                                  </span>
+                                )}
                               </span>
                             )}
                           </motion.div>
@@ -1193,7 +1263,13 @@ function CreateQuizPageComponent() {
           </div>
 
           {/* Center Section - Question Editor */}
-          <div className={`${questionPanelView === 'grid' ? 'col-span-12 md:col-span-8' : 'col-span-12 md:col-span-8'} min-w-0 md:min-w-[400px]`}> 
+          <div
+            className={`${
+              questionPanelView === "grid"
+                ? "col-span-12 md:col-span-8"
+                : "col-span-12 md:col-span-8"
+            } min-w-0 md:min-w-[400px]`}
+          >
             <div className="bg-white/5 rounded-2xl p-4 sm:p-8 border border-white/10 backdrop-blur-xl h-full">
               {addingNew ? (
                 <div className="text-center py-16">
@@ -1287,7 +1363,9 @@ function CreateQuizPageComponent() {
                           "No question text"}
                       </p>
                     </div>
-                    <QuestionPreview question={quizData.questions[currentQuestionIndex]} />
+                    <QuestionPreview
+                      question={quizData.questions[currentQuestionIndex]}
+                    />
                   </div>
                 </div>
               )}
@@ -1443,7 +1521,9 @@ function QuestionEditorModal({
         className="bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-6 md:p-8 w-full max-w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200/50 dark:border-white/20 shadow-2xl"
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Question</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            Edit Question
+          </h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-600 dark:text-white transition-colors"
@@ -1461,7 +1541,9 @@ function QuestionEditorModal({
                 {questionType.name}
               </span>
             </div>
-            <p className="text-sm text-gray-700 dark:text-white/80">{questionType.guide}</p>
+            <p className="text-sm text-gray-700 dark:text-white/80">
+              {questionType.guide}
+            </p>
           </div>
         )}
 
@@ -1484,7 +1566,9 @@ function QuestionEditorModal({
 
           {/* Marks */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-white">Marks</label>
+            <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-white">
+              Marks
+            </label>
             <input
               type="number"
               value={formData.marks || 0}
@@ -1973,7 +2057,9 @@ function QuestionSettings({
                     key={item.id}
                     className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg"
                   >
-                    <span className="font-medium flex-1 text-gray-900 dark:text-white">{item.text}</span>
+                    <span className="font-medium flex-1 text-gray-900 dark:text-white">
+                      {item.text}
+                    </span>
                     <select
                       value={formData.correctMapping?.[item.id] || "unassigned"}
                       onChange={(e) =>
@@ -2176,11 +2262,15 @@ function QuestionSettings({
           {formData[urlKey] && (
             <div className="mt-4">
               {urlType === "image" && (
-                <img
-                  src={formData[urlKey]}
-                  alt="preview"
-                  className="max-h-48 rounded-lg"
-                />
+                <div className="relative max-h-48 w-full rounded-lg overflow-hidden">
+                  <Image
+                    src={formData[urlKey]}
+                    alt="preview"
+                    width={400}
+                    height={192}
+                    className="rounded-lg object-contain"
+                  />
+                </div>
               )}
               {urlType === "audio" && (
                 <audio src={formData[urlKey]} controls className="w-full" />
@@ -3328,7 +3418,9 @@ function ImportModal({
       >
         <div className="text-center">
           <div className="text-4xl mb-4">📥</div>
-          <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Import Quiz</h3>
+          <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+            Import Quiz
+          </h3>
           <p className="text-gray-600 dark:text-white/60 mb-6">
             Upload a JSON file to import your quiz
           </p>
@@ -3400,7 +3492,9 @@ function MarksModal({
         className="bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-6 md:p-8 w-full max-w-2xl border border-gray-200/50 dark:border-white/20 shadow-2xl"
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Marks Management</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            Marks Management
+          </h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-600 dark:text-white transition-colors"
@@ -3413,13 +3507,17 @@ function MarksModal({
           {/* Current Status */}
           <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-white">Current Total Marks:</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-white">
+                Current Total Marks:
+              </span>
               <span className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
                 {totalMarks}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700 dark:text-white">Questions:</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-white">
+                Questions:
+              </span>
               <span className="text-sm text-gray-600 dark:text-white/60">
                 {quizData.questions.length}
               </span>
@@ -3461,7 +3559,9 @@ function MarksModal({
                   className="text-purple-500"
                 />
                 <div>
-                  <span className="font-medium text-gray-900 dark:text-white">Custom Marks per Question</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    Custom Marks per Question
+                  </span>
                   <p className="text-xs text-gray-600 dark:text-white/60">
                     Set different marks for each question individually
                   </p>
@@ -3567,7 +3667,10 @@ function QuestionPreview({ question }: { question: Question }) {
           <h4 className="text-lg font-semibold mb-2">Options:</h4>
           <div className="space-y-2">
             {question.options?.map((option, idx) => (
-              <label key={option.id} className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer">
+              <label
+                key={option.id}
+                className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer"
+              >
                 <input type="radio" name="mcq-single-preview" disabled />
                 <span>{option.text}</span>
               </label>
@@ -3581,7 +3684,10 @@ function QuestionPreview({ question }: { question: Question }) {
           <h4 className="text-lg font-semibold mb-2">Options:</h4>
           <div className="space-y-2">
             {question.options?.map((option, idx) => (
-              <label key={option.id} className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer">
+              <label
+                key={option.id}
+                className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer"
+              >
                 <input type="checkbox" disabled />
                 <span>{option.text}</span>
               </label>
@@ -3607,9 +3713,13 @@ function QuestionPreview({ question }: { question: Question }) {
           <div className="grid grid-cols-2 gap-2">
             {question.matchPairs?.map((pair, idx) => (
               <div key={pair.id} className="flex gap-2 items-center">
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">{pair.premise}</span>
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  {pair.premise}
+                </span>
                 <span className="text-gray-500">↔</span>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">{pair.response}</span>
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                  {pair.response}
+                </span>
               </div>
             ))}
           </div>
@@ -3624,7 +3734,9 @@ function QuestionPreview({ question }: { question: Question }) {
               <tr>
                 <th className="border px-2 py-1"></th>
                 {question.matrixOptions?.cols.map((col) => (
-                  <th key={col.id} className="border px-2 py-1">{col.text}</th>
+                  <th key={col.id} className="border px-2 py-1">
+                    {col.text}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -3649,7 +3761,10 @@ function QuestionPreview({ question }: { question: Question }) {
           <h4 className="text-lg font-semibold mb-2">Poll Options:</h4>
           <div className="space-y-2">
             {question.options?.map((option, idx) => (
-              <label key={option.id} className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer">
+              <label
+                key={option.id}
+                className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer"
+              >
                 <input type="radio" name="poll-preview" disabled />
                 <span>{option.text}</span>
               </label>
@@ -3660,37 +3775,63 @@ function QuestionPreview({ question }: { question: Question }) {
     case "paragraph":
       return (
         <div>
-          <textarea className="w-full p-2 rounded border border-white/10" rows={4} disabled placeholder="User will write a paragraph here..." />
+          <textarea
+            className="w-full p-2 rounded border border-white/10"
+            rows={4}
+            disabled
+            placeholder="User will write a paragraph here..."
+          />
         </div>
       );
     case "essay":
       return (
         <div>
-          <textarea className="w-full p-2 rounded border border-white/10" rows={8} disabled placeholder="User will write an essay here..." />
-          {question.correctAnswer && <div className="mt-2 text-xs text-gray-400">Word limit: {question.correctAnswer}</div>}
+          <textarea
+            className="w-full p-2 rounded border border-white/10"
+            rows={8}
+            disabled
+            placeholder="User will write an essay here..."
+          />
+          {question.correctAnswer && (
+            <div className="mt-2 text-xs text-gray-400">
+              Word limit: {question.correctAnswer}
+            </div>
+          )}
         </div>
       );
-    case "fill-blanks":
-      {
-        let parts = question.question.split("___");
-        return (
-          <div className="flex flex-wrap items-center gap-2">
-            {parts.map((part, idx) => (
-              <React.Fragment key={idx}>
-                <span>{part}</span>
-                {idx < parts.length - 1 && <input type="text" className="w-24 p-1 rounded border border-white/10" disabled placeholder="Blank" />}
-              </React.Fragment>
-            ))}
-          </div>
-        );
-      }
+    case "fill-blanks": {
+      let parts = question.question.split("___");
+      return (
+        <div className="flex flex-wrap items-center gap-2">
+          {parts.map((part, idx) => (
+            <React.Fragment key={idx}>
+              <span>{part}</span>
+              {idx < parts.length - 1 && (
+                <input
+                  type="text"
+                  className="w-24 p-1 rounded border border-white/10"
+                  disabled
+                  placeholder="Blank"
+                />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      );
+    }
     case "code-output":
       return (
         <div>
-          <pre className="bg-black/80 text-green-200 rounded p-3 mb-2 overflow-x-auto"><code>{question.codeSnippet}</code></pre>
+          <pre className="bg-black/80 text-green-200 rounded p-3 mb-2 overflow-x-auto">
+            <code>{question.codeSnippet}</code>
+          </pre>
           <div className="mt-2">
-            <label className="block text-xs font-medium mb-1">Expected Output:</label>
-            <pre className="bg-gray-900 text-yellow-200 rounded p-2 overflow-x-auto"><code>{question.correctAnswer}</code></pre>
+            <label className="block text-xs font-medium mb-1">
+              Expected Output:
+            </label>
+            <pre className="bg-gray-900 text-yellow-200 rounded p-2 overflow-x-auto">
+              <code>{question.correctAnswer}</code>
+            </pre>
           </div>
         </div>
       );
@@ -3703,7 +3844,12 @@ function QuestionPreview({ question }: { question: Question }) {
               <div className="font-semibold mb-1">Draggable Items</div>
               <ul>
                 {question.draggableItems?.map((item) => (
-                  <li key={item.id} className="bg-blue-100 text-blue-800 px-2 py-1 rounded mb-1">{item.text}</li>
+                  <li
+                    key={item.id}
+                    className="bg-blue-100 text-blue-800 px-2 py-1 rounded mb-1"
+                  >
+                    {item.text}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -3711,7 +3857,12 @@ function QuestionPreview({ question }: { question: Question }) {
               <div className="font-semibold mb-1">Drop Zones</div>
               <ul>
                 {question.dropZones?.map((zone) => (
-                  <li key={zone.id} className="bg-green-100 text-green-800 px-2 py-1 rounded mb-1">{zone.text}</li>
+                  <li
+                    key={zone.id}
+                    className="bg-green-100 text-green-800 px-2 py-1 rounded mb-1"
+                  >
+                    {zone.text}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -3724,7 +3875,9 @@ function QuestionPreview({ question }: { question: Question }) {
           <h4 className="text-lg font-semibold mb-2">Ordering:</h4>
           <ol className="list-decimal ml-6">
             {question.orderedItems?.map((item, idx) => (
-              <li key={idx} className="bg-white/10 rounded px-2 py-1 mb-1">{item}</li>
+              <li key={idx} className="bg-white/10 rounded px-2 py-1 mb-1">
+                {item}
+              </li>
             ))}
           </ol>
         </div>
@@ -3732,7 +3885,17 @@ function QuestionPreview({ question }: { question: Question }) {
     case "image-based":
       return (
         <div>
-          {question.imageUrl && <img src={question.imageUrl} alt="Question" className="max-h-48 rounded mb-2" />}
+          {question.imageUrl && (
+            <div className="relative max-h-48 w-full rounded mb-2 overflow-hidden">
+              <Image
+                src={question.imageUrl}
+                alt="Question"
+                width={400}
+                height={192}
+                className="rounded object-contain"
+              />
+            </div>
+          )}
         </div>
       );
     case "audio":
@@ -3751,7 +3914,11 @@ function QuestionPreview({ question }: { question: Question }) {
       return (
         <div>
           {question.videoUrl ? (
-            <video src={question.videoUrl} controls className="max-h-48 rounded mb-2" />
+            <video
+              src={question.videoUrl}
+              controls
+              className="max-h-48 rounded mb-2"
+            />
           ) : (
             <div className="p-4 bg-blue-100 text-blue-800 rounded mb-2 text-center">
               Student will upload or record their answer here.

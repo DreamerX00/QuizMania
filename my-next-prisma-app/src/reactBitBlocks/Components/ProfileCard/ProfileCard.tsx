@@ -3,6 +3,7 @@
 */
 
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
+import Image from "next/image";
 import "./ProfileCard.css";
 
 interface ProfileCardProps {
@@ -48,7 +49,7 @@ const adjust = (
   fromMin: number,
   fromMax: number,
   toMin: number,
-  toMax: number,
+  toMax: number
 ): number =>
   round(toMin + ((toMax - toMin) * (value - fromMin)) / (fromMax - fromMin));
 
@@ -85,7 +86,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       offsetX: number,
       offsetY: number,
       card: HTMLElement,
-      wrap: HTMLElement,
+      wrap: HTMLElement
     ) => {
       const width = card.clientWidth;
       const height = card.clientHeight;
@@ -101,7 +102,11 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
         "--pointer-y": `${percentY}%`,
         "--background-x": `${adjust(percentX, 0, 100, 35, 65)}%`,
         "--background-y": `${adjust(percentY, 0, 100, 35, 65)}%`,
-        "--pointer-from-center": `${clamp(Math.hypot(percentY - 50, percentX - 50) / 50, 0, 1)}`,
+        "--pointer-from-center": `${clamp(
+          Math.hypot(percentY - 50, percentX - 50) / 50,
+          0,
+          1
+        )}`,
         "--pointer-from-top": `${percentY / 100}`,
         "--pointer-from-left": `${percentX / 100}`,
         "--rotate-x": `${round(-(centerX / 5))}deg`,
@@ -118,7 +123,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       startX: number,
       startY: number,
       card: HTMLElement,
-      wrap: HTMLElement,
+      wrap: HTMLElement
     ) => {
       const startTime = performance.now();
       const targetX = wrap.clientWidth / 2;
@@ -166,10 +171,10 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
         event.clientX - rect.left,
         event.clientY - rect.top,
         card,
-        wrap,
+        wrap
       );
     },
-    [animationHandlers],
+    [animationHandlers]
   );
 
   const handlePointerEnter = useCallback(() => {
@@ -195,12 +200,12 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
         event.offsetX,
         event.offsetY,
         card,
-        wrap,
+        wrap
       );
       wrap.classList.remove("active");
       card.classList.remove("active");
     },
-    [animationHandlers],
+    [animationHandlers]
   );
 
   useEffect(() => {
@@ -228,7 +233,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       initialX,
       initialY,
       card,
-      wrap,
+      wrap
     );
 
     return () => {
@@ -251,11 +256,11 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
         "--icon": iconUrl ? `url(${iconUrl})` : "none",
         "--grain": grainUrl ? `url(${grainUrl})` : "none",
         "--behind-gradient": showBehindGradient
-          ? (behindGradient ?? DEFAULT_BEHIND_GRADIENT)
+          ? behindGradient ?? DEFAULT_BEHIND_GRADIENT
           : "none",
         "--inner-gradient": innerGradient ?? DEFAULT_INNER_GRADIENT,
-      }) as React.CSSProperties,
-    [iconUrl, grainUrl, showBehindGradient, behindGradient, innerGradient],
+      } as React.CSSProperties),
+    [iconUrl, grainUrl, showBehindGradient, behindGradient, innerGradient]
   );
 
   const handleContactClick = useCallback(() => {
@@ -273,24 +278,29 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
           <div className="pc-shine" />
           <div className="pc-glare" />
           <div className="pc-content pc-avatar-content">
-            <img
-              className="avatar"
-              src={avatarUrl}
-              alt={`${name || "User"} avatar`}
-              loading="lazy"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-              }}
-            />
+            <div className="avatar relative overflow-hidden">
+              <Image
+                src={avatarUrl}
+                alt={`${name || "User"} avatar`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 400px"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                }}
+              />
+            </div>
             {showUserInfo && (
               <div className="pc-user-info">
                 <div className="pc-user-details">
-                  <div className="pc-mini-avatar">
-                    <img
+                  <div className="pc-mini-avatar relative overflow-hidden">
+                    <Image
                       src={miniAvatarUrl || avatarUrl}
                       alt={`${name || "User"} mini avatar`}
-                      loading="lazy"
+                      fill
+                      className="object-cover"
+                      sizes="64px"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.opacity = "0.5";
