@@ -13,7 +13,7 @@ import { registerChatEvents } from './events/chatEvents';
 import { registerGameEvents } from './events/gameEvents';
 import { registerVoiceEvents } from './events/voiceEvents';
 import { registerHealthEndpoint } from './healthz';
-import client, { Counter, Gauge, Histogram, collectDefaultMetrics } from 'prom-client';
+import { metricsRegistry, requestCounter, errorCounter, requestDuration, activeConnections, activeRooms, activeUsers, messagesTotal, votesTotal } from './config/metrics';
 
 // Load environment variables
 import dotenv from 'dotenv';
@@ -41,21 +41,11 @@ const io = new SocketIOServer(server, {
   allowEIO3: true
 });
 
-// Prometheus metrics
-collectDefaultMetrics();
-const requestCounter = new Counter({ name: 'ws_server_requests_total', help: 'Total requests' });
-const errorCounter = new Counter({ name: 'ws_server_errors_total', help: 'Total errors' });
-const requestDuration = new Histogram({ name: 'ws_server_request_duration_seconds', help: 'Request duration (seconds)' });
-const activeConnections = new Gauge({ name: 'ws_server_active_connections', help: 'Active WebSocket connections' });
-// Business metrics
-const activeRooms = new Gauge({ name: 'ws_server_active_rooms', help: 'Active rooms' });
-const activeUsers = new Gauge({ name: 'ws_server_active_users', help: 'Active users' });
-const messagesTotal = new Counter({ name: 'ws_server_messages_total', help: 'Total chat messages sent' });
-const votesTotal = new Counter({ name: 'ws_server_votes_total', help: 'Total votes cast' });
+// Prometheus metrics are imported from centralized module
 
 app.get('/metrics', async (_req, res) => {
-  res.set('Content-Type', client.register.contentType);
-  res.end(await client.register.metrics());
+  res.set('Content-Type', metricsRegistry.contentType);
+  res.end(await metricsRegistry.metrics());
 });
 
 // Validate room types config
@@ -69,8 +59,14 @@ try {
   logger.warn('Redis adapter not available - using in-memory adapter');
 }
 
-// Register global middleware
-// io.use(authMiddleware); // Temporarily disabled for client-side testing
+// Register global middleware (auth enabled unless explicitly disabled)
+const authDisabled = process.env.WS_AUTH_DISABLED === 'true';
+if (!authDisabled) {
+  io.use(authMiddleware);
+  logger.info('WS auth middleware: ENABLED');
+} else {
+  logger.warn('WS auth middleware: DISABLED via WS_AUTH_DISABLED');
+}
 io.use(rateLimiter);
 io.use(e2eeMiddleware);
 

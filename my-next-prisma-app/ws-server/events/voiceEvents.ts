@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
-import { livekitService } from '../../src/services/livekitService';
-import { webrtcFallbackService } from '../../src/services/webrtcFallbackService';
+import { livekitService } from '../services/livekit';
+import { webrtcFallbackService } from '../services/webrtcFallback';
 
 export function registerVoiceEvents(io: Server, socket: Socket) {
   socket.on('voice:join', async ({ roomId }, cb) => {

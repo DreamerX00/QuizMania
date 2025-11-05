@@ -239,7 +239,7 @@ DATABASE_URL="postgresql://quizmania:quizmania_dev@postgres:5432/quizmania_dev"
 REDIS_URL="redis://redis:6379"
 
 # WebSocket
-NEXT_PUBLIC_WS_SERVER_URL="http://localhost:4000"
+NEXT_PUBLIC_WS_URL="http://localhost:3001"
 ```
 
 ### Required for Production
@@ -312,7 +312,7 @@ sudo chown -R $USER:$USER ./
 curl http://localhost:3000/api/health
 
 # Check WebSocket server
-curl http://localhost:4000/health
+curl http://localhost:3001/health
 
 # Check database
 docker-compose exec postgres pg_isready -U quizmania

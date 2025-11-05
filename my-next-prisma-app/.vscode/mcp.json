@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "QuizMania Docs": {
+      "type": "sse",
+      "url": "https://gitmcp.io/DreamerX00/QuizMania"
+    }
+  }
+}

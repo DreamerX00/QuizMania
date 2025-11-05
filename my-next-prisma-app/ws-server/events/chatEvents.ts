@@ -11,14 +11,8 @@
 
 import { Server, Socket } from 'socket.io';
 import { redisClient } from '../config/redis';
-import {
-  createClanChat,
-  createRoomChat,
-  createPublicChat,
-  createFriendChat
-} from '../../src/services/chatService';
-import { Counter } from 'prom-client';
-declare const messagesTotal: Counter;
+import { createClanChat, createRoomChat, createPublicChat, createFriendChat } from '../services/chatPersistence';
+import { messagesTotal } from '../config/metrics';
 
 // Placeholder: Replace with a real word list or external service
 const PROFANITY_WORDS = ['badword', 'anotherbadword'];

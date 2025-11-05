@@ -10,11 +10,12 @@
 
 import { Server, Socket } from 'socket.io';
 import { z } from 'zod';
+import { votePayloadSchema, VotePayload } from '../schemas/gameEvents';
 import fs from 'fs';
 import path from 'path';
-import { createVoteLog } from '../../src/services/voteLogService';
-import { Counter } from 'prom-client';
-declare const votesTotal: Counter;
+import { createVoteLog } from '../services/voteLog';
+import { allowVote } from '../services/voteThrottle';
+import { votesTotal } from '../config/metrics';
 
 // In-memory vote throttle (for demo only; use Redis in production)
 const lastVote: Record<string, number> = {}; // userId: timestamp
@@ -42,20 +43,20 @@ function validateGameModeSchema(mode: string, payload: any): boolean {
 
 export function registerGameEvents(io: Server, socket: Socket) {
   socket.on('game:vote', async (payload, cb) => {
-    // Defensive: validate payload
-    if (!payload || typeof payload !== 'object') return cb?.({ error: 'Invalid payload' });
-    const { roomId, vote, mode, type } = payload;
-    if (!roomId || typeof roomId !== 'string') return cb?.({ error: 'Missing or invalid roomId' });
-    if (!type || typeof type !== 'string') return cb?.({ error: 'Missing or invalid vote type' });
-    if (!mode || typeof mode !== 'string') return cb?.({ error: 'Missing or invalid mode' });
+      // Validate payload shape
+      const parsed = votePayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        return cb?.({ error: 'Invalid payload', code: 'BAD_REQUEST', details: parsed.error.flatten() });
+      }
+      const { roomId, vote, mode, type } = parsed.data as VotePayload;
     const userId = (socket as any).user?.id;
-    const now = Date.now();
-    if (userId && lastVote[userId] && now - lastVote[userId] < VOTE_THROTTLE_MS) {
-      return cb?.({ error: 'You are voting too quickly' });
+    // Redis-based throttle (graceful if Redis down)
+    if (userId) {
+      const allowed = await allowVote(userId, roomId, VOTE_THROTTLE_MS);
+      if (!allowed) return cb?.({ error: 'You are voting too quickly', code: 'RATE_LIMITED' });
     }
-    lastVote[userId] = now;
     if (!validateGameModeSchema(mode, vote)) {
-      return cb({ error: 'Invalid vote for mode' });
+      return cb?.({ error: 'Invalid vote for mode', code: 'INVALID_SCHEMA' });
     }
     // Log vote to Postgres
     if (userId && roomId && type) {

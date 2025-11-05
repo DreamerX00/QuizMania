@@ -4,7 +4,8 @@ import { Socket } from 'socket.io';
 // If socket.io types are missing, run: npm install --save-dev @types/socket.io
 // (This file assumes types are present.)
 type ExtendedError = Error & { data?: unknown };
-import { verifyToken } from '@clerk/clerk-sdk-node';
+// Use Clerk's backend verification API
+import { verifyToken } from '@clerk/backend';
 import { logger } from '../config/logger';
 
 interface ClerkSession {
@@ -50,10 +51,22 @@ export async function authMiddleware(socket: Socket & { user?: ClerkUser }, next
     const cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
     logger.info('Verifying token with Clerk', { cleanTokenPreview: cleanToken ? `${cleanToken.substring(0, 10)}...` : 'no token' });
     
+    const issuer = process.env.CLERK_JWT_ISSUER || process.env.CLERK_ISSUER;
+    const authorizedParties = process.env.CLERK_AUTHORIZED_PARTIES
+      ? process.env.CLERK_AUTHORIZED_PARTIES.split(',').map(s => s.trim()).filter(Boolean)
+      : undefined;
+
+    if (!issuer) {
+      logger.error('Clerk JWT issuer is not configured. Please set CLERK_JWT_ISSUER.');
+      return next(new Error('Server misconfiguration: CLERK_JWT_ISSUER not set'));
+    }
+
     // Clerk: verify the session token and attach user info
     const session = await verifyToken(cleanToken, {
       secretKey: process.env.CLERK_SECRET_KEY,
-    }) as ClerkSession;
+      issuer,
+      authorizedParties,
+    } as any) as ClerkSession;
     
     socket.user = {
       id: session.sub,

@@ -54,7 +54,7 @@ dev_start() {
     print_success "Development environment started!"
     print_info "Services available at:"
     echo "  🌐 Web App: http://localhost:3000"
-    echo "  🔌 WebSocket: http://localhost:4000"
+    echo "  🔌 WebSocket: http://localhost:3001"
     echo "  🗄️  Database Admin: http://localhost:8080"
     echo "  📊 Redis Commander: http://localhost:8081"
     echo "  📧 MailHog: http://localhost:8025"

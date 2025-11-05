@@ -43,7 +43,7 @@ This guide will help you set up and develop QuizMania using Docker containers fo
 
 4. **Access your services**
    - 🌐 **Main App**: http://localhost:3000
-   - 🔌 **WebSocket API**: http://localhost:4000
+   - 🔌 **WebSocket API**: http://localhost:3001
    - 🗄️ **Database Admin**: http://localhost:8080 (Adminer)
    - 📊 **Redis GUI**: http://localhost:8081 (Redis Commander)
    - 📧 **Email Testing**: http://localhost:8025 (MailHog)
@@ -185,7 +185,7 @@ docker-compose exec app npx prisma studio
 #### Testing WebSocket Connections
 ```javascript
 // Test WebSocket connection in browser console
-const socket = io('http://localhost:4000');
+const socket = io('http://localhost:3001');
 socket.on('connect', () => console.log('Connected!'));
 socket.emit('test', { message: 'Hello' });
 ```
@@ -208,7 +208,7 @@ artillery run tests/load/websocket-test.yml
 
 #### Monitoring During Development
 - **Resource Usage**: Docker Desktop dashboard
-- **Application Metrics**: http://localhost:4000/metrics (Prometheus format)
+- **Application Metrics**: http://localhost:3001/metrics (Prometheus format)
 - **Database Performance**: Use Adminer to check query performance
 
 ## 🧪 Testing
@@ -301,7 +301,7 @@ sudo chown -R $USER:$USER ./
 
 2. **Update environment variables**:
    ```env
-   NEXT_PUBLIC_WS_SERVER_URL=http://YOUR_IP:4000
+   NEXT_PUBLIC_WS_URL=http://YOUR_IP:3001
    ```
 
 3. **Access from mobile**: http://YOUR_IP:3000

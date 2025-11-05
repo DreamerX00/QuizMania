@@ -246,7 +246,7 @@ npm run dev
 | `LIVEKIT_API_KEY` | LiveKit API key | For voice chat |
 | `LIVEKIT_API_SECRET` | LiveKit API secret | For voice chat |
 | `NEXT_PUBLIC_LIVEKIT_URL` | LiveKit server URL | For voice chat |
-| `NEXT_PUBLIC_WS_SERVER_URL` | WebSocket server URL | Yes |
+| `NEXT_PUBLIC_WS_URL` | WebSocket server URL | Yes |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk public key | Yes |
 | `CLERK_SECRET_KEY` | Clerk secret key | Yes |
 

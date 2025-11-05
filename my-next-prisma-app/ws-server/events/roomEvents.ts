@@ -2,8 +2,7 @@ import { Server, Socket } from 'socket.io';
 import { redisClient } from '../config/redis';
 import { roomTypes, RoomType } from '../config/roomTypes';
 import { logger } from '../config/logger';
-import { Gauge } from 'prom-client';
-declare const activeRooms: Gauge;
+import { activeRooms } from '../config/metrics';
 
 const roomCounts = new Map<string, number>();
 

@@ -175,7 +175,7 @@ actions.castVote('option-a');
 ### Environment Variables
 ```bash
 # WebSocket Server
-NEXT_PUBLIC_WS_SERVER_URL=http://localhost:4000
+NEXT_PUBLIC_WS_URL=http://localhost:3001
 
 # LiveKit Configuration
 NEXT_PUBLIC_LIVEKIT_URL=wss://your-livekit-server.com
