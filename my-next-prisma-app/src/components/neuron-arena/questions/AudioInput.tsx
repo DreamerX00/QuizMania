@@ -3,7 +3,7 @@ import { useQuizStore } from '../state/quizStore';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import WaveSurfer from 'wavesurfer.js';
-import isEqual from 'lodash.isequal';
+import { isEqual } from 'lodash';
 
 const AudioInput = ({ question }) => {
   const responses = useQuizStore(s => s.responses);

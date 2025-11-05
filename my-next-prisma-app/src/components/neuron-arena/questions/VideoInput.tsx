@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useQuizStore } from '../state/quizStore';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import isEqual from 'lodash.isequal';
+import { isEqual } from 'lodash';
 
 const VideoInput = ({ question }) => {
   const responses = useQuizStore(s => s.responses);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuizStore } from '../state/quizStore';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import isEqual from 'lodash.isequal';
+import { isEqual } from 'lodash';
 
 // Simulate poll results for demo
 const fakeResults = (options, userAnswer) => {

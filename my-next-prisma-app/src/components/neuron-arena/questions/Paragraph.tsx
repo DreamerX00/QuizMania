@@ -3,7 +3,7 @@ import { useQuizStore } from '../state/quizStore';
 import MDEditor from '@uiw/react-md-editor';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import isEqual from 'lodash.isequal';
+import { isEqual } from 'lodash';
 
 const LOCAL_KEY = 'paragraph-draft';
 

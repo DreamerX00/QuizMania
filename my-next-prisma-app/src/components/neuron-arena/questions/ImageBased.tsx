@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuizStore } from '../state/quizStore';
 import type { Question } from '../types/quiz.types';
-import isEqual from 'lodash.isequal';
+import { isEqual } from 'lodash';
 
 const ImageBased = ({ question }: { question: Question }) => {
   const responses = useQuizStore(s => s.responses);
