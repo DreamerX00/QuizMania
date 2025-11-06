@@ -44,8 +44,12 @@ export async function seedAchievements() {
     const achievement = achievements[key];
     await prisma.achievement.upsert({
       where: { name: achievement.name },
-      update: {},
-      create: achievement,
+      update: { description: achievement.description, icon: achievement.icon },
+      create: {
+        name: achievement.name,
+        description: achievement.description,
+        icon: achievement.icon,
+      },
     });
   }
   console.log("Achievements seeded.");

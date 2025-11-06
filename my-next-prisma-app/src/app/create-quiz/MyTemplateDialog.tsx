@@ -4,17 +4,12 @@ import Modal from "@/components/ui/Modal";
 import { motion } from "framer-motion";
 import { Slider } from "@/components/ui/slider";
 import { Calendar } from "@/components/ui/calendar";
-import { addDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import type { Quiz } from "@prisma/client";
 import TemplateCard from "./TemplateCard";
 import TemplateActionPanel from "./TemplateActionPanel";
-import { Loader2 } from "lucide-react";
-import { FiGrid, FiList } from "react-icons/fi";
-import { Button } from "@/components/ui/button";
-import { toast } from "react-hot-toast";
 
 const PRICE_MIN = 0;
 const PRICE_MAX = 999;
@@ -42,7 +37,7 @@ export default function MyTemplateDialog({ onClose }: { onClose: () => void }) {
   const calendarBtnRef = useRef<HTMLButtonElement>(null);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [debouncedSearch] = useDebounce(search, 500);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode] = useState<"grid" | "list">("grid");
 
   const resetFilters = () => {
     setSearch("");
@@ -175,7 +170,7 @@ export default function MyTemplateDialog({ onClose }: { onClose: () => void }) {
                 </select>
               </div>
             </div>
-            <div className="flex gap-4 mt-2 md:mt-0 md:ml-6 self-end md:self-center mt-2 md:translate-y-[7.2px]">
+            <div className="flex gap-4 mt-2 md:mt-0 md:ml-6 self-end md:self-center md:translate-y-[7.2px]">
               <button
                 className="px-8 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold shadow hover:from-pink-600 hover:to-blue-600 transition-all border-0 focus:ring-2 focus:ring-pink-400 w-full md:w-[120px] h-[40px]"
                 onClick={resetFilters}

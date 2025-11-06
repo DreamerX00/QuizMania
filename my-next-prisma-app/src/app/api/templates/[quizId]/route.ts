@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 import prisma from "@/lib/prisma";
@@ -11,8 +11,11 @@ const updateTemplateSchema = z.object({
 
 export const PUT = withValidation(
   updateTemplateSchema,
-  async (request: any, { params }: { params: Promise<{ quizId: string }> }) => {
-    const { quizId } = await params;
+  async (
+    request: NextRequest,
+    context: { params: Promise<{ quizId: string }> }
+  ) => {
+    const { quizId } = await context.params;
     if (!quizId) {
       return NextResponse.json(
         { error: "Quiz ID is required" },
@@ -20,7 +23,9 @@ export const PUT = withValidation(
       );
     }
     try {
-      const { isOfficial, published } = request.validated;
+      const { isOfficial, published } = (
+        request as never as { validated: z.infer<typeof updateTemplateSchema> }
+      ).validated;
       let updatedRecord;
       if (typeof isOfficial === "boolean") {
         updatedRecord = await prisma.template.update({
@@ -51,8 +56,11 @@ export const PUT = withValidation(
 
 export const DELETE = withValidation(
   quizIdParamSchema,
-  async (request: any, { params }: { params: Promise<{ quizId: string }> }) => {
-    const { quizId } = await params;
+  async (
+    request: NextRequest,
+    context: { params: Promise<{ quizId: string }> }
+  ) => {
+    const { quizId } = await context.params;
     if (!quizId) {
       return NextResponse.json(
         { error: "Quiz ID is required" },

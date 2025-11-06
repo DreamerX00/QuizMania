@@ -136,7 +136,6 @@ model User {
   points                     Int                  @default(0) // Total points earned
   premiumUntil               DateTime? // Premium subscription expiry
   quizzes                    QuizRecord[]
-  achievements               Achievement[]
   createdQuizzes             Quiz[]               @relation("CreatedQuizzes")
   bio                        String?
   alias                      String?
@@ -156,11 +155,9 @@ model User {
   receivedFriendRequests     Friend[]             @relation("Addressee")
   clanMemberships            ClanMembership[]
   clanJoinRequests           ClanJoinRequest[]
-  clanChatMessages           ClanChat[]
   clanChatSent               ClanChat[]           @relation("ClanChatSender")
   roomMemberships            RoomMembership[]
   roomInvites                RoomInvite[]
-  roomChatMessages           RoomChat[]
   roomChatSent               RoomChat[]           @relation("RoomChatSender")
   publicChatMessages         PublicChat[]         @relation("UserPublicChatMessages")
   gameSetups                 GameSetup[]
@@ -169,6 +166,7 @@ model User {
   votes                      Vote[]
   moderationActionsTaken     ModerationAction[]   @relation("ModerationTarget")
   moderationActionsPerformed ModerationAction[]   @relation("ModerationPerformer")
+  moderatorActions           ModerationAction[]   @relation("Moderator")
   quizLinkSessions           QuizLinkSession[]
   quizViolations             QuizViolation[]
   blockerBlocks              UserBlock[]          @relation("Blocker")
@@ -334,9 +332,6 @@ model Achievement {
   name             String            @unique // Make name unique for upsert
   description      String?
   icon             String?
-  userId           String
-  unlockedAt       DateTime          @default(now())
-  user             User              @relation(fields: [userId], references: [clerkId])
   type             String?
   isLocked         Boolean           @default(false)
   userAchievements UserAchievement[]
@@ -477,11 +472,9 @@ model ClanJoinRequest {
 model ClanChat {
   id        String   @id @default(cuid())
   clanId    String
-  userId    String
   senderId  String // Sender ID
   message   String
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [clerkId])
   sender    User     @relation("ClanChatSender", fields: [senderId], references: [clerkId])
   clan      Clan     @relation(fields: [clanId], references: [id])
 }
@@ -533,11 +526,9 @@ model RoomInvite {
 model RoomChat {
   id        String   @id @default(cuid())
   roomId    String
-  userId    String
   senderId  String // Sender ID
   message   String
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [clerkId])
   sender    User     @relation("RoomChatSender", fields: [senderId], references: [clerkId])
   room      Room     @relation(fields: [roomId], references: [id])
 }
@@ -590,6 +581,7 @@ model ModerationAction {
   type          String // Type of moderation action
   targetUserId  String
   performedById String
+  moderatorId   String // Moderator who performed the action
   reason        String?
   context       Json?
   roomId        String? // Room context for the action
@@ -597,9 +589,11 @@ model ModerationAction {
   createdAt     DateTime  @default(now())
   targetUser    User      @relation("ModerationTarget", fields: [targetUserId], references: [clerkId])
   performedBy   User      @relation("ModerationPerformer", fields: [performedById], references: [clerkId])
+  moderator     User      @relation("Moderator", fields: [moderatorId], references: [clerkId])
 
   @@index([targetUserId])
   @@index([performedById])
+  @@index([moderatorId])
 }
 
 model QuizLinkSession {
@@ -657,34 +651,40 @@ model Question {
 }
 
 model UserBlock {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  blockerId String
-  blockedId String
-  reason    String?
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  userId        String // User being blocked
+  blockedUserId String // User who is blocked
+  blockedBy     String // Admin/user who created the block
+  blockerId     String
+  blockedId     String
+  reason        String?
 
   blocker User @relation("Blocker", fields: [blockerId], references: [clerkId], onDelete: Cascade)
   blocked User @relation("Blocked", fields: [blockedId], references: [clerkId], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
+  @@unique([userId, blockedUserId])
   @@index([blockerId])
   @@index([blockedId])
+  @@index([userId])
+  @@index([blockedUserId])
 }
 
 model UserReport {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  reporterId  String
-  reportedId  String
-  reason      String
-  description String?
-  status      String   @default("PENDING")
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  reporterId     String
+  reportedUserId String // Changed from reportedId
+  reason         String
+  description    String?
+  status         String   @default("PENDING")
 
   reporter User @relation("Reporter", fields: [reporterId], references: [clerkId], onDelete: Cascade)
-  reported User @relation("Reported", fields: [reportedId], references: [clerkId], onDelete: Cascade)
+  reported User @relation("Reported", fields: [reportedUserId], references: [clerkId], onDelete: Cascade)
 
   @@index([reporterId])
-  @@index([reportedId])
+  @@index([reportedUserId])
   @@index([status])
 }
 
@@ -696,6 +696,7 @@ model Template {
   name        String
   description String?
   isPublic    Boolean  @default(false)
+  isOfficial  Boolean  @default(false)
 
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }

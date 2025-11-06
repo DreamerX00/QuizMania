@@ -4,11 +4,28 @@ import Modal from "@/components/ui/Modal";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
-import type { Quiz } from "@prisma/client";
-import { Loader2 } from "lucide-react";
+import type {
+  Quiz,
+  QuizComment as PrismaQuizComment,
+  QuizPackage,
+} from "@prisma/client";
 import { Slider } from "@/components/ui/slider";
+
+// Extended types for runtime data (Quiz already has durationInSeconds, isLocked, difficultyLevel in Prisma)
+
+interface CommentWithUser extends PrismaQuizComment {
+  user: {
+    name: string;
+    avatarUrl?: string | null;
+  };
+}
+
+interface CommentsPageData {
+  comments: CommentWithUser[];
+  nextCursor: string | null;
+}
+
 import { Calendar } from "@/components/ui/calendar";
-import { addDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import Image from "next/image";
 import {
@@ -135,29 +152,27 @@ const FactoryQuizCard = ({
       >
         <div className="bg-gray-100 dark:bg-white/10 text-xs px-2 py-1 rounded-full text-gray-700 dark:text-white">
           <span className="font-semibold">Time Limit:</span>{" "}
-          {((quiz as any).durationInSeconds ?? 0) === 0
+          {quiz.durationInSeconds === 0
             ? "Unlimited"
-            : `${Math.floor(((quiz as any).durationInSeconds ?? 0) / 60)} min${
-                ((quiz as any).durationInSeconds ?? 0) % 60
-                  ? " " + (((quiz as any).durationInSeconds ?? 0) % 60) + " sec"
+            : `${Math.floor(quiz.durationInSeconds / 60)} min${
+                quiz.durationInSeconds % 60
+                  ? " " + (quiz.durationInSeconds % 60) + " sec"
                   : ""
               }`}
         </div>
         <div className="bg-gray-100 dark:bg-white/10 text-xs px-2 py-1 rounded-full text-gray-700 dark:text-white">
           <span className="font-semibold">Locked:</span>{" "}
-          {(quiz as any).isLocked ? "Yes" : "No"}
+          {quiz.isLocked ? "Yes" : "No"}
         </div>
-        {(quiz as any).difficultyLevel && (
+        {quiz.difficultyLevel && (
           <span
             className={`inline-flex items-center gap-2 px-2 py-1 rounded text-xs font-semibold ${
-              DIFFICULTY_LEVELS.find(
-                (d) => d.value === (quiz as any).difficultyLevel
-              )?.color || "bg-slate-700"
+              DIFFICULTY_LEVELS.find((d) => d.value === quiz.difficultyLevel)
+                ?.color || "bg-slate-700"
             } text-white`}
           >
-            {DIFFICULTY_LEVELS.find(
-              (d) => d.value === (quiz as any).difficultyLevel
-            )?.label || (quiz as any).difficultyLevel}
+            {DIFFICULTY_LEVELS.find((d) => d.value === quiz.difficultyLevel)
+              ?.label || quiz.difficultyLevel}
           </span>
         )}
       </div>
@@ -188,18 +203,19 @@ const CommentsDialog = ({
   quiz: Quiz;
   onClose: () => void;
 }) => {
-  const getKey = (pageIndex: number, previousPageData: any) => {
+  const getKey = (
+    pageIndex: number,
+    previousPageData: CommentsPageData | null
+  ) => {
     if (previousPageData && !previousPageData.nextCursor) return null; // Reached the end
     if (pageIndex === 0) return `/api/quizzes/${quiz.id}/comments`;
-    return `/api/quizzes/${quiz.id}/comments?cursor=${previousPageData.nextCursor}`;
+    return `/api/quizzes/${quiz.id}/comments?cursor=${previousPageData?.nextCursor}`;
   };
 
   const { data, error, isLoading, size, setSize, isValidating } =
     useSWRInfinite(getKey, fetcher);
 
   const comments = data ? [].concat(...data.map((page) => page.comments)) : [];
-  const isLoadingMore =
-    isLoading || (size > 0 && data && typeof data[size - 1] === "undefined");
   const isEmpty = data?.[0]?.comments?.length === 0;
   const isReachingEnd =
     isEmpty || (data && data[data.length - 1]?.nextCursor === null);
@@ -214,7 +230,7 @@ const CommentsDialog = ({
       >
         <div className="flex items-center justify-between mb-6 flex-shrink-0">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-            Comments for "{quiz.title}"
+            Comments for &ldquo;{quiz.title}&rdquo;
           </h3>
           <button
             onClick={onClose}
@@ -235,7 +251,7 @@ const CommentsDialog = ({
           {isEmpty && (
             <p className="text-gray-600 dark:text-white/60">No comments yet.</p>
           )}
-          {comments.map((comment: any) => (
+          {comments.map((comment: CommentWithUser) => (
             <div
               key={comment.id}
               className="bg-gray-50 dark:bg-white/5 p-4 rounded-lg flex gap-4"
@@ -341,29 +357,27 @@ const CreatorDashboard = ({
       <div className="flex flex-wrap gap-2 mb-4">
         <div className="bg-gray-100 dark:bg-white/10 text-xs px-2 py-1 rounded-full text-gray-700 dark:text-white">
           <span className="font-semibold">Time Limit:</span>{" "}
-          {((quiz as any).durationInSeconds ?? 0) === 0
+          {quiz.durationInSeconds === 0
             ? "Unlimited"
-            : `${Math.floor(((quiz as any).durationInSeconds ?? 0) / 60)} min${
-                ((quiz as any).durationInSeconds ?? 0) % 60
-                  ? " " + (((quiz as any).durationInSeconds ?? 0) % 60) + " sec"
+            : `${Math.floor(quiz.durationInSeconds / 60)} min${
+                quiz.durationInSeconds % 60
+                  ? " " + (quiz.durationInSeconds % 60) + " sec"
                   : ""
               }`}
         </div>
         <div className="bg-gray-100 dark:bg-white/10 text-xs px-2 py-1 rounded-full text-gray-700 dark:text-white">
           <span className="font-semibold">Locked:</span>{" "}
-          {(quiz as any).isLocked ? "Yes" : "No"}
+          {quiz.isLocked ? "Yes" : "No"}
         </div>
-        {(quiz as any).difficultyLevel && (
+        {quiz.difficultyLevel && (
           <span
             className={`inline-flex items-center gap-2 px-2 py-1 rounded text-xs font-semibold ${
-              DIFFICULTY_LEVELS.find(
-                (d) => d.value === (quiz as any).difficultyLevel
-              )?.color || "bg-slate-700"
+              DIFFICULTY_LEVELS.find((d) => d.value === quiz.difficultyLevel)
+                ?.color || "bg-slate-700"
             } text-white`}
           >
-            {DIFFICULTY_LEVELS.find(
-              (d) => d.value === (quiz as any).difficultyLevel
-            )?.label || (quiz as any).difficultyLevel}
+            {DIFFICULTY_LEVELS.find((d) => d.value === quiz.difficultyLevel)
+              ?.label || quiz.difficultyLevel}
           </span>
         )}
       </div>
@@ -482,11 +496,9 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
   const [debouncedSearch] = useDebounce(search, 500);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [viewType, setViewType] = useState<"quiz" | "package">("quiz");
-  const [selectedPackage, setSelectedPackage] = useState<{
-    id: string;
-    quizIds: string[];
-    [key: string]: any;
-  } | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<QuizPackage | null>(
+    null
+  );
   const { data: packages, mutate: mutatePackages } = useSWR(
     viewType === "package" ? "/api/packages" : null,
     fetcher
@@ -521,7 +533,6 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
     price: 0,
   });
   const [createLoading, setCreateLoading] = useState(false);
-  const [canCreate, setCanCreate] = useState(true);
   const [pricingMode, setPricingMode] = useState<"free" | "paid">("free");
   const { data: allPublishedQuizzes, isLoading: loadingPublishedQuizzes } =
     useSWR("/api/quizzes/published", fetcher);
@@ -563,10 +574,9 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
   } = useSWR<Quiz[]>(`/api/quizzes/published?${params.toString()}`, fetcher);
 
   // Handler for publish/unpublish package (move inside component)
-  const handlePublishPackage = async (pkg: any, publish: boolean) => {
+  const handlePublishPackage = async (pkg: QuizPackage, publish: boolean) => {
     if (publishLoading) return; // Prevent double clicks
     setPublishLoading(true);
-    let toastId;
     const payload = {
       id: pkg.id,
       title: pkg.title,
@@ -607,7 +617,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
           }
         }
         console.error("Publish error (non-ok response):", errorMsg, res.status);
-        if (isMounted.current) toastId = toast.error(errorMsg);
+        if (isMounted.current) toast.error(errorMsg);
         setPublishLoading(false);
         return;
       }
@@ -616,14 +626,12 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
         setSelectedPackage((prev) =>
           prev ? ({ ...prev, isPublished: publish } as typeof prev) : null
         );
-        toastId = toast.success(
-          publish ? "Package published!" : "Package unpublished!"
-        );
+        toast.success(publish ? "Package published!" : "Package unpublished!");
       }
     } catch (err) {
       console.error("Publish error (network or unexpected):", err);
       if (isMounted.current)
-        toastId = toast.error("Network error: Could not reach the server.");
+        toast.error("Network error: Could not reach the server.");
     } finally {
       if (isMounted.current) setPublishLoading(false);
     }
@@ -772,7 +780,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 mt-2 md:mt-0 md:ml-6 self-end md:self-center mt-2 md:translate-y-[7.2px]">
+            <div className="flex gap-4 mt-2 md:mt-0 md:ml-6 self-end md:self-center md:translate-y-[7.2px]">
               <button
                 className="px-8 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold shadow hover:from-pink-600 hover:to-blue-600 transition-all border-0 focus:ring-2 focus:ring-pink-400 w-full md:w-[120px] h-[40px]"
                 onClick={resetFilters}
@@ -919,7 +927,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                     <p>Create a package to see it here!</p>
                   </div>
                 )}
-                {allPackages.map((pkg: any) => {
+                {allPackages.map((pkg: QuizPackage) => {
                   const quizThumbs = (pkg.quizIds || [])
                     .slice(0, 3)
                     .map((qid: string) => {
@@ -936,7 +944,13 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                       className={viewMode === "list" ? "w-full" : ""}
                     >
                       <PackageCard
-                        pkg={{ ...pkg, quizThumbnails: quizThumbs }}
+                        pkg={{
+                          ...pkg,
+                          description: pkg.description ?? undefined,
+                          imageUrl: pkg.imageUrl ?? undefined,
+                          createdAt: pkg.createdAt.toISOString(),
+                          quizThumbnails: quizThumbs,
+                        }}
                         onSelect={setSelectedPackage}
                         hideImage={viewMode === "list"}
                       />
@@ -956,17 +970,29 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
               />
             ) : selectedPackage ? (
               <PackageDetailsPanel
-                pkg={selectedPackage as any}
+                pkg={{
+                  ...selectedPackage,
+                  description: selectedPackage.description ?? undefined,
+                  imageUrl: selectedPackage.imageUrl ?? undefined,
+                  createdAt: selectedPackage.createdAt.toISOString(),
+                }}
                 quizzes={selectedPackageQuizzes || []}
                 onClose={() => setSelectedPackage(null)}
-                onUpdate={async (updatedPkg: any) => {
+                onUpdate={async (updatedPkg) => {
                   await fetch("/api/packages", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(updatedPkg),
                   });
                   mutatePackages();
-                  setSelectedPackage(updatedPkg);
+                  // Convert back to Prisma type for state
+                  setSelectedPackage({
+                    ...selectedPackage,
+                    title: updatedPkg.title,
+                    description: updatedPkg.description ?? null,
+                    imageUrl: updatedPkg.imageUrl ?? null,
+                    price: updatedPkg.price,
+                  });
                 }}
                 onDelete={async () => {
                   await fetch("/api/packages", {

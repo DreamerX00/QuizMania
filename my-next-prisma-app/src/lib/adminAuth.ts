@@ -130,10 +130,7 @@ export async function logAdminAction(
       data: {
         adminId,
         action,
-        targetId,
-        details: details ? JSON.stringify(details) : null,
-        timestamp: new Date(),
-        ipAddress: "", // Get from request headers if needed
+        details: details as never,
       },
     });
   } catch (error) {

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(request: Request, context: any) {
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
   const { id: userId } = await context.params;
 
   if (!userId) {
@@ -43,18 +46,33 @@ export async function GET(request: Request, context: any) {
       prisma.quizRecord.count({ where: { userId } }),
     ]);
 
-    const achievements = await prisma.achievement.findMany({
+    const achievementRecords = await prisma.userAchievement.findMany({
       where: { userId },
       orderBy: { unlockedAt: "desc" },
       select: {
         id: true,
-        name: true,
-        icon: true,
-        isLocked: true,
         unlockedAt: true,
-        type: true,
+        achievement: {
+          select: {
+            id: true,
+            name: true,
+            icon: true,
+            isLocked: true,
+            type: true,
+          },
+        },
       },
     });
+
+    // Flatten the achievements
+    const achievements = achievementRecords.map((record) => ({
+      id: record.achievement.id,
+      name: record.achievement.name,
+      icon: record.achievement.icon,
+      isLocked: record.achievement.isLocked,
+      type: record.achievement.type,
+      unlockedAt: record.unlockedAt,
+    }));
 
     if (totalCount === 0) {
       return NextResponse.json({
@@ -100,8 +118,7 @@ export async function GET(request: Request, context: any) {
       _avg: { score: true },
       orderBy: { _avg: { score: "desc" } },
     });
-    const rank =
-      allUserStats.findIndex((stat: any) => stat.userId === userId) + 1;
+    const rank = allUserStats.findIndex((stat) => stat.userId === userId) + 1;
 
     // Only include recentQuizzes where sub.quiz and sub.quiz.id are present
     const recentQuizzes = submissions
