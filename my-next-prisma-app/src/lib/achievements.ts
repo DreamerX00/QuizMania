@@ -1,46 +1,45 @@
 // import prisma from '@/lib/prisma';
-import { PrismaClient } from '@prisma/client';
-import { checkAchievement } from './achievements';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export const achievements = {
   FIRST_QUIZ: {
-    name: 'First Steps',
-    description: 'You took your first quiz!',
-    icon: '👟',
+    name: "First Steps",
+    description: "You took your first quiz!",
+    icon: "👟",
   },
   FIVE_QUIZZES: {
-    name: 'Getting Curious',
-    description: 'You took 5 quizzes.',
-    icon: '🧐',
+    name: "Getting Curious",
+    description: "You took 5 quizzes.",
+    icon: "🧐",
   },
   TEN_QUIZZES: {
-    name: 'Quiz Novice',
-    description: 'You took 10 quizzes!',
-    icon: '🎓',
+    name: "Quiz Novice",
+    description: "You took 10 quizzes!",
+    icon: "🎓",
   },
   PERFECT_SCORE: {
-    name: 'Perfectionist',
-    description: 'You got a 100% score on a quiz.',
-    icon: '🎯',
+    name: "Perfectionist",
+    description: "You got a 100% score on a quiz.",
+    icon: "🎯",
   },
   POLYGLOT: {
-    name: 'Polyglot',
-    description: 'You took quizzes in 3 different subjects.',
-    icon: '🌍',
+    name: "Polyglot",
+    description: "You took quizzes in 3 different subjects.",
+    icon: "🌍",
   },
   QUIZ_CREATOR: {
-    name: 'Creator',
-    description: 'You created your first quiz.',
-    icon: '✍️',
+    name: "Creator",
+    description: "You created your first quiz.",
+    icon: "✍️",
   },
 };
 
 export type AchievementKey = keyof typeof achievements;
 
 export async function seedAchievements() {
-  console.log('Seeding achievements...');
+  console.log("Seeding achievements...");
   for (const key of Object.keys(achievements) as AchievementKey[]) {
     const achievement = achievements[key];
     await prisma.achievement.upsert({
@@ -49,10 +48,13 @@ export async function seedAchievements() {
       create: achievement,
     });
   }
-  console.log('Achievements seeded.');
+  console.log("Achievements seeded.");
 }
 
-export async function checkAndAwardAchievement(userId: string, achievementKey: AchievementKey) {
+export async function checkAndAwardAchievement(
+  userId: string,
+  achievementKey: AchievementKey
+) {
   const achievement = await prisma.achievement.findUnique({
     where: { name: achievements[achievementKey].name },
   });
@@ -81,4 +83,4 @@ export async function checkAndAwardAchievement(userId: string, achievementKey: A
     console.log(`Awarded achievement ${achievement.name} to user ${userId}`);
     // Here you could add a notification for the user
   }
-} 
+}

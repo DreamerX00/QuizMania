@@ -1,9 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { PrismaClient } from '@prisma/client';
-import { QuizAttemptService } from '@/services/quizAttemptService';
-
-const prisma = new PrismaClient();
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { QuizAttemptService } from "@/services/quizAttemptService";
+import prisma from "@/lib/prisma";
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -11,21 +9,21 @@ export async function PATCH(request: NextRequest) {
     const { userId } = await auth();
 
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
     // 🧠 Extract quizId from URL path
     const pathname = request.nextUrl.pathname;
-    const quizId = pathname.split('/').slice(-2, -1)[0];
+    const quizId = pathname.split("/").slice(-2, -1)[0];
 
     if (!quizId) {
-      return new NextResponse('Quiz ID not found in URL', { status: 400 });
+      return new NextResponse("Quiz ID not found in URL", { status: 400 });
     }
 
     // 🔍 Fetch the quiz for the user
     const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
     if (!quiz || quiz.creatorId !== userId) {
-      return new NextResponse('Quiz Not Found', { status: 404 });
+      return new NextResponse("Quiz Not Found", { status: 404 });
     }
 
     // 🔄 Toggle the isPinned field
@@ -36,7 +34,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(updatedQuiz);
   } catch (error) {
-    console.error('[QUIZ_ID_PIN]', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error("[QUIZ_ID_PIN]", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

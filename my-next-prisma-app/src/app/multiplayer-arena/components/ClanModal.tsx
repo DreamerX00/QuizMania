@@ -348,16 +348,24 @@ const ClanModal = ({ isOpen, onClose, clan }: ClanModalProps) => {
                       Clan Details
                     </h3>
                     <div className="space-y-2 mt-2">
-                      <Input
-                        label="Clan Name"
-                        defaultValue={clan.name}
-                        className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-gray-900 dark:text-white"
-                      />
-                      <Input
-                        label="Clan Motto"
-                        defaultValue={clan.motto}
-                        className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-gray-900 dark:text-white"
-                      />
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Clan Name
+                        </label>
+                        <Input
+                          defaultValue={clan.name}
+                          className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-gray-900 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Clan Motto
+                        </label>
+                        <Input
+                          defaultValue={clan.motto}
+                          className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-gray-900 dark:text-white"
+                        />
+                      </div>
                       <Button>Update Details</Button>
                     </div>
                   </div>

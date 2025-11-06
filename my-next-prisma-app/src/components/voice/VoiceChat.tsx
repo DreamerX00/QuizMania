@@ -159,7 +159,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
       onVoiceFallbackActivated: (data) => {
         console.log("Voice fallback activated:", data);
         setConnectionMode("webrtc-fallback");
-        toast.warning("Switched to WebRTC fallback mode");
+        toast.error("Switched to WebRTC fallback mode");
       },
       onLiveKitJoin: async (data) => {
         console.log("LiveKit join event:", data);
@@ -209,7 +209,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
         avatar: participant.metadata
           ? JSON.parse(participant.metadata).avatar
           : undefined,
-        isMuted: participant.isMicrophoneMuted,
+        isMuted: (participant as any).isMicrophoneMuted ?? false,
         isSpeaking: participant.isSpeaking,
         isLocal: participant === liveKitService.getLocalParticipant(),
         volume: 100, // Default volume
@@ -235,8 +235,8 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
 
   const handleMuteToggle = async () => {
     try {
-      await setMuted(!isMuted);
-      toast.success(isMuted ? "Unmuted" : "Muted");
+      await setMuted(!isMuted());
+      toast.success(isMuted() ? "Unmuted" : "Muted");
     } catch (error) {
       console.error("Failed to toggle mute:", error);
       toast.error("Failed to toggle mute");
@@ -375,11 +375,11 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
         <Button
           onClick={handleMuteToggle}
           disabled={!isVoiceEnabled}
-          variant={isMuted ? "destructive" : "outline"}
+          variant={isMuted() ? "destructive" : "outline"}
           size="icon"
           className="w-12 h-12"
         >
-          {isMuted ? (
+          {isMuted() ? (
             <MicOff className="w-5 h-5" />
           ) : (
             <Mic className="w-5 h-5" />
@@ -421,7 +421,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {isSpeaking && (
+                  {isSpeaking() && (
                     <motion.div
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 0.5, repeat: Infinity }}
@@ -429,7 +429,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
                     />
                   )}
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {isSpeaking ? "Speaking" : "Silent"}
+                    {isSpeaking() ? "Speaking" : "Silent"}
                   </span>
                 </div>
               </div>

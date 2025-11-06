@@ -45,12 +45,9 @@ const TrueFocus: React.FC<TrueFocusProps> = ({
 
   useEffect(() => {
     if (!manualMode) {
-      const interval = setInterval(
-        () => {
-          setCurrentIndex((prev) => (prev + 1) % words.length);
-        },
-        (animationDuration + pauseBetweenAnimations) * 1000,
-      );
+      const interval = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % words.length);
+      }, (animationDuration + pauseBetweenAnimations) * 1000);
 
       return () => clearInterval(interval);
     }
@@ -94,7 +91,9 @@ const TrueFocus: React.FC<TrueFocusProps> = ({
         return (
           <span
             key={index}
-            ref={(el) => (wordRefs.current[index] = el)}
+            ref={(el) => {
+              wordRefs.current[index] = el;
+            }}
             className="relative text-[3rem] font-black cursor-pointer"
             style={
               {
@@ -103,8 +102,8 @@ const TrueFocus: React.FC<TrueFocusProps> = ({
                     ? `blur(0px)`
                     : `blur(${blurAmount}px)`
                   : isActive
-                    ? `blur(0px)`
-                    : `blur(${blurAmount}px)`,
+                  ? `blur(0px)`
+                  : `blur(${blurAmount}px)`,
                 transition: `filter ${animationDuration}s ease`,
               } as React.CSSProperties
             }

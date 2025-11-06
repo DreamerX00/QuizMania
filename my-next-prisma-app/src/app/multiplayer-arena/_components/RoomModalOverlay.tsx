@@ -1,43 +1,71 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { DoorOpen, Sparkles, X, Target, Zap, Star, Users, Plus, ArrowLeft } from 'lucide-react';
-import JoinRoomFlow from '@/components/rooms/JoinRoomFlow';
-import CreateRoomForm from '@/components/rooms/CreateRoomForm';
-import RoomLobby from '@/components/rooms/RoomLobby';
-import { Button } from '@/components/ui/button';
-import useSWR from 'swr';
-import toast from 'react-hot-toast';
-import { useAuth } from '@clerk/nextjs';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  DoorOpen,
+  Sparkles,
+  X,
+  Target,
+  Zap,
+  Star,
+  Users,
+  Plus,
+  ArrowLeft,
+} from "lucide-react";
+import JoinRoomFlow from "@/components/rooms/JoinRoomFlow";
+import CreateRoomForm from "@/components/rooms/CreateRoomForm";
+import RoomLobby from "@/components/rooms/RoomLobby";
+import { Button } from "@/components/ui/button";
+import useSWR from "swr";
+import toast from "react-hot-toast";
+import { useAuth } from "@clerk/nextjs";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-  const { userId, user } = useAuth();
-  const [step, setStep] = useState<'choose' | 'join' | 'create' | 'lobby'>('choose');
+const RoomModalOverlay = ({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) => {
+  const { userId } = useAuth();
+  const [step, setStep] = useState<"choose" | "join" | "create" | "lobby">(
+    "choose"
+  );
   const [roomData, setRoomData] = useState<any>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
-  const { data: myRoomsData, error: myRoomsError, isLoading: myRoomsLoading, mutate: mutateMyRooms } = useSWR(open ? '/api/rooms?my=1' : null, fetcher);
-  const { data: roomMembersData, error: roomMembersError, isLoading: roomMembersLoading, mutate: mutateRoomMembers } = useSWR(roomId ? `/api/rooms/members?roomId=${roomId}` : null, fetcher);
+  const {
+    data: myRoomsData,
+    error: myRoomsError,
+    isLoading: myRoomsLoading,
+    mutate: mutateMyRooms,
+  } = useSWR(open ? "/api/rooms?my=1" : null, fetcher);
+  const {
+    data: roomMembersData,
+    error: roomMembersError,
+    isLoading: roomMembersLoading,
+    mutate: mutateRoomMembers,
+  } = useSWR(roomId ? `/api/rooms/members?roomId=${roomId}` : null, fetcher);
 
   // Handlers for join/create
   const handleJoin = async (room: any) => {
     setRoomData(room);
     setRoomId(room.id);
-    setStep('lobby');
-    toast.success('Joined battle room!');
+    setStep("lobby");
+    toast.success("Joined battle room!");
   };
   const handleCreate = async (room: any) => {
     setRoomData(room);
     setRoomId(room.id);
-    setStep('lobby');
-    toast.success('Battle room created!');
+    setStep("lobby");
+    toast.success("Battle room created!");
   };
 
   // Reset state on close
   React.useEffect(() => {
     if (!open) {
       setTimeout(() => {
-        setStep('choose');
+        setStep("choose");
         setRoomData(null);
         setRoomId(null);
       }, 400);
@@ -49,13 +77,15 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading battle rooms...</p>
+          <p className="text-slate-600 dark:text-slate-400">
+            Loading battle rooms...
+          </p>
         </div>
       </div>
     );
   }
   if (myRoomsError) {
-    toast.error('Failed to load rooms.');
+    toast.error("Failed to load rooms.");
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center text-red-500">
@@ -83,7 +113,7 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           />
-          
+
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -95,7 +125,7 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
           >
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
-            
+
             {/* Header */}
             <div className="relative z-10 p-6 pb-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
               <div className="flex items-center justify-between">
@@ -127,7 +157,7 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
             {/* Content */}
             <div className="relative z-10 flex-1 overflow-y-auto max-h-[calc(90vh-140px)]">
               <AnimatePresence mode="wait">
-                {step === 'choose' && (
+                {step === "choose" && (
                   <motion.div
                     key="choose"
                     initial={{ opacity: 0, y: 20 }}
@@ -144,13 +174,13 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
                         Join an existing arena or forge your own
                       </p>
                     </div>
-                    
+
                     <div className="flex flex-col sm:flex-row justify-center gap-6 w-full max-w-2xl">
                       <motion.button
                         whileHover={{ scale: 1.05, y: -4 }}
                         whileTap={{ scale: 0.98 }}
                         className="flex items-center justify-center gap-3 px-8 py-6 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                        onClick={() => setStep('join')}
+                        onClick={() => setStep("join")}
                       >
                         <Users className="w-6 h-6" />
                         Join Battle
@@ -159,7 +189,7 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
                         whileHover={{ scale: 1.05, y: -4 }}
                         whileTap={{ scale: 0.98 }}
                         className="flex items-center justify-center gap-3 px-8 py-6 rounded-2xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                        onClick={() => setStep('create')}
+                        onClick={() => setStep("create")}
                       >
                         <Plus className="w-6 h-6" />
                         Create Arena
@@ -167,21 +197,21 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
                     </div>
                   </motion.div>
                 )}
-                
-                {step === 'join' && (
-                  <motion.div 
-                    key="join" 
-                    initial={{ opacity: 0, y: 20 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    exit={{ opacity: 0, y: 20 }} 
-                    transition={{ duration: 0.3 }} 
+
+                {step === "join" && (
+                  <motion.div
+                    key="join"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.3 }}
                     className="w-full p-6"
                   >
                     <div className="flex items-center justify-between mb-6">
-                      <Button 
-                        variant="ghost" 
-                        className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-2" 
-                        onClick={() => setStep('choose')}
+                      <Button
+                        variant="ghost"
+                        className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-2"
+                        onClick={() => setStep("choose")}
                       >
                         <ArrowLeft className="w-4 h-4" />
                         Back
@@ -195,21 +225,21 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
                     <JoinRoomFlow onJoin={handleJoin} />
                   </motion.div>
                 )}
-                
-                {step === 'create' && (
-                  <motion.div 
-                    key="create" 
-                    initial={{ opacity: 0, y: 20 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    exit={{ opacity: 0, y: 20 }} 
-                    transition={{ duration: 0.3 }} 
+
+                {step === "create" && (
+                  <motion.div
+                    key="create"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.3 }}
                     className="w-full p-6"
                   >
                     <div className="flex items-center justify-between mb-6">
-                      <Button 
-                        variant="ghost" 
-                        className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-2" 
-                        onClick={() => setStep('choose')}
+                      <Button
+                        variant="ghost"
+                        className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-2"
+                        onClick={() => setStep("choose")}
                       >
                         <ArrowLeft className="w-4 h-4" />
                         Back
@@ -223,20 +253,24 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
                     <CreateRoomForm onCreate={handleCreate} />
                   </motion.div>
                 )}
-                
-                {step === 'lobby' && roomData && (
-                  <motion.div 
-                    key="lobby" 
-                    initial={{ opacity: 0, scale: 0.97 }} 
-                    animate={{ opacity: 1, scale: 1 }} 
-                    exit={{ opacity: 0, scale: 0.97 }} 
-                    transition={{ duration: 0.3 }} 
+
+                {step === "lobby" && roomData && (
+                  <motion.div
+                    key="lobby"
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.97 }}
+                    transition={{ duration: 0.3 }}
                     className="w-full h-full flex items-stretch"
                   >
-                    <RoomLobby 
-                      room={roomData} 
-                      members={roomMembersData?.members || []} 
-                      currentUser={{ userId, name: user?.fullName || 'User', avatar: user?.imageUrl }}
+                    <RoomLobby
+                      room={roomData}
+                      members={roomMembersData?.members || []}
+                      currentUser={{
+                        userId: userId || "",
+                        name: "User",
+                        avatar: undefined,
+                      }}
                     />
                   </motion.div>
                 )}
@@ -249,4 +283,4 @@ const RoomModalOverlay = ({ open, onClose }: { open: boolean; onClose: () => voi
   );
 };
 
-export default RoomModalOverlay; 
+export default RoomModalOverlay;

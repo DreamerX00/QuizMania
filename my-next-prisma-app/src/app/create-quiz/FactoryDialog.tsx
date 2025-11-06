@@ -482,7 +482,11 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
   const [debouncedSearch] = useDebounce(search, 500);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [viewType, setViewType] = useState<"quiz" | "package">("quiz");
-  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState<{
+    id: string;
+    quizIds: string[];
+    [key: string]: any;
+  } | null>(null);
   const { data: packages, mutate: mutatePackages } = useSWR(
     viewType === "package" ? "/api/packages" : null,
     fetcher
@@ -513,7 +517,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
     title: "",
     description: "",
     imageUrl: "",
-    quizIds: [],
+    quizIds: [] as string[],
     price: 0,
   });
   const [createLoading, setCreateLoading] = useState(false);
@@ -559,7 +563,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
   } = useSWR<Quiz[]>(`/api/quizzes/published?${params.toString()}`, fetcher);
 
   // Handler for publish/unpublish package (move inside component)
-  const handlePublishPackage = async (pkg, publish) => {
+  const handlePublishPackage = async (pkg: any, publish: boolean) => {
     if (publishLoading) return; // Prevent double clicks
     setPublishLoading(true);
     let toastId;
@@ -610,7 +614,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
       if (isMounted.current) {
         mutatePackages();
         setSelectedPackage((prev) =>
-          prev ? { ...prev, isPublished: publish } : null
+          prev ? ({ ...prev, isPublished: publish } as typeof prev) : null
         );
         toastId = toast.success(
           publish ? "Package published!" : "Package unpublished!"
@@ -915,12 +919,12 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                     <p>Create a package to see it here!</p>
                   </div>
                 )}
-                {allPackages.map((pkg) => {
+                {allPackages.map((pkg: any) => {
                   const quizThumbs = (pkg.quizIds || [])
                     .slice(0, 3)
-                    .map((qid) => {
+                    .map((qid: string) => {
                       const quiz = (selectedPackageQuizzes || []).find(
-                        (q) => q.id === qid
+                        (q: Quiz) => q.id === qid
                       );
                       return quiz
                         ? { imageUrl: quiz.imageUrl, title: quiz.title }
@@ -952,10 +956,10 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
               />
             ) : selectedPackage ? (
               <PackageDetailsPanel
-                pkg={selectedPackage}
+                pkg={selectedPackage as any}
                 quizzes={selectedPackageQuizzes || []}
                 onClose={() => setSelectedPackage(null)}
-                onUpdate={async (updatedPkg) => {
+                onUpdate={async (updatedPkg: any) => {
                   await fetch("/api/packages", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -1020,7 +1024,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                   </div>
                 ) : allPublishedQuizzes && allPublishedQuizzes.length > 0 ? (
                   <ul className="space-y-2">
-                    {allPublishedQuizzes.map((q) => (
+                    {allPublishedQuizzes.map((q: Quiz) => (
                       <li key={q.id} className="flex items-center gap-3">
                         <input
                           type="checkbox"

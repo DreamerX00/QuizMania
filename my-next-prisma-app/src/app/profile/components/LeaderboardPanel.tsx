@@ -1,15 +1,18 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { useAuth } from '@/context/AuthContext';
-import useSWR from 'swr';
+import { useAuth } from "@/context/AuthContext";
+import useSWR from "swr";
 
 const fetcher = (url: string, token: string) =>
-  fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json());
+  fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then((res) =>
+    res.json()
+  );
 
 export function LeaderboardPanel() {
   const { user } = useAuth();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
   // Fetch global leaderboard
   const { data: globalData, isLoading: loadingGlobal } = useSWR(
     user && token ? [`/api/leaderboard`, token] : null,
@@ -17,12 +20,16 @@ export function LeaderboardPanel() {
   );
   // Fetch local leaderboard (by region)
   const { data: localData, isLoading: loadingLocal } = useSWR(
-    user && token && user.region ? [`/api/leaderboard?region=${user.region}`, token] : null,
+    user && token && (user as any).region
+      ? [`/api/leaderboard?region=${(user as any).region}`, token]
+      : null,
     ([url, token]) => fetcher(url, token)
   );
 
   if (loadingGlobal || !globalData) {
-    return <div className="bg-gradient-to-br from-[#1a1a2e]/80 to-[#23234d]/80 rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px]" />;
+    return (
+      <div className="bg-gradient-to-br from-[#1a1a2e]/80 to-[#23234d]/80 rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px]" />
+    );
   }
 
   const global = Array.isArray(globalData) ? globalData : [];
@@ -47,16 +54,35 @@ export function LeaderboardPanel() {
     >
       {/* Floating Orbs */}
       <div className="absolute -top-8 right-1/2 translate-x-1/2 w-16 h-16 bg-gradient-to-br from-green-400/10 to-blue-400/10 dark:from-green-400/20 dark:to-blue-400/20 rounded-full blur-2xl animate-float z-0" />
-      <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '2s' }} />
+      <div
+        className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0"
+        style={{ animationDelay: "2s" }}
+      />
       <div className="flex-1 z-10 min-w-0">
         <div className="flex gap-4 md:gap-8 flex-wrap">
           <div className="flex flex-col items-center min-w-[60px]">
-            <span className="text-2xl font-bold text-green-600 dark:text-green-400 drop-shadow-glow">{globalRank > 0 ? `#${globalRank}` : <span className='text-gray-500 dark:text-gray-500'>--</span>}</span>
-            <span className="text-xs text-gray-600 dark:text-white/60">Global</span>
+            <span className="text-2xl font-bold text-green-600 dark:text-green-400 drop-shadow-glow">
+              {globalRank > 0 ? (
+                `#${globalRank}`
+              ) : (
+                <span className="text-gray-500 dark:text-gray-500">--</span>
+              )}
+            </span>
+            <span className="text-xs text-gray-600 dark:text-white/60">
+              Global
+            </span>
           </div>
           <div className="flex flex-col items-center min-w-[60px]">
-            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 drop-shadow-glow">{localRank > 0 ? `#${localRank}` : <span className='text-gray-500 dark:text-gray-500'>--</span>}</span>
-            <span className="text-xs text-gray-600 dark:text-white/60">Local</span>
+            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 drop-shadow-glow">
+              {localRank > 0 ? (
+                `#${localRank}`
+              ) : (
+                <span className="text-gray-500 dark:text-gray-500">--</span>
+              )}
+            </span>
+            <span className="text-xs text-gray-600 dark:text-white/60">
+              Local
+            </span>
           </div>
         </div>
       </div>
@@ -66,14 +92,24 @@ export function LeaderboardPanel() {
             <LineChart data={rankData}>
               <XAxis dataKey="name" stroke="#8884d8" hide />
               <YAxis stroke="#8884d8" />
-              <Line type="monotone" dataKey="xp" stroke="#34d399" strokeWidth={3} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="xp"
+                stroke="#34d399"
+                strokeWidth={3}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500 text-xs">No leaderboard data</div>
+          <div className="flex items-center justify-center h-full text-gray-500 text-xs">
+            No leaderboard data
+          </div>
         )}
-        <div className="absolute bottom-2 right-4 text-[10px] text-gray-400 mt-2">XP Leaderboard</div>
+        <div className="absolute bottom-2 right-4 text-[10px] text-gray-400 mt-2">
+          XP Leaderboard
+        </div>
       </div>
     </motion.div>
   );
-} 
+}

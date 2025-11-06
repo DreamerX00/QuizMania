@@ -122,87 +122,95 @@ model reports {
 }
 
 model User {
-  clerkId                String               @id @unique
-  email                  String               @unique
-  name                   String?
-  avatarUrl              String?
-  bannerUrl              String?
-  createdAt              DateTime             @default(now())
-  role                   Role                 @default(STUDENT)
-  xp                     Int                  @default(0)
-  rank                   Int                  @default(0)
-  streak                 Int                  @default(0)
-  accountType            AccountType          @default(FREE)
-  points                 Int                  @default(0) // Total points earned
-  premiumUntil           DateTime? // Premium subscription expiry
-  quizzes                QuizRecord[]
-  achievements           Achievement[]
-  createdQuizzes         Quiz[]               @relation("CreatedQuizzes")
-  bio                    String?
-  alias                  String?
-  socials                Json?
-  region                 String?
-  premiumSummary         PremiumSummary?
-  likes                  QuizLike[]
-  comments               QuizComment[]
-  ratings                QuizRating[]
-  withdrawals            Withdrawal[]
-  attempts               Attempt[] // Daily attempt tracking
-  quizUnlocks            QuizUnlock[] // Premium quiz unlocks
-  payments               PaymentTransaction[] // Payment transactions
-  payoutAccount          PayoutAccount? // Creator's payout account
-  rankHistories          RankHistory[]
-  sentFriendRequests     Friend[]             @relation("Requester")
-  receivedFriendRequests Friend[]             @relation("Addressee")
-  clanMemberships        ClanMembership[]
-  clanJoinRequests       ClanJoinRequest[]
-  clanChatMessages       ClanChat[]
-  roomMemberships        RoomMembership[]
-  roomInvites            RoomInvite[]
-  roomChatMessages       RoomChat[]
-  publicChatMessages     PublicChat[]         @relation("UserPublicChatMessages")
-  gameSetups             GameSetup[]
-  sentFriendChats        FriendChat[]         @relation("FriendChatSender")
-  receivedFriendChats    FriendChat[]         @relation("FriendChatReceiver")
-  votes                  Vote[]
-  moderationActionsTaken ModerationAction[]   @relation("ModerationTarget")
-  moderationActionsPerformed ModerationAction[] @relation("ModerationPerformer")
-  quizLinkSessions       QuizLinkSession[]
-  quizViolations         QuizViolation[]
+  clerkId                    String               @id @unique
+  email                      String               @unique
+  name                       String?
+  avatarUrl                  String?
+  bannerUrl                  String?
+  createdAt                  DateTime             @default(now())
+  role                       Role                 @default(STUDENT)
+  xp                         Int                  @default(0)
+  rank                       Int                  @default(0)
+  streak                     Int                  @default(0)
+  accountType                AccountType          @default(FREE)
+  points                     Int                  @default(0) // Total points earned
+  premiumUntil               DateTime? // Premium subscription expiry
+  quizzes                    QuizRecord[]
+  achievements               Achievement[]
+  createdQuizzes             Quiz[]               @relation("CreatedQuizzes")
+  bio                        String?
+  alias                      String?
+  socials                    Json?
+  region                     String?
+  premiumSummary             PremiumSummary?
+  likes                      QuizLike[]
+  comments                   QuizComment[]
+  ratings                    QuizRating[]
+  withdrawals                Withdrawal[]
+  attempts                   Attempt[] // Daily attempt tracking
+  quizUnlocks                QuizUnlock[] // Premium quiz unlocks
+  payments                   PaymentTransaction[] // Payment transactions
+  payoutAccount              PayoutAccount? // Creator's payout account
+  rankHistories              RankHistory[]
+  sentFriendRequests         Friend[]             @relation("Requester")
+  receivedFriendRequests     Friend[]             @relation("Addressee")
+  clanMemberships            ClanMembership[]
+  clanJoinRequests           ClanJoinRequest[]
+  clanChatMessages           ClanChat[]
+  clanChatSent               ClanChat[]           @relation("ClanChatSender")
+  roomMemberships            RoomMembership[]
+  roomInvites                RoomInvite[]
+  roomChatMessages           RoomChat[]
+  roomChatSent               RoomChat[]           @relation("RoomChatSender")
+  publicChatMessages         PublicChat[]         @relation("UserPublicChatMessages")
+  gameSetups                 GameSetup[]
+  sentFriendChats            FriendChat[]         @relation("FriendChatSender")
+  receivedFriendChats        FriendChat[]         @relation("FriendChatReceiver")
+  votes                      Vote[]
+  moderationActionsTaken     ModerationAction[]   @relation("ModerationTarget")
+  moderationActionsPerformed ModerationAction[]   @relation("ModerationPerformer")
+  quizLinkSessions           QuizLinkSession[]
+  quizViolations             QuizViolation[]
+  blockerBlocks              UserBlock[]          @relation("Blocker")
+  blockedBlocks              UserBlock[]          @relation("Blocked")
+  reportsMade                UserReport[]         @relation("Reporter")
+  reportsReceived            UserReport[]         @relation("Reported")
+  adminLogs                  AdminLog[]           @relation("AdminLogs")
+  userAchievements           UserAchievement[]
 }
 
 model QuizRecord {
-  id              String           @id @default(cuid())
-  userId          String
-  quizId          String
-  score           Int
-  duration        Int // in seconds
-  dateTaken       DateTime
-  status          QuizStatus
-  earnedPoints    Int? // Points earned for this attempt
-  quiz            Quiz             @relation(fields: [quizId], references: [id])
-  user            User             @relation(fields: [userId], references: [clerkId])
-  likeCount       Int              @default(0)
-  questionRecords QuestionRecord[]
-  isFlagged       Boolean          @default(false) // <-- NEW FIELD
-  violations      QuizViolation[]  // <-- NEW RELATION
+  id                    String           @id @default(cuid())
+  userId                String
+  quizId                String
+  score                 Int
+  duration              Int // in seconds
+  dateTaken             DateTime
+  status                QuizStatus
+  earnedPoints          Int? // Points earned for this attempt
+  quiz                  Quiz             @relation(fields: [quizId], references: [id])
+  user                  User             @relation(fields: [userId], references: [clerkId])
+  likeCount             Int              @default(0)
+  questionRecords       QuestionRecord[]
+  isFlagged             Boolean          @default(false) // <-- NEW FIELD
+  violations            QuizViolation[] // <-- NEW RELATION
   // --- New fields ---
-  responses       Json?            // All per-question responses
-  isManualReviewPending Boolean    @default(false)
+  responses             Json? // All per-question responses
+  isManualReviewPending Boolean          @default(false)
 }
 
 model QuizViolation {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   quizRecordId String
   userId       String
   quizId       String
-  type         String   // e.g., "tab-switch", "copy-paste", "timeout"
+  type         String // e.g., "tab-switch", "copy-paste", "timeout"
   reason       String
-  createdAt    DateTime @default(now())
-  isFlagged    Boolean  @default(false)
+  createdAt    DateTime   @default(now())
+  isFlagged    Boolean    @default(false)
   quizRecord   QuizRecord @relation(fields: [quizRecordId], references: [id])
-  user         User     @relation(fields: [userId], references: [clerkId])
-  quiz         Quiz     @relation(fields: [quizId], references: [id])
+  user         User       @relation(fields: [userId], references: [clerkId])
+  quiz         Quiz       @relation(fields: [quizId], references: [id])
 }
 
 model Attempt {
@@ -225,6 +233,7 @@ model QuizUnlock {
   user       User     @relation(fields: [userId], references: [clerkId])
 
   @@unique([quizId, userId])
+  @@unique([userId, quizId], name: "userId_quizId")
 }
 
 model PaymentTransaction {
@@ -265,15 +274,16 @@ model Quiz {
   creator         User?    @relation("CreatedQuizzes", fields: [creatorId], references: [clerkId])
 
   // Relations & Aggregates
-  records  QuizRecord[]
-  likes    QuizLike[]
-  comments QuizComment[]
-  ratings  QuizRating[]
-  attempts Attempt[] // Daily attempt tracking
-  unlocks  QuizUnlock[] // Premium quiz unlocks
+  records          QuizRecord[]
+  likes            QuizLike[]
+  comments         QuizComment[]
+  ratings          QuizRating[]
+  attempts         Attempt[] // Daily attempt tracking
+  unlocks          QuizUnlock[] // Premium quiz unlocks
   quizLinkSessions QuizLinkSession[]
   questions        Question[] // Add this line for the relation
-  quizViolations  QuizViolation[] // <-- Add this line for relation
+  quizViolations   QuizViolation[] // <-- Add this line for relation
+  template         Template? // Template relation
 
   // Aggregated fields
   usersTaken        Int              @default(0)
@@ -320,15 +330,16 @@ model QuizRating {
 }
 
 model Achievement {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  icon        String?
-  userId      String
-  unlockedAt  DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [clerkId])
-  type        String?
-  isLocked    Boolean  @default(false)
+  id               String            @id @default(cuid())
+  name             String            @unique // Make name unique for upsert
+  description      String?
+  icon             String?
+  userId           String
+  unlockedAt       DateTime          @default(now())
+  user             User              @relation(fields: [userId], references: [clerkId])
+  type             String?
+  isLocked         Boolean           @default(false)
+  userAchievements UserAchievement[]
 }
 
 model PremiumSummary {
@@ -429,6 +440,7 @@ model Clan {
   id           String            @id @default(cuid())
   name         String            @unique
   motto        String?
+  region       String? // Region for the clan
   emblemUrl    String?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
@@ -466,9 +478,11 @@ model ClanChat {
   id        String   @id @default(cuid())
   clanId    String
   userId    String
+  senderId  String // Sender ID
   message   String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [clerkId])
+  sender    User     @relation("ClanChatSender", fields: [senderId], references: [clerkId])
   clan      Clan     @relation(fields: [clanId], references: [id])
 }
 
@@ -479,7 +493,7 @@ model Room {
   type            String           @default("Public")
   maxParticipants Int              @default(8)
   quizTypes       String[]         @default([])
-  quizType        String?          // Single quiz type for host controls
+  quizType        String? // Single quiz type for host controls
   isLocked        Boolean          @default(false)
   status          String           @default("WAITING") // WAITING, STARTED, FINISHED
   startedAt       DateTime?
@@ -520,9 +534,11 @@ model RoomChat {
   id        String   @id @default(cuid())
   roomId    String
   userId    String
+  senderId  String // Sender ID
   message   String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [clerkId])
+  sender    User     @relation("RoomChatSender", fields: [senderId], references: [clerkId])
   room      Room     @relation(fields: [roomId], references: [id])
 }
 
@@ -569,45 +585,48 @@ model Vote {
 }
 
 model ModerationAction {
-  id             String   @id @default(cuid())
-  action         String   // e.g., 'mute', 'kick', 'block', 'report', 'unmute', etc.
-  targetUserId   String
-  performedById  String
-  reason         String?
-  context        Json?
-  createdAt      DateTime @default(now())
-  targetUser     User     @relation("ModerationTarget", fields: [targetUserId], references: [clerkId])
-  performedBy    User     @relation("ModerationPerformer", fields: [performedById], references: [clerkId])
+  id            String    @id @default(cuid())
+  action        String // e.g., 'mute', 'kick', 'block', 'report', 'unmute', etc.
+  type          String // Type of moderation action
+  targetUserId  String
+  performedById String
+  reason        String?
+  context       Json?
+  roomId        String? // Room context for the action
+  expiresAt     DateTime? // Expiration for temporary actions
+  createdAt     DateTime  @default(now())
+  targetUser    User      @relation("ModerationTarget", fields: [targetUserId], references: [clerkId])
+  performedBy   User      @relation("ModerationPerformer", fields: [performedById], references: [clerkId])
 
   @@index([targetUserId])
   @@index([performedById])
 }
 
 model QuizLinkSession {
-  id           String   @id @default(cuid())
-  userId       String
-  quizId       String
-  fingerprint  String
-  deviceInfo   Json
-  ip           String
-  createdAt    DateTime @default(now())
-  isActive     Boolean  @default(true)
-  user         User     @relation(fields: [userId], references: [clerkId])
-  quiz         Quiz     @relation(fields: [quizId], references: [id])
+  id          String   @id @default(cuid())
+  userId      String
+  quizId      String
+  fingerprint String
+  deviceInfo  Json
+  ip          String
+  createdAt   DateTime @default(now())
+  isActive    Boolean  @default(true)
+  user        User     @relation(fields: [userId], references: [clerkId])
+  quiz        Quiz     @relation(fields: [quizId], references: [id])
 
   @@index([quizId, userId, isActive])
 }
 
 model ManualReviewQueue {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   quizRecordId String
   questionId   String
   userId       String
   quizId       String
   answer       Json
   type         String
-  createdAt    DateTime @default(now())
-  reviewed     Boolean  @default(false)
+  createdAt    DateTime  @default(now())
+  reviewed     Boolean   @default(false)
   reviewedBy   String?
   reviewedAt   DateTime?
   marksAwarded Int?
@@ -615,12 +634,12 @@ model ManualReviewQueue {
 }
 
 model QuizDraft {
-  id           String   @id @default(cuid())
-  quizId       String
-  userId       String
-  savedAt      DateTime @default(now())
-  responses    Json
-  expiresAt    DateTime
+  id        String   @id @default(cuid())
+  quizId    String
+  userId    String
+  savedAt   DateTime @default(now())
+  responses Json
+  expiresAt DateTime
 }
 
 model Question {
@@ -635,4 +654,75 @@ model Question {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   quiz            Quiz     @relation(fields: [quizId], references: [id])
+}
+
+model UserBlock {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  blockerId String
+  blockedId String
+  reason    String?
+
+  blocker User @relation("Blocker", fields: [blockerId], references: [clerkId], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedId], references: [clerkId], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model UserReport {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  reporterId  String
+  reportedId  String
+  reason      String
+  description String?
+  status      String   @default("PENDING")
+
+  reporter User @relation("Reporter", fields: [reporterId], references: [clerkId], onDelete: Cascade)
+  reported User @relation("Reported", fields: [reportedId], references: [clerkId], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([reportedId])
+  @@index([status])
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  quizId      String   @unique
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  adminId   String
+  action    String
+  details   Json?
+
+  admin User @relation("AdminLogs", fields: [adminId], references: [clerkId], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([createdAt])
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
 }

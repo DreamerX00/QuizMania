@@ -6,14 +6,14 @@ import dynamic from "next/dynamic";
 
 const LottiePlayer = dynamic(() => import("lottie-react"), { ssr: false });
 
-const LOTTIE_URLS = {
+const LOTTIE_URLS: Record<string, string> = {
   "401": "https://assets2.lottiefiles.com/packages/lf20_3rwasyjy.json", // Unauthorized
   "403": "https://assets2.lottiefiles.com/packages/lf20_3scbpt5c.json", // Forbidden
   "404": "https://assets2.lottiefiles.com/packages/lf20_qh5z2fdq.json", // Not Found
   "500": "https://assets2.lottiefiles.com/packages/lf20_j1adxtyb.json", // Server Error
 };
 
-const ERROR_CONFIG = {
+const ERROR_CONFIG: Record<string, any> = {
   "401": {
     code: "401",
     title: "Oops, You Need to Log In!",
@@ -72,8 +72,7 @@ function LottieErrorAnimation({ code }: { code: string }) {
     <div className="w-64 h-64 flex items-center justify-center mb-6">
       <LottiePlayer
         loop
-        play
-        src={url}
+        animationData={url}
         style={{ width: 256, height: 256 }}
         rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
         aria-label={`Error ${code} animation`}
@@ -151,9 +150,10 @@ function ReportIssueModal({
 export default function ErrorPage() {
   const params = useParams();
   const router = useRouter();
-  const status = Array.isArray(params.status)
-    ? params.status[0]
-    : params.status;
+  const status =
+    params && Array.isArray(params.status)
+      ? params.status[0]
+      : params?.status || "404";
   const config =
     ERROR_CONFIG[status as keyof typeof ERROR_CONFIG] || ERROR_CONFIG["404"];
   const [showReport, setShowReport] = useState(false);
@@ -195,7 +195,7 @@ export default function ErrorPage() {
       </p>
       {/* CTA Buttons */}
       <div className="mt-6 flex flex-wrap gap-4 justify-center">
-        {config.cta.map((cta, i) =>
+        {config.cta.map((cta: any, i: number) =>
           cta.href ? (
             <Link
               key={cta.label}

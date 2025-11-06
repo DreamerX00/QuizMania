@@ -18,6 +18,34 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const regions = ["US-East", "US-West", "EU", "Asia", "India"];
 
+// Simple ClanCard component
+const ClanCard = ({ clan, onClick, onJoin, joining, isMember }: any) => (
+  <div
+    className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 cursor-pointer"
+    onClick={onClick}
+  >
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="font-bold text-white">{clan.name}</h3>
+        <p className="text-sm text-slate-400">
+          {clan.memberCount || 0} members
+        </p>
+      </div>
+      {!isMember && (
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            onJoin();
+          }}
+          disabled={joining}
+        >
+          {joining ? "Joining..." : "Join"}
+        </Button>
+      )}
+    </div>
+  </div>
+);
+
 const DiscoverClansTab = () => {
   const [search, setSearch] = useState("");
   const [region, setRegion] = useState("All");

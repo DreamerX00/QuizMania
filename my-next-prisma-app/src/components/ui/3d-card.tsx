@@ -134,14 +134,16 @@ export const CardItem = ({
     }
   };
 
+  const TagComponent = Tag as any;
+
   return (
-    <Tag
+    <TagComponent
       ref={ref}
       className={cn("w-fit transition duration-200 ease-linear", className)}
       {...rest}
     >
       {children}
-    </Tag>
+    </TagComponent>
   );
 };
 

@@ -1,6 +1,6 @@
-import { auth } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export interface AdminUser {
   clerkId: string;
@@ -14,14 +14,17 @@ export interface AdminUser {
  * Middleware to protect admin routes
  * Call this at the beginning of admin API routes and pages
  */
-export async function requireAdmin(): Promise<{ user: AdminUser | null; error: NextResponse | null }> {
+export async function requireAdmin(): Promise<{
+  user: AdminUser | null;
+  error: NextResponse | null;
+}> {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return {
         user: null,
-        error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
       };
     }
 
@@ -36,43 +39,49 @@ export async function requireAdmin(): Promise<{ user: AdminUser | null; error: N
         // Add these fields to your User model:
         // isAdmin: true,
         // isSuperAdmin: true,
-      }
+      },
     });
 
     if (!user) {
       return {
         user: null,
-        error: NextResponse.json({ error: 'User not found' }, { status: 404 })
+        error: NextResponse.json({ error: "User not found" }, { status: 404 }),
       };
     }
 
     // Check if user has admin privileges
     // TODO: Update this logic based on your admin system
-    const isAdmin = user.accountType === 'ADMIN' || user.email?.endsWith('@yourdomain.com');
-    const isSuperAdmin = user.email === 'admin@yourdomain.com'; // Update with your admin email
+    const isAdmin = user.email?.endsWith("@yourdomain.com");
+    const isSuperAdmin = user.email === "admin@yourdomain.com"; // Update with your admin email
 
     if (!isAdmin) {
       return {
         user: null,
-        error: NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+        error: NextResponse.json(
+          { error: "Admin access required" },
+          { status: 403 }
+        ),
       };
     }
 
     return {
       user: {
         clerkId: user.clerkId,
-        email: user.email || '',
-        name: user.name || '',
+        email: user.email || "",
+        name: user.name || "",
         isAdmin,
-        isSuperAdmin
+        isSuperAdmin,
       },
-      error: null
+      error: null,
     };
   } catch (error) {
-    console.error('Admin auth error:', error);
+    console.error("Admin auth error:", error);
     return {
       user: null,
-      error: NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      error: NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+      ),
     };
   }
 }
@@ -80,9 +89,16 @@ export async function requireAdmin(): Promise<{ user: AdminUser | null; error: N
 /**
  * Rate limiting for admin actions
  */
-const adminActionCounts = new Map<string, { count: number; resetTime: number }>();
+const adminActionCounts = new Map<
+  string,
+  { count: number; resetTime: number }
+>();
 
-export function rateLimit(adminId: string, maxActions: number = 10, windowMs: number = 60000): boolean {
+export function rateLimit(
+  adminId: string,
+  maxActions: number = 10,
+  windowMs: number = 60000
+): boolean {
   const now = Date.now();
   const userActions = adminActionCounts.get(adminId);
 
@@ -117,10 +133,10 @@ export async function logAdminAction(
         targetId,
         details: details ? JSON.stringify(details) : null,
         timestamp: new Date(),
-        ipAddress: '', // Get from request headers if needed
-      }
+        ipAddress: "", // Get from request headers if needed
+      },
     });
   } catch (error) {
-    console.error('Failed to log admin action:', error);
+    console.error("Failed to log admin action:", error);
   }
 }

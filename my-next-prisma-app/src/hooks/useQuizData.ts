@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import type { Quiz } from '@/components/neuron-arena/types/quiz.types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import type { Quiz as QuizType } from "@/components/neuron-arena/types/quiz.types";
 
 // Types
 interface Quiz {
@@ -25,12 +25,12 @@ interface Question {
 interface CreateQuizData {
   title: string;
   description: string;
-  questions: Omit<Question, 'id'>[];
+  questions: Omit<Question, "id">[];
 }
 
 // API functions
 const fetchQuizzes = async (): Promise<Quiz[]> => {
-  const response = await axios.get('/api/quizzes');
+  const response = await axios.get("/api/quizzes");
   return response.data;
 };
 
@@ -41,11 +41,17 @@ const fetchQuizById = async (id: string): Promise<Quiz> => {
 };
 
 const createQuiz = async (data: CreateQuizData): Promise<Quiz> => {
-  const response = await axios.post('/api/quizzes', data);
+  const response = await axios.post("/api/quizzes", data);
   return response.data;
 };
 
-const updateQuiz = async ({ id, data }: { id: string; data: Partial<CreateQuizData> }): Promise<Quiz> => {
+const updateQuiz = async ({
+  id,
+  data,
+}: {
+  id: string;
+  data: Partial<CreateQuizData>;
+}): Promise<Quiz> => {
   const response = await axios.put(`/api/quizzes/${id}`, data);
   return response.data;
 };
@@ -57,7 +63,7 @@ const deleteQuiz = async (id: string): Promise<void> => {
 // Custom hooks
 export function useQuizzes() {
   return useQuery({
-    queryKey: ['quizzes'],
+    queryKey: ["quizzes"],
     queryFn: fetchQuizzes,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -66,7 +72,7 @@ export function useQuizzes() {
 
 export function useQuiz(id: string) {
   return useQuery({
-    queryKey: ['quiz', id],
+    queryKey: ["quiz", id],
     queryFn: () => fetchQuizById(id),
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -76,40 +82,40 @@ export function useQuiz(id: string) {
 
 export function useCreateQuiz() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: createQuiz,
     onSuccess: () => {
       // Invalidate and refetch quizzes list
-      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+      queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     },
   });
 }
 
 export function useUpdateQuiz() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: updateQuiz,
     onSuccess: (data) => {
       // Update the specific quiz in cache
-      queryClient.setQueryData(['quiz', data.id], data);
+      queryClient.setQueryData(["quiz", data.id], data);
       // Invalidate quizzes list
-      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+      queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     },
   });
 }
 
 export function useDeleteQuiz() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteQuiz,
     onSuccess: (_, id) => {
       // Remove from cache
-      queryClient.removeQueries({ queryKey: ['quiz', id] });
+      queryClient.removeQueries({ queryKey: ["quiz", id] });
       // Invalidate quizzes list
-      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+      queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     },
   });
 }
@@ -126,11 +132,11 @@ export function useStaticQuiz(quizId: string) {
       setError(null);
       try {
         const res = await fetch(`/api/quizzes/${quizId}`);
-        if (!res.ok) throw new Error('Quiz not found');
+        if (!res.ok) throw new Error("Quiz not found");
         const data = await res.json();
         setQuiz(data);
       } catch (e: any) {
-        setError(e.message || 'Unknown error');
+        setError(e.message || "Unknown error");
       } finally {
         setLoading(false);
       }
@@ -139,4 +145,4 @@ export function useStaticQuiz(quizId: string) {
   }, [quizId]);
 
   return { quiz, loading, error };
-} 
+}

@@ -1,27 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, Prisma } from '@prisma/client';
-import { auth } from '@clerk/nextjs/server';
-
-const prisma = new PrismaClient();
+import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+import { auth } from "@clerk/nextjs/server";
+import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
-    const search = searchParams.get('search');
-    const sortByParam = searchParams.get('sortBy');
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
-    const minPrice = searchParams.get('minPrice');
-    const maxPrice = searchParams.get('maxPrice');
-    const fromDate = searchParams.get('fromDate');
-    const toDate = searchParams.get('toDate');
+    const search = searchParams.get("search");
+    const sortByParam = searchParams.get("sortBy");
+    const sortOrder = searchParams.get("sortOrder") || "desc";
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
+    const fromDate = searchParams.get("fromDate");
+    const toDate = searchParams.get("toDate");
 
-    const allowedSortFields = ['createdAt', 'price', 'title'];
-    const sortBy = allowedSortFields.includes(sortByParam || '') ? sortByParam : 'createdAt';
+    const allowedSortFields = ["createdAt", "price", "title"];
+    const sortBy = allowedSortFields.includes(sortByParam || "")
+      ? sortByParam
+      : "createdAt";
 
     const where: Prisma.QuizWhereInput = {
       creatorId: userId,
@@ -30,8 +31,8 @@ export async function GET(req: NextRequest) {
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
         { tags: { has: search } },
       ];
     }
@@ -44,8 +45,10 @@ export async function GET(req: NextRequest) {
 
     if (fromDate || toDate) {
       where.createdAt = {};
-      if (fromDate && !isNaN(Date.parse(fromDate))) where.createdAt.gte = new Date(fromDate);
-      if (toDate && !isNaN(Date.parse(toDate))) where.createdAt.lte = new Date(toDate);
+      if (fromDate && !isNaN(Date.parse(fromDate)))
+        where.createdAt.gte = new Date(fromDate);
+      if (toDate && !isNaN(Date.parse(toDate)))
+        where.createdAt.lte = new Date(toDate);
     }
 
     const orderBy: Prisma.QuizOrderByWithRelationInput = {
@@ -60,7 +63,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(quizzes);
   } catch (error) {
-    console.error('Failed to fetch published quizzes:', error);
-    return NextResponse.json({ message: 'Something went wrong' }, { status: 500 });
+    console.error("Failed to fetch published quizzes:", error);
+    return NextResponse.json(
+      { message: "Something went wrong" },
+      { status: 500 }
+    );
   }
 }

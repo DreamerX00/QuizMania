@@ -1,5 +1,5 @@
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
+import Razorpay from "razorpay";
+import crypto from "crypto";
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -33,9 +33,11 @@ export class RazorpayService {
    * Check if we're in test mode
    */
   static isTestMode(): boolean {
-    return process.env.NODE_ENV === 'development' || 
-           process.env.RAZORPAY_KEY_ID?.includes('rzp_test_') ||
-           process.env.RAZORPAY_KEY_ID?.includes('rzp_test');
+    return Boolean(
+      process.env.NODE_ENV === "development" ||
+        process.env.RAZORPAY_KEY_ID?.includes("rzp_test_") ||
+        process.env.RAZORPAY_KEY_ID?.includes("rzp_test")
+    );
   }
 
   /**
@@ -44,19 +46,19 @@ export class RazorpayService {
    */
   static getTestCards(): TestCardInfo[] {
     // Only return test cards in development mode
-    if (process.env.NODE_ENV !== 'development') {
+    if (process.env.NODE_ENV !== "development") {
       return [];
     }
-    
+
     // Return minimal test card info for development only
     return [
       {
-        number: '4111 1111 1111 1111',
-        name: 'Test User',
-        expiry: '12/25',
-        cvv: '123',
-        description: 'Development test card only'
-      }
+        number: "4111 1111 1111 1111",
+        name: "Test User",
+        expiry: "12/25",
+        cvv: "123",
+        description: "Development test card only",
+      },
     ];
   }
 
@@ -67,21 +69,21 @@ export class RazorpayService {
     try {
       const orderData: RazorpayOrderData = {
         amount: amount * 100, // Convert to paise
-        currency: 'INR',
+        currency: "INR",
         receipt: `prem_${Date.now()}`, // Shorter receipt format (max 40 chars)
         notes: {
           userId: userId,
-          type: 'premium_subscription',
-          description: 'Quiz Mania Premium Subscription',
-          testMode: this.isTestMode().toString()
-        }
+          type: "premium_subscription",
+          description: "Quiz Mania Premium Subscription",
+          testMode: this.isTestMode().toString(),
+        },
       };
 
       const order = await razorpay.orders.create(orderData);
       return order;
     } catch (error) {
-      console.error('Error creating Razorpay order:', error);
-      throw new Error('Failed to create payment order');
+      console.error("Error creating Razorpay order:", error);
+      throw new Error("Failed to create payment order");
     }
   }
 
@@ -96,12 +98,12 @@ export class RazorpayService {
     try {
       const orderData: any = {
         amount: amount * 100, // Convert to paise
-        currency: 'INR',
+        currency: "INR",
         receipt: `quiz_sale_${Date.now()}`,
         notes: {
           userId: userId,
-          type: 'quiz_purchase',
-          testMode: this.isTestMode().toString()
+          type: "quiz_purchase",
+          testMode: this.isTestMode().toString(),
         },
         transfers: transfers,
       };
@@ -109,8 +111,8 @@ export class RazorpayService {
       const order = await razorpay.orders.create(orderData);
       return order;
     } catch (error) {
-      console.error('Error creating Razorpay order with transfers:', error);
-      throw new Error('Failed to create split payment order');
+      console.error("Error creating Razorpay order with transfers:", error);
+      throw new Error("Failed to create split payment order");
     }
   }
 
@@ -119,15 +121,16 @@ export class RazorpayService {
    */
   static async createContact(name: string, email: string): Promise<any> {
     try {
-      const contact = await razorpay.contacts.create({
+      // Type assertion to access contacts API which may not be in type definitions
+      const contact = await (razorpay as any).contacts.create({
         name: name,
         email: email,
-        type: 'vendor', // 'vendor' is more appropriate for marketplace creators
+        type: "vendor", // 'vendor' is more appropriate for marketplace creators
       });
       return contact;
     } catch (error) {
-      console.error('Error creating Razorpay contact:', error);
-      throw new Error('Failed to create Razorpay contact');
+      console.error("Error creating Razorpay contact:", error);
+      throw new Error("Failed to create Razorpay contact");
     }
   }
 
@@ -139,17 +142,18 @@ export class RazorpayService {
     upiId: string
   ): Promise<any> {
     try {
+      // Type assertion for contact_id which may not be in type definitions
       const fundAccount = await razorpay.fundAccount.create({
         contact_id: contactId,
-        account_type: 'vpa',
+        account_type: "vpa",
         vpa: {
           address: upiId,
         },
-      });
+      } as any);
       return fundAccount;
     } catch (error) {
-      console.error('Error creating UPI fund account:', error);
-      throw new Error('Failed to create UPI fund account');
+      console.error("Error creating UPI fund account:", error);
+      throw new Error("Failed to create UPI fund account");
     }
   }
 
@@ -164,13 +168,13 @@ export class RazorpayService {
     try {
       const text = `${orderId}|${paymentId}`;
       const generated_signature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
         .update(text)
-        .digest('hex');
+        .digest("hex");
 
       return generated_signature === signature;
     } catch (error) {
-      console.error('Error verifying payment signature:', error);
+      console.error("Error verifying payment signature:", error);
       return false;
     }
   }
@@ -183,8 +187,8 @@ export class RazorpayService {
       const payment = await razorpay.payments.fetch(paymentId);
       return payment;
     } catch (error) {
-      console.error('Error fetching payment details:', error);
-      throw new Error('Failed to fetch payment details');
+      console.error("Error fetching payment details:", error);
+      throw new Error("Failed to fetch payment details");
     }
   }
 
@@ -196,8 +200,8 @@ export class RazorpayService {
       const order = await razorpay.orders.fetch(orderId);
       return order;
     } catch (error) {
-      console.error('Error fetching order details:', error);
-      throw new Error('Failed to fetch order details');
+      console.error("Error fetching order details:", error);
+      throw new Error("Failed to fetch order details");
     }
   }
 
@@ -214,8 +218,8 @@ export class RazorpayService {
       const refund = await razorpay.payments.refund(paymentId, refundData);
       return refund;
     } catch (error) {
-      console.error('Error refunding payment:', error);
-      throw new Error('Failed to refund payment');
+      console.error("Error refunding payment:", error);
+      throw new Error("Failed to refund payment");
     }
   }
-} 
+}

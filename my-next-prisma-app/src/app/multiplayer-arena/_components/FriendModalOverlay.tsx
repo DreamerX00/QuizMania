@@ -47,12 +47,22 @@ const statusPulse = {
   "in-match": "animate-pulse-fast",
 };
 
-const sortFriends = (friends) => {
+interface Friend {
+  pinned?: boolean;
+  status: "online" | "in-match" | "offline";
+  [key: string]: any;
+}
+
+const sortFriends = (friends: Friend[]) => {
   return [...friends].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
-    const statusOrder = { online: 0, "in-match": 1, offline: 2 };
-    return statusOrder[a.status] - statusOrder[b.status];
+    const statusOrder: Record<string, number> = {
+      online: 0,
+      "in-match": 1,
+      offline: 2,
+    };
+    return (statusOrder[a.status] ?? 0) - (statusOrder[b.status] ?? 0);
   });
 };
 
@@ -289,8 +299,8 @@ const FriendModalOverlay = ({
   }, []);
 
   const handlePin = (friend: any) => {
-    mutateFriends((friends) =>
-      friends.map((f) =>
+    mutateFriends((friends: Friend[]) =>
+      friends.map((f: Friend) =>
         f.name === friend.name ? { ...f, pinned: !f.pinned } : f
       )
     );
@@ -304,8 +314,8 @@ const FriendModalOverlay = ({
   };
   const confirmRemove = async () => {
     try {
-      await mutateFriends((friends) =>
-        friends.filter((f) => f.name !== removeTarget.name)
+      await mutateFriends((friends: Friend[]) =>
+        friends.filter((f: Friend) => f.name !== removeTarget.name)
       );
       setShowRemove(false);
       setRemoveTarget(null);

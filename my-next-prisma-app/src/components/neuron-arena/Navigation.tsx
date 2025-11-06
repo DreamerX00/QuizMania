@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useQuizStore } from './state/quizStore';
+import React, { useEffect } from "react";
+import { useQuizStore } from "./state/quizStore";
 
 const Navigation = () => {
   const quiz = useQuizStore((s) => s.quiz);
@@ -10,11 +10,14 @@ const Navigation = () => {
   useEffect(() => {
     if (!quiz) return;
     function handleKey(e: KeyboardEvent) {
-      if (e.key === 'ArrowLeft' && currentIndex > 0) setCurrentIndex(currentIndex - 1);
-      if (e.key === 'ArrowRight' && currentIndex < quiz.questions.length - 1) setCurrentIndex(currentIndex + 1);
+      if (!quiz) return; // Extra null check for TypeScript
+      if (e.key === "ArrowLeft" && currentIndex > 0)
+        setCurrentIndex(currentIndex - 1);
+      if (e.key === "ArrowRight" && currentIndex < quiz.questions.length - 1)
+        setCurrentIndex(currentIndex + 1);
     }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, [quiz, currentIndex, setCurrentIndex]);
 
   if (!quiz) return null;
@@ -31,7 +34,9 @@ const Navigation = () => {
       >
         ← Prev
       </button>
-      <div className="font-heading text-lg">Q{currentIndex + 1} / {total}</div>
+      <div className="font-heading text-lg">
+        Q{currentIndex + 1} / {total}
+      </div>
       <button
         className="rounded-full px-6 py-2 bg-white/10 hover:bg-white/20 transition disabled:opacity-40"
         onClick={() => setCurrentIndex(currentIndex + 1)}
@@ -45,4 +50,4 @@ const Navigation = () => {
   );
 };
 
-export default Navigation; 
+export default Navigation;

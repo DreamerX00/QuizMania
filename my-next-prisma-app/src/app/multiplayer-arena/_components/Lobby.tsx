@@ -231,6 +231,7 @@ const Lobby = ({
       </div>
 
       <InviteModal
+        roomId={currentRoom?.id || ""}
         isOpen={isInviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
       />

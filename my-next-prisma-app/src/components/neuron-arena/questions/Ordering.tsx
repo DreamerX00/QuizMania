@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useQuizStore } from '../state/quizStore';
-import type { Question } from '../types/quiz.types';
-import { isEqual } from 'lodash';
+import React, { useState, useEffect } from "react";
+import { useQuizStore } from "../state/quizStore";
+import type { Question } from "../types/quiz.types";
+import { isEqual } from "lodash";
 
 const Ordering = ({ question }: { question: Question }) => {
-  const responses = useQuizStore(s => s.responses);
-  const prev = responses.find(r => r.questionId === question.id)?.response ?? (question.orderedItems || []);
+  const responses = useQuizStore((s) => s.responses);
+  const prev =
+    responses.find((r) => r.questionId === question.id)?.response ??
+    (question.orderedItems || []);
   const [order, setOrder] = useState(prev);
   useEffect(() => {
     if (!isEqual(order, prev)) {
@@ -28,11 +30,26 @@ const Ordering = ({ question }: { question: Question }) => {
         {question.question}
       </div>
       <ol className="flex flex-col gap-2 bg-muted/60 rounded-xl p-6 shadow-lg">
-        {order.map((item, i) => (
-          <li key={i} className="rounded-lg bg-white/10 px-4 py-2 shadow flex items-center gap-2 cursor-move">
-            <span className="font-bold">{i+1}.</span> {item}
-            <button onClick={() => move(i, -1)} disabled={i === 0} className="ml-2 px-2 py-1 rounded bg-white/20 text-xs disabled:opacity-40">↑</button>
-            <button onClick={() => move(i, 1)} disabled={i === order.length - 1} className="px-2 py-1 rounded bg-white/20 text-xs disabled:opacity-40">↓</button>
+        {order.map((item: string, i: number) => (
+          <li
+            key={i}
+            className="rounded-lg bg-white/10 px-4 py-2 shadow flex items-center gap-2 cursor-move"
+          >
+            <span className="font-bold">{i + 1}.</span> {item}
+            <button
+              onClick={() => move(i, -1)}
+              disabled={i === 0}
+              className="ml-2 px-2 py-1 rounded bg-white/20 text-xs disabled:opacity-40"
+            >
+              ↑
+            </button>
+            <button
+              onClick={() => move(i, 1)}
+              disabled={i === order.length - 1}
+              className="px-2 py-1 rounded bg-white/20 text-xs disabled:opacity-40"
+            >
+              ↓
+            </button>
           </li>
         ))}
       </ol>
@@ -40,4 +57,4 @@ const Ordering = ({ question }: { question: Question }) => {
   );
 };
 
-export default Ordering; 
+export default Ordering;

@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
 import { motion, Reorder } from "framer-motion";
-import { FiEdit2, FiTrash2, FiCopy, FiGripVertical } from "react-icons/fi";
-import { Question, QUESTION_TYPES } from "./types";
+import { FiEdit2, FiTrash2, FiCopy, FiMenu } from "react-icons/fi";
+import { Question, QUESTION_TYPES } from "../types";
 
 interface QuestionListProps {
   questions: Question[];
@@ -22,7 +22,10 @@ export const QuestionList: React.FC<QuestionListProps> = ({
   viewMode,
 }) => {
   const getQuestionTypeInfo = (typeId: string) => {
-    return QUESTION_TYPES.find((t) => t.id === typeId) || QUESTION_TYPES[0];
+    return (
+      QUESTION_TYPES.find((t: { id: string }) => t.id === typeId) ||
+      QUESTION_TYPES[0]
+    );
   };
 
   if (questions.length === 0) {
@@ -112,7 +115,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
             >
               <div className="flex items-start gap-3">
                 <div className="cursor-grab active:cursor-grabbing p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                  <FiGripVertical size={20} />
+                  <FiMenu size={20} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">

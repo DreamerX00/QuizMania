@@ -1,12 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { getAuth } from '@clerk/nextjs/server';
-import { getPricingConfig } from '@/constants/pricing';
-import slugify from 'slugify';
-import { z } from 'zod';
-import { withValidation } from '@/utils/validation';
-
-const prisma = new PrismaClient();
+import { NextRequest, NextResponse } from "next/server";
+import { getAuth } from "@clerk/nextjs/server";
+import { getPricingConfig } from "@/constants/pricing";
+import slugify from "slugify";
+import { z } from "zod";
+import { withValidation } from "@/utils/validation";
+import prisma from "@/lib/prisma";
 
 const createQuizSchema = z.object({
   title: z.string().min(3).max(100),
@@ -27,7 +25,7 @@ const createQuizSchema = z.object({
 export const POST = withValidation(createQuizSchema, async (req: any) => {
   const auth = getAuth(req);
   if (!auth.userId) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
   try {
     const body = req.validated;
@@ -79,7 +77,8 @@ export const POST = withValidation(createQuizSchema, async (req: any) => {
         jsonContent: questions,
         isPublished: isPublished,
         creatorId: auth.userId,
-        durationInSeconds: typeof durationInSeconds === 'number' ? durationInSeconds : 0,
+        durationInSeconds:
+          typeof durationInSeconds === "number" ? durationInSeconds : 0,
         isLocked: !!isLocked,
         lockPassword: isLocked && lockPassword ? lockPassword : undefined,
         difficultyLevel: difficultyLevel || undefined,
@@ -88,10 +87,16 @@ export const POST = withValidation(createQuizSchema, async (req: any) => {
 
     return NextResponse.json(newQuiz, { status: 201 });
   } catch (error) {
-    console.error('Failed to create quiz:', error);
+    console.error("Failed to create quiz:", error);
     if (error instanceof Error) {
-      return NextResponse.json({ message: 'Something went wrong', error: error.message }, { status: 500 });
+      return NextResponse.json(
+        { message: "Something went wrong", error: error.message },
+        { status: 500 }
+      );
     }
-    return NextResponse.json({ message: 'Something went wrong' }, { status: 500 });
+    return NextResponse.json(
+      { message: "Something went wrong" },
+      { status: 500 }
+    );
   }
-}); 
+});

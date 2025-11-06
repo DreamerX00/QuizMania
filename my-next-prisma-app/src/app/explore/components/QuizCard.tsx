@@ -71,9 +71,9 @@ export default function QuizCard({
 }: QuizCardProps) {
   const isPremium =
     quiz.difficultyLevel &&
-    getPricingConfig(quiz.difficultyLevel).requiresPremium;
+    getPricingConfig(quiz.difficultyLevel as any).requiresPremium;
   const pricingConfig = quiz.difficultyLevel
-    ? getPricingConfig(quiz.difficultyLevel)
+    ? getPricingConfig(quiz.difficultyLevel as any)
     : null;
   const isPaidQuiz = pricingConfig && pricingConfig.pricePerAttempt > 0;
 

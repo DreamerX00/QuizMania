@@ -1,23 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { useQuizStore } from '../state/quizStore';
-import { toast } from 'sonner';
-import { motion } from 'framer-motion';
-import { isEqual } from 'lodash';
+import React, { useState, useEffect } from "react";
+import { useQuizStore } from "../state/quizStore";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { isEqual } from "lodash";
+
+interface PollOption {
+  id: string;
+  votes?: number;
+  percent?: number;
+  [key: string]: any;
+}
+
+interface Question {
+  id: string;
+  type: string;
+  question?: string;
+  options?: PollOption[];
+}
 
 // Simulate poll results for demo
-const fakeResults = (options, userAnswer) => {
-  const base = options.map(opt => ({ ...opt, votes: Math.floor(Math.random() * 20) + 1 }));
+const fakeResults = (options: PollOption[], userAnswer: string) => {
+  const base = options.map((opt: PollOption) => ({
+    ...opt,
+    votes: Math.floor(Math.random() * 20) + 1,
+  }));
   if (userAnswer) {
-    const idx = base.findIndex(opt => opt.id === userAnswer);
-    if (idx !== -1) base[idx].votes += 1;
+    const idx = base.findIndex((opt: PollOption) => opt.id === userAnswer);
+    if (idx !== -1) base[idx].votes = (base[idx].votes || 0) + 1;
   }
-  const total = base.reduce((sum, o) => sum + o.votes, 0);
-  return base.map(opt => ({ ...opt, percent: Math.round((opt.votes / total) * 100) }));
+  const total = base.reduce(
+    (sum: number, o: PollOption) => sum + (o.votes || 0),
+    0
+  );
+  return base.map((opt: PollOption) => ({
+    ...opt,
+    percent: Math.round(((opt.votes || 0) / total) * 100),
+  }));
 };
 
-const Poll = ({ question }) => {
-  const responses = useQuizStore(s => s.responses);
-  const prev = responses.find(r => r.questionId === question.id)?.response ?? '';
+const Poll = ({ question }: { question: Question }) => {
+  const responses = useQuizStore((s) => s.responses);
+  const prev =
+    responses.find((r) => r.questionId === question.id)?.response ?? "";
   const [selected, setSelected] = useState(prev);
   useEffect(() => {
     if (!isEqual(selected, prev)) {
@@ -28,16 +52,16 @@ const Poll = ({ question }) => {
   const [submitted, setSubmitted] = useState(false);
   const setResponse = useQuizStore((s) => s.setResponse);
 
-  function handleSelect(id) {
+  function handleSelect(id: string) {
     setSelected(id);
     setResponse({
-      id: question.id,
-      type: question.type,
-      answer: id,
-      requiresManualReview: false,
-      metadata: { submittedAt: new Date().toISOString() },
+      questionId: question.id,
+      response: id,
+      markedForReview: false,
     });
-    toast('Thanks for voting! Results will be visible after quiz submission.', { icon: '🗳️' });
+    toast("Thanks for voting! Results will be visible after quiz submission.", {
+      icon: "🗳️",
+    });
     setSubmitted(true);
   }
 
@@ -45,15 +69,34 @@ const Poll = ({ question }) => {
   const results = fakeResults(question.options || [], selected);
 
   return (
-    <section role="region" aria-labelledby="poll-title" className="flex flex-col gap-4">
-      <div id="poll-title" className="font-heading text-lg mb-2 flex items-center gap-2">
+    <section
+      role="region"
+      aria-labelledby="poll-title"
+      className="flex flex-col gap-4"
+    >
+      <div
+        id="poll-title"
+        className="font-heading text-lg mb-2 flex items-center gap-2"
+      >
         {question.question}
-        <span tabIndex={0} className="ml-2 text-xs bg-blue-400/20 text-blue-700 px-2 py-1 rounded cursor-help" title="Polls are not scored. Results are for analytics only.">📊 Poll</span>
+        <span
+          tabIndex={0}
+          className="ml-2 text-xs bg-blue-400/20 text-blue-700 px-2 py-1 rounded cursor-help"
+          title="Polls are not scored. Results are for analytics only."
+        >
+          📊 Poll
+        </span>
       </div>
       {!submitted ? (
         <div className="flex flex-col gap-2">
-          {question.options?.map((opt) => (
-            <label key={opt.id} className={`flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition ${selected === opt.id ? 'bg-[var(--primary-accent)] text-white' : 'bg-white/10 text-white/80'}`}
+          {question.options?.map((opt: PollOption) => (
+            <label
+              key={opt.id}
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition ${
+                selected === opt.id
+                  ? "bg-[var(--primary-accent)] text-white"
+                  : "bg-white/10 text-white/80"
+              }`}
               aria-label={`Vote for ${opt.text}`}
             >
               <input
@@ -70,10 +113,21 @@ const Poll = ({ question }) => {
         </div>
       ) : (
         <div className="flex flex-col gap-2 mt-2">
-          <div className="mb-2 text-sm text-blue-300">Your choice: <b>{question.options.find(o => o.id === selected)?.text}</b> ✅</div>
-          {results.map(opt => (
+          <div className="mb-2 text-sm text-blue-300">
+            Your choice:{" "}
+            <b>
+              {
+                question.options?.find((o: PollOption) => o.id === selected)
+                  ?.text
+              }
+            </b>{" "}
+            ✅
+          </div>
+          {results.map((opt: PollOption) => (
             <div key={opt.id} className="flex items-center gap-2">
-              <span className="w-32 truncate" title={opt.text}>{opt.text}</span>
+              <span className="w-32 truncate" title={opt.text}>
+                {opt.text}
+              </span>
               <motion.div
                 className="h-4 rounded bg-[var(--primary-accent)]"
                 style={{ width: `${opt.percent}%`, minWidth: 8 }}
@@ -81,7 +135,9 @@ const Poll = ({ question }) => {
                 animate={{ width: `${opt.percent}%` }}
                 transition={{ duration: 0.7 }}
               />
-              <span className="ml-2 text-xs">{opt.votes} votes ({opt.percent}%)</span>
+              <span className="ml-2 text-xs">
+                {opt.votes} votes ({opt.percent}%)
+              </span>
             </div>
           ))}
         </div>
@@ -90,4 +146,4 @@ const Poll = ({ question }) => {
   );
 };
 
-export default Poll; 
+export default Poll;

@@ -1,14 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
-import prisma from '@/lib/prisma';
-import { z } from 'zod';
-import { withValidation } from '@/utils/validation';
+import { NextRequest, NextResponse } from "next/server";
+import { getAuth } from "@clerk/nextjs/server";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { withValidation } from "@/utils/validation";
 
 export async function GET(req: NextRequest) {
   const messages = await prisma.publicChat.findMany({
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     take: 50,
-    include: { sender: { select: { clerkId: true, name: true, avatarUrl: true } } },
+    include: {
+      sender: { select: { clerkId: true, name: true, avatarUrl: true } },
+    },
   });
   return NextResponse.json({ messages: messages.reverse() });
 }
@@ -19,11 +21,14 @@ const publicChatSchema = z.object({
 
 export const POST = withValidation(publicChatSchema, async (req: any) => {
   const { userId } = getAuth(req);
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { message } = req.validated;
   const chat = await prisma.publicChat.create({
     data: { senderId: userId, message },
-    include: { sender: { select: { id: true, username: true, avatar: true } } },
+    include: {
+      sender: { select: { clerkId: true, name: true, avatarUrl: true } },
+    },
   });
   return NextResponse.json({ chat });
-}); 
+});

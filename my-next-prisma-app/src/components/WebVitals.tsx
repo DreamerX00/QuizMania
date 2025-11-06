@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { reportWebVitals } from '@/utils/performance';
+import { useEffect } from "react";
+import { reportWebVitals } from "@/utils/performance";
 
 export default function WebVitals() {
   useEffect(() => {
     // Report web vitals when available
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // Report LCP (Largest Contentful Paint)
       const reportLCP = () => {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          const lastEntry = entries[entries.length - 1];
+          const lastEntry = entries[entries.length - 1] as any;
           reportWebVitals({
-            name: 'LCP',
+            name: "LCP",
             value: lastEntry.startTime,
-            id: lastEntry.id,
+            id: lastEntry.id || "lcp-observer",
           });
         });
-        observer.observe({ entryTypes: ['largest-contentful-paint'] });
+        observer.observe({ entryTypes: ["largest-contentful-paint"] });
       };
 
       // Report FID (First Input Delay)
@@ -26,14 +26,15 @@ export default function WebVitals() {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries();
           entries.forEach((entry) => {
+            const eventEntry = entry as any;
             reportWebVitals({
-              name: 'FID',
-              value: entry.processingStart - entry.startTime,
-              id: entry.id,
+              name: "FID",
+              value: (eventEntry.processingStart || 0) - entry.startTime,
+              id: eventEntry.id || "fid-observer",
             });
           });
         });
-        observer.observe({ entryTypes: ['first-input'] });
+        observer.observe({ entryTypes: ["first-input"] });
       };
 
       // Report CLS (Cumulative Layout Shift)
@@ -47,26 +48,26 @@ export default function WebVitals() {
             }
           });
           reportWebVitals({
-            name: 'CLS',
+            name: "CLS",
             value: clsValue,
-            id: 'cls-observer',
+            id: "cls-observer",
           });
         });
-        observer.observe({ entryTypes: ['layout-shift'] });
+        observer.observe({ entryTypes: ["layout-shift"] });
       };
 
       // Report FCP (First Contentful Paint)
       const reportFCP = () => {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          const firstEntry = entries[0];
+          const firstEntry = entries[0] as any;
           reportWebVitals({
-            name: 'FCP',
+            name: "FCP",
             value: firstEntry.startTime,
-            id: firstEntry.id,
+            id: firstEntry.id || "fcp-observer",
           });
         });
-        observer.observe({ entryTypes: ['paint'] });
+        observer.observe({ entryTypes: ["paint"] });
       };
 
       // Report TTFB (Time to First Byte)
@@ -74,16 +75,16 @@ export default function WebVitals() {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries();
           entries.forEach((entry: any) => {
-            if (entry.entryType === 'navigation') {
+            if (entry.entryType === "navigation") {
               reportWebVitals({
-                name: 'TTFB',
+                name: "TTFB",
                 value: entry.responseStart - entry.requestStart,
                 id: entry.id,
               });
             }
           });
         });
-        observer.observe({ entryTypes: ['navigation'] });
+        observer.observe({ entryTypes: ["navigation"] });
       };
 
       // Initialize all observers
@@ -94,10 +95,10 @@ export default function WebVitals() {
         reportFCP();
         reportTTFB();
       } catch (error) {
-        console.warn('Web Vitals reporting not supported:', error);
+        console.warn("Web Vitals reporting not supported:", error);
       }
     }
   }, []);
 
   return null; // This component doesn't render anything
-} 
+}

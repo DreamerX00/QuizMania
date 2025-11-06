@@ -1,13 +1,13 @@
-import prisma from '@/lib/prisma';
-import { 
-  calculateEarnedPoints, 
-  getDailyAttemptLimit, 
+import prisma from "@/lib/prisma";
+import {
+  calculateEarnedPoints,
+  getDailyAttemptLimit,
   canAccessPremiumQuiz,
-  getPricingConfig 
-} from '@/constants/pricing';
-import { DifficultyLevel } from '@prisma/client';
-import { calculateArenaXP } from './xpAlgorithm';
-import { getRankByXP } from '@/utils/rank';
+  getPricingConfig,
+} from "@/constants/pricing";
+import { DifficultyLevel } from "@prisma/client";
+import { calculateArenaXP } from "./xpAlgorithm";
+import { getRankByXP } from "@/utils/rank";
 
 export interface AttemptValidationResult {
   canAttempt: boolean;
@@ -42,14 +42,17 @@ export class QuizAttemptService {
   /**
    * Check if a premium user has unlocked a quiz
    */
-  static async isQuizUnlocked(userId: string, quizId: string): Promise<boolean> {
+  static async isQuizUnlocked(
+    userId: string,
+    quizId: string
+  ): Promise<boolean> {
     const unlock = await prisma.quizUnlock.findUnique({
       where: {
         quizId_userId: {
           quizId,
-          userId
-        }
-      }
+          userId,
+        },
+      },
     });
     return !!unlock;
   }
@@ -62,41 +65,49 @@ export class QuizAttemptService {
       where: {
         quizId_userId: {
           quizId,
-          userId
-        }
+          userId,
+        },
       },
       update: {},
       create: {
         userId,
         quizId,
-        unlockedAt: new Date()
-      }
+        unlockedAt: new Date(),
+      },
     });
   }
 
   /**
    * Validate if user can attempt a quiz
    */
-  static async validateAttempt(userId: string, quizId: string): Promise<AttemptValidationResult> {
+  static async validateAttempt(
+    userId: string,
+    quizId: string
+  ): Promise<AttemptValidationResult> {
     // Get user and quiz data
     const [user, quiz] = await Promise.all([
       prisma.user.findUnique({ where: { clerkId: userId } }),
-      prisma.quiz.findUnique({ where: { id: quizId } })
+      prisma.quiz.findUnique({ where: { id: quizId } }),
     ]);
 
     if (!user || !quiz) {
-      return { canAttempt: false, reason: 'User or quiz not found' };
+      return { canAttempt: false, reason: "User or quiz not found" };
     }
 
     // Check if quiz requires premium access
-    const isPremiumQuiz = quiz.difficultyLevel && getPricingConfig(quiz.difficultyLevel).requiresPremium;
-    const isPremiumUser = canAccessPremiumQuiz(user.accountType, user.premiumUntil);
+    const isPremiumQuiz =
+      quiz.difficultyLevel &&
+      getPricingConfig(quiz.difficultyLevel).requiresPremium;
+    const isPremiumUser = canAccessPremiumQuiz(
+      user.accountType,
+      user.premiumUntil
+    );
     const isQuizUnlocked = await this.isQuizUnlocked(userId, quizId);
 
     if (isPremiumQuiz && !isPremiumUser) {
-      return { 
-        canAttempt: false, 
-        reason: 'Premium subscription required for this quiz' 
+      return {
+        canAttempt: false,
+        reason: "Premium subscription required for this quiz",
       };
     }
 
@@ -112,9 +123,9 @@ export class QuizAttemptService {
         quizId,
         date: {
           gte: today,
-          lt: tomorrow
-        }
-      }
+          lt: tomorrow,
+        },
+      },
     });
 
     const dailyLimit = getDailyAttemptLimit(user.accountType);
@@ -125,27 +136,25 @@ export class QuizAttemptService {
         canAttempt: false,
         reason: `Daily attempt limit reached (${dailyLimit} attempts)`,
         remainingAttempts: 0,
-        dailyLimit
+        dailyLimit,
       };
     }
 
     // Determine if payment is required
     let requiresPayment = false;
-    
+
     if (quiz.difficultyLevel) {
       const pricingConfig = getPricingConfig(quiz.difficultyLevel);
-      
+
       if (pricingConfig.pricePerAttempt === 0) {
         requiresPayment = false;
-      }
-      else if (isPremiumUser) {
+      } else if (isPremiumUser) {
         if (isQuizUnlocked) {
           requiresPayment = false;
         } else {
           requiresPayment = true;
         }
-      }
-      else {
+      } else {
         requiresPayment = true;
       }
     }
@@ -155,7 +164,7 @@ export class QuizAttemptService {
       remainingAttempts,
       dailyLimit,
       requiresPayment,
-      isUnlocked: isQuizUnlocked
+      isUnlocked: isQuizUnlocked,
     };
   }
 
@@ -169,20 +178,24 @@ export class QuizAttemptService {
     score: number,
     totalMarks: number,
     duration: number,
-    status: string = 'COMPLETED'
+    status: string = "COMPLETED"
   ): Promise<AttemptResult> {
     const existingRecord = await prisma.quizRecord.findUnique({
-      where: { id: quizRecordId }
+      where: { id: quizRecordId },
     });
 
-    if (!existingRecord || existingRecord.userId !== userId || existingRecord.status !== 'IN_PROGRESS') {
-      throw new Error('In-progress quiz record not found or access denied.');
+    if (
+      !existingRecord ||
+      existingRecord.userId !== userId ||
+      existingRecord.status !== "IN_PROGRESS"
+    ) {
+      throw new Error("In-progress quiz record not found or access denied.");
     }
-    
+
     // Get quiz data
     const quiz = await prisma.quiz.findUnique({ where: { id: quizId } });
     if (!quiz || !quiz.difficultyLevel) {
-      throw new Error('Quiz not found or no difficulty level set');
+      throw new Error("Quiz not found or no difficulty level set");
     }
 
     const isQuizUnlocked = await this.isQuizUnlocked(userId, quizId);
@@ -190,7 +203,11 @@ export class QuizAttemptService {
 
     // Calculate earned points
     const pricingConfig = getPricingConfig(quiz.difficultyLevel);
-    const earnedPoints = calculateEarnedPoints(score, totalMarks, pricingConfig.pointPerAttempt);
+    const earnedPoints = calculateEarnedPoints(
+      score,
+      totalMarks,
+      pricingConfig.pointPerAttempt
+    );
 
     // Check if this is the best score for today
     const today = new Date();
@@ -204,10 +221,10 @@ export class QuizAttemptService {
         quizId,
         dateTaken: {
           gte: today,
-          lt: tomorrow
-        }
+          lt: tomorrow,
+        },
       },
-      orderBy: { score: 'desc' }
+      orderBy: { score: "desc" },
     });
 
     const isNewBestScore = !todayBestScore || score > todayBestScore.score;
@@ -220,35 +237,36 @@ export class QuizAttemptService {
         duration,
         dateTaken: new Date(),
         status: status as any,
-        earnedPoints: isNewBestScore ? earnedPoints : 0 // Only award points for best score
-      }
+        earnedPoints: isNewBestScore ? earnedPoints : 0, // Only award points for best score
+      },
     });
 
     // Update user points only if this is the best score
     if (isNewBestScore && earnedPoints > 0) {
       await prisma.user.update({
         where: { clerkId: userId },
-        data: { points: { increment: earnedPoints } }
+        data: { points: { increment: earnedPoints } },
       });
     }
 
     // Update quiz stats
     const allRecords = await prisma.quizRecord.findMany({
       where: { quizId },
-      select: { score: true }
+      select: { score: true },
     });
 
     const totalAttempts = allRecords.length;
-    const averageScore = allRecords.length > 0 
-      ? allRecords.reduce((sum, r) => sum + r.score, 0) / allRecords.length 
-      : 0;
+    const averageScore =
+      allRecords.length > 0
+        ? allRecords.reduce((sum, r) => sum + r.score, 0) / allRecords.length
+        : 0;
 
     await prisma.quiz.update({
       where: { id: quizId },
       data: {
         usersTaken: totalAttempts,
-        averageScore: Math.round(averageScore * 10) / 10
-      }
+        averageScore: Math.round(averageScore * 10) / 10,
+      },
     });
 
     return {
@@ -258,7 +276,7 @@ export class QuizAttemptService {
       previousBestScore: todayBestScore?.score,
       totalAttempts,
       averageScore: Math.round(averageScore * 10) / 10,
-      quizUnlocked
+      quizUnlocked,
     };
   }
 
@@ -275,11 +293,11 @@ export class QuizAttemptService {
             title: true,
             difficultyLevel: true,
             pricePerAttempt: true,
-            pointPerAttempt: true
-          }
-        }
+            pointPerAttempt: true,
+          },
+        },
       },
-      orderBy: { unlockedAt: 'desc' }
+      orderBy: { unlockedAt: "desc" },
     });
   }
 
@@ -289,16 +307,16 @@ export class QuizAttemptService {
   static async getAttemptHistory(userId: string, quizId: string) {
     const attempts = await prisma.quizRecord.findMany({
       where: { userId, quizId },
-      orderBy: { dateTaken: 'desc' },
+      orderBy: { dateTaken: "desc" },
       include: {
         quiz: {
           select: {
             title: true,
             difficultyLevel: true,
-            pointPerAttempt: true
-          }
-        }
-      }
+            pointPerAttempt: true,
+          },
+        },
+      },
     });
 
     return attempts;
@@ -319,10 +337,10 @@ export class QuizAttemptService {
         quizId,
         date: {
           gte: today,
-          lt: tomorrow
-        }
+          lt: tomorrow,
+        },
       },
-      orderBy: { date: 'desc' }
+      orderBy: { date: "desc" },
     });
   }
 
@@ -332,21 +350,21 @@ export class QuizAttemptService {
   static async getUserPoints(userId: string) {
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
-      select: { points: true, accountType: true, premiumUntil: true }
+      select: { points: true, accountType: true, premiumUntil: true },
     });
 
     if (!user) return null;
 
     // Get user's rank based on total points
     const rank = await prisma.user.count({
-      where: { points: { gt: user.points } }
+      where: { points: { gt: user.points } },
     });
 
     return {
       points: user.points,
       rank: rank + 1,
       accountType: user.accountType,
-      premiumUntil: user.premiumUntil
+      premiumUntil: user.premiumUntil,
     };
   }
 
@@ -362,11 +380,11 @@ export class QuizAttemptService {
         points: true,
         accountType: true,
         _count: {
-          select: { quizzes: true }
-        }
+          select: { quizzes: true },
+        },
       },
-      orderBy: { points: 'desc' },
-      take: limit
+      orderBy: { points: "desc" },
+      take: limit,
     });
   }
 
@@ -377,10 +395,7 @@ export class QuizAttemptService {
     try {
       const quiz = await prisma.quiz.findFirst({
         where: {
-          OR: [
-            { id: identifier },
-            { slug: identifier },
-          ],
+          OR: [{ id: identifier }, { slug: identifier }],
         },
       });
       if (!quiz) {
@@ -393,19 +408,25 @@ export class QuizAttemptService {
     }
   }
 
-  static async startAttempt(userId: string, quizId: string, fingerprint?: string, deviceInfo?: any, ip?: string): Promise<StartAttemptResult & { sessionId?: string }> {
+  static async startAttempt(
+    userId: string,
+    quizId: string,
+    fingerprint?: string,
+    deviceInfo?: any,
+    ip?: string
+  ): Promise<StartAttemptResult & { sessionId?: string }> {
     const existingAttempt = await prisma.quizRecord.findFirst({
       where: {
         userId,
         quizId,
-        status: 'IN_PROGRESS',
+        status: "IN_PROGRESS",
       },
     });
 
     if (existingAttempt) {
       return {
         success: false,
-        reason: 'You already have an attempt in progress for this quiz.',
+        reason: "You already have an attempt in progress for this quiz.",
         quizRecordId: existingAttempt.id,
       };
     }
@@ -425,7 +446,7 @@ export class QuizAttemptService {
     if (validation.requiresPayment) {
       return {
         success: false,
-        reason: 'Payment is required to attempt this quiz.',
+        reason: "Payment is required to attempt this quiz.",
         requiresPayment: true,
         isUnlocked: false,
       };
@@ -448,7 +469,7 @@ export class QuizAttemptService {
         score: 0,
         duration: 0,
         dateTaken: new Date(),
-        status: 'IN_PROGRESS',
+        status: "IN_PROGRESS",
         earnedPoints: 0,
       },
     });
@@ -471,7 +492,9 @@ export class QuizAttemptService {
     return {
       success: true,
       quizRecordId: quizRecord.id,
-      remainingAttempts: validation.remainingAttempts ? validation.remainingAttempts - 1 : undefined,
+      remainingAttempts: validation.remainingAttempts
+        ? validation.remainingAttempts - 1
+        : undefined,
       dailyLimit: validation.dailyLimit,
       sessionId,
     };
@@ -491,18 +514,22 @@ export class QuizAttemptService {
       answer: any;
     }>,
     duration: number,
-    status: string = 'COMPLETED'
+    status: string = "COMPLETED"
   ): Promise<AttemptResult> {
     const existingRecord = await prisma.quizRecord.findUnique({
-      where: { id: quizRecordId }
+      where: { id: quizRecordId },
     });
-    if (!existingRecord || existingRecord.userId !== userId || existingRecord.status !== 'IN_PROGRESS') {
-      throw new Error('In-progress quiz record not found or access denied.');
+    if (
+      !existingRecord ||
+      existingRecord.userId !== userId ||
+      existingRecord.status !== "IN_PROGRESS"
+    ) {
+      throw new Error("In-progress quiz record not found or access denied.");
     }
 
     // Store each answer in QuestionRecord
     await prisma.$transaction(
-      answers.map(ans =>
+      answers.map((ans) =>
         prisma.questionRecord.create({
           data: {
             quizRecordId,
@@ -520,7 +547,9 @@ export class QuizAttemptService {
     const earnedXP = calculateArenaXP(answers, { duration });
 
     // Get user's old XP and rank before update
-    const userBefore = await prisma.user.findUnique({ where: { clerkId: userId } });
+    const userBefore = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
     const oldXp = userBefore?.xp || 0;
     const oldRank = getRankByXP(oldXp).tierIndex;
 
@@ -528,7 +557,7 @@ export class QuizAttemptService {
     const quizRecord = await prisma.quizRecord.update({
       where: { id: quizRecordId },
       data: {
-        score: answers.filter(a => a.isCorrect).length,
+        score: answers.filter((a) => a.isCorrect).length,
         duration,
         dateTaken: new Date(),
         status: status as any,
@@ -564,9 +593,9 @@ export class QuizAttemptService {
       success: true,
       earnedPoints: earnedXP,
       isNewBestScore: true, // For now, always true for arena
-      previousBestScore: null,
+      previousBestScore: undefined,
       totalAttempts: 1, // For now, always 1 for arena
-      averageScore: answers.filter(a => a.isCorrect).length,
+      averageScore: answers.filter((a) => a.isCorrect).length,
       quizUnlocked: true,
     };
   }
@@ -577,12 +606,17 @@ export class QuizAttemptService {
     submittedAt,
     responses,
     summary,
-    violations
+    violations,
   }: {
     userId: string;
     quizId: string;
     submittedAt: Date;
-    responses: Array<{ questionId: string; answer: any; type: string; requiresManualReview: boolean }>;
+    responses: Array<{
+      questionId: string;
+      answer: any;
+      type: string;
+      requiresManualReview: boolean;
+    }>;
     summary: any;
     violations?: any;
   }) {
@@ -591,19 +625,18 @@ export class QuizAttemptService {
       where: {
         userId,
         quizId,
-        status: 'IN_PROGRESS',
+        status: "IN_PROGRESS",
       },
     });
-    if (!quizRecord) throw new Error('No in-progress quiz record found');
+    if (!quizRecord) throw new Error("No in-progress quiz record found");
 
     // Update QuizRecord
     await prisma.quizRecord.update({
       where: { id: quizRecord.id },
       data: {
         responses,
-        summary,
         violations,
-        status: 'COMPLETED',
+        status: "COMPLETED",
         dateTaken: submittedAt ? new Date(submittedAt) : new Date(),
         isManualReviewPending: responses.some((r) => r.requiresManualReview),
         score: summary.obtainedMarks,
@@ -629,6 +662,10 @@ export class QuizAttemptService {
         )
       );
     }
-    return { success: true, summary, manualReviewPending: manualItems.length > 0 };
+    return {
+      success: true,
+      summary,
+      manualReviewPending: manualItems.length > 0,
+    };
   }
-} 
+}
