@@ -1,9 +1,9 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/session";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export interface AdminUser {
-  clerkId: string;
+  id: string;
   email: string;
   name: string;
   isAdmin: boolean;
@@ -19,26 +19,26 @@ export async function requireAdmin(): Promise<{
   error: NextResponse | null;
 }> {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
 
-    if (!userId) {
+    if (!currentUser?.id) {
       return {
         user: null,
         error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
       };
     }
 
+    const userId = currentUser.id;
+
     // Get user from database to check admin status
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { id: userId },
       select: {
-        clerkId: true,
+        id: true,
         email: true,
         name: true,
         accountType: true,
-        // Add these fields to your User model:
-        // isAdmin: true,
-        // isSuperAdmin: true,
+        role: true,
       },
     });
 
@@ -50,9 +50,8 @@ export async function requireAdmin(): Promise<{
     }
 
     // Check if user has admin privileges
-    // TODO: Update this logic based on your admin system
-    const isAdmin = user.email?.endsWith("@yourdomain.com");
-    const isSuperAdmin = user.email === "admin@yourdomain.com"; // Update with your admin email
+    const isAdmin = user.role === "ADMIN" || user.role === "OWNER";
+    const isSuperAdmin = user.role === "OWNER";
 
     if (!isAdmin) {
       return {
@@ -66,7 +65,7 @@ export async function requireAdmin(): Promise<{
 
     return {
       user: {
-        clerkId: user.clerkId,
+        id: user?.id,
         email: user.email || "",
         name: user.name || "",
         isAdmin,

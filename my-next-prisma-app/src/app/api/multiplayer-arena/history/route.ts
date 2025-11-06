@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from '@/lib/session';
 import prisma from "@/lib/prisma";
 import { getRankByXP } from "@/utils/rank";
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Fetch user XP for rank
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     const xp = user?.xp || 0;
     const rankInfo = getRankByXP(xp);
 

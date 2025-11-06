@@ -117,11 +117,11 @@ export default function RoomLobby({ room, members, currentUser }: { room: any, m
           <RoomAvatarGrid
             players={members.map(m => ({
               ...m.user,
-              id: m.user.clerkId,
+              id: m.user.id,
               role: m.role,
-              avatar: m.user.avatarUrl || getRandomAvatar(m.user.clerkId || m.user.name || Math.random().toString()),
+              avatar: m.user.avatarUrl || getRandomAvatar(m.user.id || m.user.name || Math.random().toString()),
             }))}
-            hostId={members.find(m => m.role === 'HOST')?.user.clerkId}
+            hostId={members.find(m => m.role === 'HOST')?.user.id}
             teamMode={room.type === 'Squad' || room.type === 'Custom'}
             user={currentUser}
           />

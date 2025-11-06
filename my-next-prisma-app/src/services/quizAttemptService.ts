@@ -86,7 +86,7 @@ export class QuizAttemptService {
   ): Promise<AttemptValidationResult> {
     // Get user and quiz data
     const [user, quiz] = await Promise.all([
-      prisma.user.findUnique({ where: { clerkId: userId } }),
+      prisma.user.findUnique({ where: { id: userId } }),
       prisma.quiz.findUnique({ where: { id: quizId } }),
     ]);
 
@@ -244,7 +244,7 @@ export class QuizAttemptService {
     // Update user points only if this is the best score
     if (isNewBestScore && earnedPoints > 0) {
       await prisma.user.update({
-        where: { clerkId: userId },
+        where: { id: userId },
         data: { points: { increment: earnedPoints } },
       });
     }
@@ -349,7 +349,7 @@ export class QuizAttemptService {
    */
   static async getUserPoints(userId: string) {
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { id: userId },
       select: { points: true, accountType: true, premiumUntil: true },
     });
 
@@ -374,7 +374,7 @@ export class QuizAttemptService {
   static async getLeaderboard(limit: number = 50) {
     return await prisma.user.findMany({
       select: {
-        clerkId: true,
+        id: true,
         name: true,
         avatarUrl: true,
         points: true,
@@ -548,7 +548,7 @@ export class QuizAttemptService {
 
     // Get user's old XP and rank before update
     const userBefore = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { id: userId },
     });
     const oldXp = userBefore?.xp || 0;
     const oldRank = getRankByXP(oldXp).tierIndex;
@@ -567,7 +567,7 @@ export class QuizAttemptService {
 
     // Update user XP
     const userAfter = await prisma.user.update({
-      where: { clerkId: userId },
+      where: { id: userId },
       data: { xp: { increment: earnedXP } },
       select: { xp: true },
     });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { RazorpayService } from '@/services/razorpayService';
 import { z } from 'zod';
@@ -8,7 +8,8 @@ import { withValidation } from '@/utils/validation';
 // GET: Check if user has a payout account
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -45,11 +46,12 @@ const payoutAccountSchema = z.object({
 
 export const POST = withValidation(payoutAccountSchema, async (request: any) => {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user || !user.email) {
       return NextResponse.json({ error: 'User not found or email missing' }, { status: 404 });
     }

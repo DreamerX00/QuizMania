@@ -39,7 +39,7 @@ const RankAndCareer = () => {
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const { data, error, isLoading } = useSWR(user ? `/api/multiplayer-arena/user/${user.id}/stats` : null, fetcher);
+  const { data, error, isLoading } = useSWR(user ? `/api/multiplayer-arena/user/${user?.id}/stats` : null, fetcher);
   const xp = data?.totalXP || 0;
   const rankInfo = data?.rank || { name: '', emoji: '', description: '', xpMin: 0, xpMax: 0 };
 

@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from '@/lib/session';
 
 export async function GET(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   const params = await context.params;
   if (!userId || userId !== params.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

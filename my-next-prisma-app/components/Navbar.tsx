@@ -4,15 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useTheme } from "../src/context/ThemeContext";
-import {
-  UserButton,
-  SignedIn,
-  SignedOut,
-  useUser,
-  useClerk,
-} from "@clerk/nextjs";
-import { Brain, Sun, Moon, Sparkles, Zap } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { Sparkles, Zap } from "lucide-react";
 import {
   Navbar,
   NavBody,
@@ -29,10 +22,12 @@ import { AnimatedThemeToggle } from "./ui/AnimatedThemeToggle";
 export default function QuizManiaNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
-  const { user, isSignedIn } = useUser();
-  const { signOut } = useClerk();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const handleSignOut = async (): Promise<void> => {
+    await signOut({ redirect: true, callbackUrl: "/" });
+  };
 
   const navItems = [
     { name: "Home", link: "/", icon: Sparkles },
@@ -51,14 +46,14 @@ export default function QuizManiaNavbar() {
           <AnimatedThemeToggle />
 
           {/* User Menu */}
-          <SignedIn>
+          {status === "authenticated" && (
             <div className="relative">
               <button
                 onClick={() => setProfileMenuOpen((v) => !v)}
                 className="focus:outline-none relative w-9 h-9"
               >
                 <Image
-                  src={user?.imageUrl || "/default_avatar.png"}
+                  src={user?.avatarUrl || user?.image || "/default_avatar.png"}
                   alt="Profile"
                   fill
                   className="rounded-full border-2 border-white/20 shadow cursor-pointer hover:scale-105 transition object-cover"
@@ -88,7 +83,7 @@ export default function QuizManiaNavbar() {
                   </button>
                   <button
                     onClick={() => {
-                      signOut();
+                      handleSignOut();
                       setProfileMenuOpen(false);
                     }}
                     className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
@@ -98,8 +93,8 @@ export default function QuizManiaNavbar() {
                 </div>
               )}
             </div>
-          </SignedIn>
-          <SignedOut>
+          )}
+          {status !== "authenticated" && (
             <div className="flex items-center space-x-2">
               <NavbarButton href="/login" variant="secondary">
                 Login
@@ -108,7 +103,7 @@ export default function QuizManiaNavbar() {
                 Sign Up
               </NavbarButton>
             </div>
-          </SignedOut>
+          )}
         </div>
       </NavBody>
 
@@ -121,14 +116,16 @@ export default function QuizManiaNavbar() {
             <AnimatedThemeToggle />
 
             {/* User Menu */}
-            <SignedIn>
+            {status === "authenticated" && (
               <div className="relative">
                 <button
                   onClick={() => setProfileMenuOpen((v) => !v)}
                   className="focus:outline-none relative w-9 h-9"
                 >
                   <Image
-                    src={user?.imageUrl || "/default_avatar.png"}
+                    src={
+                      user?.avatarUrl || user?.image || "/default_avatar.png"
+                    }
                     alt="Profile"
                     fill
                     className="rounded-full border-2 border-white/20 shadow cursor-pointer hover:scale-105 transition object-cover"
@@ -158,7 +155,7 @@ export default function QuizManiaNavbar() {
                     </button>
                     <button
                       onClick={() => {
-                        signOut();
+                        handleSignOut();
                         setProfileMenuOpen(false);
                       }}
                       className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
@@ -168,8 +165,8 @@ export default function QuizManiaNavbar() {
                   </div>
                 )}
               </div>
-            </SignedIn>
-            <SignedOut>
+            )}
+            {status !== "authenticated" && (
               <div className="flex items-center space-x-2">
                 <NavbarButton href="/login" variant="secondary">
                   Login
@@ -178,7 +175,7 @@ export default function QuizManiaNavbar() {
                   Sign Up
                 </NavbarButton>
               </div>
-            </SignedOut>
+            )}
 
             <MobileNavToggle
               isOpen={isMenuOpen}
@@ -189,7 +186,7 @@ export default function QuizManiaNavbar() {
 
         <MobileNavMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)}>
           <div className="space-y-2">
-            {navItems.map((item, index) => {
+            {navItems.map((item) => {
               const IconComponent = item.icon;
               return (
                 <Link
@@ -204,7 +201,7 @@ export default function QuizManiaNavbar() {
               );
             })}
 
-            <SignedOut>
+            {status !== "authenticated" && (
               <div className="pt-4 border-t border-gray-200 dark:border-neutral-700 space-y-2">
                 <Link
                   href="/login"
@@ -221,8 +218,8 @@ export default function QuizManiaNavbar() {
                   Sign Up
                 </Link>
               </div>
-            </SignedOut>
-            <SignedIn>
+            )}
+            {status === "authenticated" && (
               <Link
                 href="/profile"
                 onClick={() => setIsMenuOpen(false)}
@@ -230,7 +227,9 @@ export default function QuizManiaNavbar() {
               >
                 <div className="relative w-8 h-8">
                   <Image
-                    src={user?.imageUrl || "/default_avatar.png"}
+                    src={
+                      user?.avatarUrl || user?.image || "/default_avatar.png"
+                    }
                     alt="Profile"
                     fill
                     className="rounded-full border-2 border-white/20 shadow cursor-pointer hover:scale-105 transition object-cover"
@@ -239,7 +238,7 @@ export default function QuizManiaNavbar() {
                 </div>
                 <span className="font-medium">Profile</span>
               </Link>
-            </SignedIn>
+            )}
           </div>
         </MobileNavMenu>
       </MobileNav>

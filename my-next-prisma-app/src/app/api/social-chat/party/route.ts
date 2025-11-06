@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
+import { getCurrentUser } from '@/lib/session';
 import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
@@ -11,14 +11,15 @@ export async function GET(req: NextRequest) {
     where: { roomId },
     orderBy: { createdAt: "asc" },
     include: {
-      sender: { select: { clerkId: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, avatarUrl: true } },
     },
   });
   return NextResponse.json({ messages });
 }
 
 export async function POST(req: NextRequest) {
-  const { userId } = getAuth(req);
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { roomId, message } = await req.json();
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
   const chat = await prisma.roomChat.create({
     data: { roomId, senderId: userId, message },
     include: {
-      sender: { select: { clerkId: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, avatarUrl: true } },
     },
   });
   return NextResponse.json({ chat });

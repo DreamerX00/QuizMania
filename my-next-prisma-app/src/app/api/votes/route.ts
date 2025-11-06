@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import prisma from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { userId } = getAuth(req);
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { roomId, type } = await req.json();
   if (!roomId || !type) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });

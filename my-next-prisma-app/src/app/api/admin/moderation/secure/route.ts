@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Rate limiting - 10 actions per minute
-  if (!rateLimit(admin.clerkId, 10, 60000)) {
+  if (!rateLimit(admin.id, 10, 60000)) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
 
@@ -52,8 +52,8 @@ export async function POST(request: Request) {
             action,
             type: action.toUpperCase(),
             targetUserId: userId,
-            performedById: admin.clerkId,
-            moderatorId: admin.clerkId,
+            performedById: admin.id,
+            moderatorId: admin.id,
             roomId,
             reason: reason || "Admin action",
             expiresAt:
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
               blockedId: blockedId,
               userId,
               blockedUserId: blockedId,
-              blockedBy: admin.clerkId,
+              blockedBy: admin.id,
               reason: reason || "Admin action",
             },
           });
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
 
         result = await prisma.userReport.create({
           data: {
-            reporterId: admin.clerkId,
+            reporterId: admin.id,
             reportedUserId: targetId,
             reason: reason || "Admin report",
             status: "PENDING",
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 
     // Log the admin action for audit trail
     await logAdminAction(
-      admin.clerkId,
+      admin.id,
       action,
       userId || targetId,
       actionDetails
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
     console.error("Moderation action error:", error);
 
     // Log failed action attempt
-    await logAdminAction(admin.clerkId, "FAILED_ACTION", undefined, {
+    await logAdminAction(admin.id, "FAILED_ACTION", undefined, {
       error: String(error),
     });
 

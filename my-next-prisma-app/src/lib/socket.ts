@@ -1,5 +1,5 @@
 import io from "socket.io-client";
-import { useAuth } from "@clerk/nextjs";
+import { useSession } from 'next-auth/react';
 
 // Get socket instance type from the io function's return type
 type SocketInstance = ReturnType<typeof io>;

@@ -650,7 +650,7 @@ const FriendModalOverlay = ({
                     <div className="space-y-3">
                       {searchData?.users?.map((user: any) => (
                         <motion.div
-                          key={user.id}
+                          key={user?.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           className="flex items-center justify-between p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-lg"
@@ -676,7 +676,7 @@ const FriendModalOverlay = ({
                           </div>
                           <Button
                             size="sm"
-                            onClick={() => handleAddFriend(user.id)}
+                            onClick={() => handleAddFriend(user?.id)}
                             className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
                           >
                             <UserPlus className="w-4 h-4 mr-1" />

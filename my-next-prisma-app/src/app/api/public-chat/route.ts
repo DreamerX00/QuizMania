@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
+import { getCurrentUser } from '@/lib/session';
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: 50,
     include: {
-      sender: { select: { clerkId: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, avatarUrl: true } },
     },
   });
   return NextResponse.json({ messages: messages.reverse() });
@@ -20,14 +20,15 @@ const publicChatSchema = z.object({
 });
 
 export const POST = withValidation(publicChatSchema, async (req: any) => {
-  const { userId } = getAuth(req);
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { message } = req.validated;
   const chat = await prisma.publicChat.create({
     data: { senderId: userId, message },
     include: {
-      sender: { select: { clerkId: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, avatarUrl: true } },
     },
   });
   return NextResponse.json({ chat });

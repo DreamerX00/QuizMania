@@ -12,12 +12,13 @@ import FilterModalContent, {
 import Accordion from "@/components/ui/Accordion";
 import QuizCarousel from "@/components/ui/QuizCarousel";
 import ExploreSectionDialog from "./components/ExploreSectionDialog";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from 'next-auth/react';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ExplorePage() {
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
 
@@ -76,7 +77,7 @@ export default function ExplorePage() {
 
   // Fetch user profile and unlocked quizzes
   const { data: userProfile } = useSWR(
-    user ? `/api/users/${user.id}/profile` : null,
+    user ? `/api/users/${user?.id}/profile` : null,
     fetcher
   );
 

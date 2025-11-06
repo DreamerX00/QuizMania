@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import prisma from '@/lib/prisma';
 
 // GET: List join requests for a clan (leader/elder only)
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -34,7 +35,8 @@ export async function GET(request: NextRequest) {
 // POST: Send, accept, or decline a join request
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

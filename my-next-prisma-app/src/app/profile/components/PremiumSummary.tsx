@@ -8,7 +8,7 @@ import Link from 'next/link';
 export function PremiumSummary() {
   const { user } = useAuth();
   const { data, isLoading } = useSWR(
-    user ? `/api/users/${user.id}/profile` : null,
+    user ? `/api/users/${user?.id}/profile` : null,
     url => fetch(url).then(res => res.json())
   );
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FiArrowLeft, FiArrowRight, FiInfo } from 'react-icons/fi';
 import Link from 'next/link';
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from 'next-auth/react';
 import { motion, AnimationGeneratorType } from 'framer-motion';
 import { Howl } from 'howler';
 
@@ -15,7 +15,9 @@ const buttonClickHowl = new Howl({ src: [BUTTON_CLICK_SOUND], volume: 0.5 });
 export default function CreateQuizGuidePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isLoaded, userId } = useAuth();
+  const { data: session, status } = useSession();
+  const isLoaded = status !== 'loading';
+  const userId = session?.user?.id;
 
   // Sparkle positions (client only, stable after hydration)
   const [sparkles, setSparkles] = useState<{

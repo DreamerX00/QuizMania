@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -28,7 +28,8 @@ interface DeletionRequest {
 }
 
 export default function PrivacyPage() {
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [dataCategories, setDataCategories] = useState<DataCategory[]>([]);
   const [deletionRequests, setDeletionRequests] = useState<DeletionRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);

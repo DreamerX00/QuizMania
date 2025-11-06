@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import { QuizAttemptService } from '@/services/quizAttemptService';
 
 export async function GET(req: NextRequest) {
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId) return NextResponse.json([], { status: 401 });
   const idsParam = req.nextUrl.searchParams.get('ids');
   if (!idsParam) return NextResponse.json([]);

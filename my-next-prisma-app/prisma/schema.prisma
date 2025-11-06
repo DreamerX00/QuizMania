@@ -122,34 +122,42 @@ model reports {
 }
 
 model User {
-  clerkId                    String               @id @unique
-  email                      String               @unique
-  name                       String?
-  avatarUrl                  String?
-  bannerUrl                  String?
-  createdAt                  DateTime             @default(now())
-  role                       Role                 @default(STUDENT)
-  xp                         Int                  @default(0)
-  rank                       Int                  @default(0)
-  streak                     Int                  @default(0)
-  accountType                AccountType          @default(FREE)
-  points                     Int                  @default(0) // Total points earned
-  premiumUntil               DateTime? // Premium subscription expiry
+  id            String      @id @default(cuid())
+  email         String      @unique
+  emailVerified DateTime?
+  name          String?
+  image         String? // NextAuth uses 'image' instead of 'avatarUrl'
+  avatarUrl     String? // Keep for backward compatibility
+  bannerUrl     String?
+  createdAt     DateTime    @default(now())
+  role          Role        @default(STUDENT)
+  xp            Int         @default(0)
+  rank          Int         @default(0)
+  streak        Int         @default(0)
+  accountType   AccountType @default(FREE)
+  points        Int         @default(0)
+  premiumUntil  DateTime?
+  bio           String?
+  alias         String?
+  socials       Json?
+  region        String?
+
+  // NextAuth relations
+  accounts Account[]
+  sessions Session[]
+
+  // Existing relations (updated to use 'id' instead of 'clerkId')
   quizzes                    QuizRecord[]
   createdQuizzes             Quiz[]               @relation("CreatedQuizzes")
-  bio                        String?
-  alias                      String?
-  socials                    Json?
-  region                     String?
   premiumSummary             PremiumSummary?
   likes                      QuizLike[]
   comments                   QuizComment[]
   ratings                    QuizRating[]
   withdrawals                Withdrawal[]
-  attempts                   Attempt[] // Daily attempt tracking
-  quizUnlocks                QuizUnlock[] // Premium quiz unlocks
-  payments                   PaymentTransaction[] // Payment transactions
-  payoutAccount              PayoutAccount? // Creator's payout account
+  attempts                   Attempt[]
+  quizUnlocks                QuizUnlock[]
+  payments                   PaymentTransaction[]
+  payoutAccount              PayoutAccount?
   rankHistories              RankHistory[]
   sentFriendRequests         Friend[]             @relation("Requester")
   receivedFriendRequests     Friend[]             @relation("Addressee")
@@ -177,6 +185,42 @@ model User {
   userAchievements           UserAchievement[]
 }
 
+// NextAuth models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
 model QuizRecord {
   id                    String           @id @default(cuid())
   userId                String
@@ -187,7 +231,7 @@ model QuizRecord {
   status                QuizStatus
   earnedPoints          Int? // Points earned for this attempt
   quiz                  Quiz             @relation(fields: [quizId], references: [id])
-  user                  User             @relation(fields: [userId], references: [clerkId])
+  user                  User             @relation(fields: [userId], references: [id])
   likeCount             Int              @default(0)
   questionRecords       QuestionRecord[]
   isFlagged             Boolean          @default(false) // <-- NEW FIELD
@@ -207,7 +251,7 @@ model QuizViolation {
   createdAt    DateTime   @default(now())
   isFlagged    Boolean    @default(false)
   quizRecord   QuizRecord @relation(fields: [quizRecordId], references: [id])
-  user         User       @relation(fields: [userId], references: [clerkId])
+  user         User       @relation(fields: [userId], references: [id])
   quiz         Quiz       @relation(fields: [quizId], references: [id])
 }
 
@@ -217,7 +261,7 @@ model Attempt {
   userId String
   date   DateTime @default(now())
   quiz   Quiz     @relation(fields: [quizId], references: [id])
-  user   User     @relation(fields: [userId], references: [clerkId])
+  user   User     @relation(fields: [userId], references: [id])
 
   @@unique([quizId, userId, date])
 }
@@ -228,7 +272,7 @@ model QuizUnlock {
   quizId     String
   unlockedAt DateTime @default(now())
   quiz       Quiz     @relation(fields: [quizId], references: [id])
-  user       User     @relation(fields: [userId], references: [clerkId])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@unique([quizId, userId])
   @@unique([userId, quizId], name: "userId_quizId")
@@ -237,7 +281,7 @@ model QuizUnlock {
 model PaymentTransaction {
   id                String        @id @default(cuid())
   userId            String
-  user              User          @relation(fields: [userId], references: [clerkId])
+  user              User          @relation(fields: [userId], references: [id])
   razorpayOrderId   String        @unique
   razorpayPaymentId String?       @unique
   amount            Int // Amount in paise
@@ -269,7 +313,7 @@ model Quiz {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt
   creatorId       String?
-  creator         User?    @relation("CreatedQuizzes", fields: [creatorId], references: [clerkId])
+  creator         User?    @relation("CreatedQuizzes", fields: [creatorId], references: [id])
 
   // Relations & Aggregates
   records          QuizRecord[]
@@ -299,7 +343,7 @@ model QuizLike {
   createdAt DateTime @default(now())
   quiz      Quiz     @relation(fields: [quizId], references: [id])
   quizId    String
-  user      User     @relation(fields: [userId], references: [clerkId])
+  user      User     @relation(fields: [userId], references: [id])
   userId    String
 
   @@unique([quizId, userId])
@@ -311,7 +355,7 @@ model QuizComment {
   text      String
   quiz      Quiz     @relation(fields: [quizId], references: [id])
   quizId    String
-  user      User     @relation(fields: [userId], references: [clerkId])
+  user      User     @relation(fields: [userId], references: [id])
   userId    String
 }
 
@@ -321,7 +365,7 @@ model QuizRating {
   value     Int // e.g., 1 to 5
   quiz      Quiz     @relation(fields: [quizId], references: [id])
   quizId    String
-  user      User     @relation(fields: [userId], references: [clerkId])
+  user      User     @relation(fields: [userId], references: [id])
   userId    String
 
   @@unique([quizId, userId])
@@ -340,7 +384,7 @@ model Achievement {
 model PremiumSummary {
   id            String @id @default(cuid())
   userId        String @unique
-  user          User   @relation(fields: [userId], references: [clerkId])
+  user          User   @relation(fields: [userId], references: [id])
   templatesUsed Int    @default(0)
   quizPacks     Int    @default(0)
   timeSaved     Int    @default(0) // in hours
@@ -350,7 +394,7 @@ model PremiumSummary {
 model Withdrawal {
   id        String           @id @default(cuid())
   userId    String
-  user      User             @relation(fields: [userId], references: [clerkId])
+  user      User             @relation(fields: [userId], references: [id])
   amount    Int
   currency  String // e.g., INR, USD
   status    WithdrawalStatus @default(PENDING)
@@ -382,7 +426,7 @@ model QuizPackage {
 model PayoutAccount {
   id                String   @id @default(cuid())
   userId            String   @unique
-  user              User     @relation(fields: [userId], references: [clerkId])
+  user              User     @relation(fields: [userId], references: [id])
   razorpayAccountId String   @unique // The Razorpay Fund Account ID
   accountType       String   @default("upi") // e.g., upi, bank_account
   accountDetails    Json // Store details like UPI ID, bank info
@@ -406,7 +450,7 @@ model QuestionRecord {
 model RankHistory {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [clerkId])
+  user      User     @relation(fields: [userId], references: [id])
   oldRank   Int
   newRank   Int
   oldXp     Int
@@ -425,8 +469,8 @@ model Friend {
   isBlocked   Boolean      @default(false)
   blockedById String? // If blocked, who blocked whom
 
-  requester User @relation("Requester", fields: [requesterId], references: [clerkId])
-  addressee User @relation("Addressee", fields: [addresseeId], references: [clerkId])
+  requester User @relation("Requester", fields: [requesterId], references: [id])
+  addressee User @relation("Addressee", fields: [addresseeId], references: [id])
 
   @@unique([requesterId, addresseeId])
 }
@@ -450,7 +494,7 @@ model ClanMembership {
   clanId   String
   role     ClanRole @default(MEMBER)
   joinedAt DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [clerkId])
+  user     User     @relation(fields: [userId], references: [id])
   clan     Clan     @relation(fields: [clanId], references: [id])
 
   @@unique([userId, clanId])
@@ -463,7 +507,7 @@ model ClanJoinRequest {
   status    ClanJoinRequestStatus @default(PENDING)
   createdAt DateTime              @default(now())
   updatedAt DateTime              @updatedAt
-  user      User                  @relation(fields: [userId], references: [clerkId])
+  user      User                  @relation(fields: [userId], references: [id])
   clan      Clan                  @relation(fields: [clanId], references: [id])
 
   @@unique([userId, clanId])
@@ -475,7 +519,7 @@ model ClanChat {
   senderId  String // Sender ID
   message   String
   createdAt DateTime @default(now())
-  sender    User     @relation("ClanChatSender", fields: [senderId], references: [clerkId])
+  sender    User     @relation("ClanChatSender", fields: [senderId], references: [id])
   clan      Clan     @relation(fields: [clanId], references: [id])
 }
 
@@ -504,7 +548,7 @@ model RoomMembership {
   roomId   String
   role     RoomRole @default(PLAYER)
   joinedAt DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [clerkId])
+  user     User     @relation(fields: [userId], references: [id])
   room     Room     @relation(fields: [roomId], references: [id])
 
   @@unique([userId, roomId])
@@ -517,7 +561,7 @@ model RoomInvite {
   status    RoomInviteStatus @default(PENDING)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
-  user      User             @relation(fields: [userId], references: [clerkId])
+  user      User             @relation(fields: [userId], references: [id])
   room      Room             @relation(fields: [roomId], references: [id])
 
   @@unique([roomId, userId])
@@ -529,14 +573,14 @@ model RoomChat {
   senderId  String // Sender ID
   message   String
   createdAt DateTime @default(now())
-  sender    User     @relation("RoomChatSender", fields: [senderId], references: [clerkId])
+  sender    User     @relation("RoomChatSender", fields: [senderId], references: [id])
   room      Room     @relation(fields: [roomId], references: [id])
 }
 
 model PublicChat {
   id        String   @id @default(cuid())
   senderId  String
-  sender    User     @relation("UserPublicChatMessages", fields: [senderId], references: [clerkId])
+  sender    User     @relation("UserPublicChatMessages", fields: [senderId], references: [id])
   message   String
   createdAt DateTime @default(now())
 }
@@ -544,7 +588,7 @@ model PublicChat {
 model GameSetup {
   id         String   @id @default(cuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [clerkId])
+  user       User     @relation(fields: [userId], references: [id])
   mode       String
   difficulty String
   region     String
@@ -556,8 +600,8 @@ model FriendChat {
   id         String   @id @default(cuid())
   senderId   String
   receiverId String
-  sender     User     @relation("FriendChatSender", fields: [senderId], references: [clerkId])
-  receiver   User     @relation("FriendChatReceiver", fields: [receiverId], references: [clerkId])
+  sender     User     @relation("FriendChatSender", fields: [senderId], references: [id])
+  receiver   User     @relation("FriendChatReceiver", fields: [receiverId], references: [id])
   message    String
   createdAt  DateTime @default(now())
 }
@@ -570,7 +614,7 @@ model Vote {
   count     Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [clerkId])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, roomId, type])
 }
@@ -587,9 +631,9 @@ model ModerationAction {
   roomId        String? // Room context for the action
   expiresAt     DateTime? // Expiration for temporary actions
   createdAt     DateTime  @default(now())
-  targetUser    User      @relation("ModerationTarget", fields: [targetUserId], references: [clerkId])
-  performedBy   User      @relation("ModerationPerformer", fields: [performedById], references: [clerkId])
-  moderator     User      @relation("Moderator", fields: [moderatorId], references: [clerkId])
+  targetUser    User      @relation("ModerationTarget", fields: [targetUserId], references: [id])
+  performedBy   User      @relation("ModerationPerformer", fields: [performedById], references: [id])
+  moderator     User      @relation("Moderator", fields: [moderatorId], references: [id])
 
   @@index([targetUserId])
   @@index([performedById])
@@ -605,7 +649,7 @@ model QuizLinkSession {
   ip          String
   createdAt   DateTime @default(now())
   isActive    Boolean  @default(true)
-  user        User     @relation(fields: [userId], references: [clerkId])
+  user        User     @relation(fields: [userId], references: [id])
   quiz        Quiz     @relation(fields: [quizId], references: [id])
 
   @@index([quizId, userId, isActive])
@@ -660,8 +704,8 @@ model UserBlock {
   blockedId     String
   reason        String?
 
-  blocker User @relation("Blocker", fields: [blockerId], references: [clerkId], onDelete: Cascade)
-  blocked User @relation("Blocked", fields: [blockedId], references: [clerkId], onDelete: Cascade)
+  blocker User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
   @@unique([userId, blockedUserId])
@@ -680,8 +724,8 @@ model UserReport {
   description    String?
   status         String   @default("PENDING")
 
-  reporter User @relation("Reporter", fields: [reporterId], references: [clerkId], onDelete: Cascade)
-  reported User @relation("Reported", fields: [reportedUserId], references: [clerkId], onDelete: Cascade)
+  reporter User @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("Reported", fields: [reportedUserId], references: [id], onDelete: Cascade)
 
   @@index([reporterId])
   @@index([reportedUserId])
@@ -708,7 +752,7 @@ model AdminLog {
   action    String
   details   Json?
 
-  admin User @relation("AdminLogs", fields: [adminId], references: [clerkId], onDelete: Cascade)
+  admin User @relation("AdminLogs", fields: [adminId], references: [id], onDelete: Cascade)
 
   @@index([adminId])
   @@index([createdAt])
@@ -720,7 +764,7 @@ model UserAchievement {
   achievementId String
   unlockedAt    DateTime @default(now())
 
-  user        User        @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])

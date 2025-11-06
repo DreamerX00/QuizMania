@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import prisma from '@/lib/prisma';
 
 // GET: List members of a clan
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -29,7 +30,8 @@ export async function GET(request: NextRequest) {
 // POST: Add a member (by leader/elder)
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -61,7 +63,8 @@ export async function POST(request: NextRequest) {
 // DELETE: Remove a member (by leader/elder or self-leave)
 export async function DELETE(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

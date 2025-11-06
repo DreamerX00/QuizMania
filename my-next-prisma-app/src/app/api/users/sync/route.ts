@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { withValidation } from '@/utils/validation';
 
 const syncUserSchema = z.object({
-  clerkId: z.string().min(1),
+  id: z.string().min(1),
   email: z.string().email(),
   name: z.string().min(1).max(100),
   avatarUrl: z.string().url().optional(),

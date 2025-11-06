@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { withValidation } from '@/utils/validation';
@@ -7,7 +7,8 @@ import { withValidation } from '@/utils/validation';
 // GET: List all friends for the authenticated user
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
       const friendUser = isRequester ? f.addressee : f.requester;
       return {
         id: f.id,
-        userId: friendUser.clerkId,
+        userId: friendUser.id,
         name: friendUser.name,
         alias: friendUser.alias,
         avatar: friendUser.avatarUrl,
@@ -57,7 +58,8 @@ const friendDeleteSchema = z.object({
 
 export const POST = withValidation(friendRequestSchema, async (request: any) => {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -94,7 +96,8 @@ export const POST = withValidation(friendRequestSchema, async (request: any) => 
 
 export const DELETE = withValidation(friendDeleteSchema, async (request: any) => {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

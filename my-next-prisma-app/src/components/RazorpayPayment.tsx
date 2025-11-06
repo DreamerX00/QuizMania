@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useSession } from 'next-auth/react';
 
 declare global {
   interface Window {
@@ -30,7 +30,8 @@ export default function RazorpayPayment({
   orderId,
   keyId
 }: RazorpayPaymentProps) {
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

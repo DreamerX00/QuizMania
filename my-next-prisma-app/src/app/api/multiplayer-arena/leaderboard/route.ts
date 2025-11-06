@@ -9,14 +9,14 @@ export async function GET(request: NextRequest) {
       orderBy: { xp: 'desc' },
       take: 20,
       select: {
-        clerkId: true,
+        id: true,
         name: true,
         avatarUrl: true,
         xp: true,
       },
     });
     const leaderboard = users.map((u, i) => ({
-      userId: u.clerkId,
+      userId: u.id,
       name: u.name,
       avatarUrl: u.avatarUrl,
       xp: u.xp,

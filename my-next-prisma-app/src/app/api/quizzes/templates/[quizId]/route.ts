@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from '@/lib/session';
 import { QuizAttemptService } from "@/services/quizAttemptService";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
@@ -7,7 +7,8 @@ import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -38,7 +39,8 @@ export const DELETE = withValidation(
   quizIdParamSchema,
   async (request: any, { params }: { params: { quizId: string } }) => {
     try {
-      const { userId } = await auth();
+      const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
       if (!userId) {
         return new NextResponse("Unauthorized", { status: 401 });
       }

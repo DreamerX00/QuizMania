@@ -14,7 +14,7 @@ export function QuizTimeline() {
   const { user } = useAuth();
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
   const { data, isLoading } = useSWR(
-    user && token ? [`/api/users/${user.id}/stats`, token] : null,
+    user && token ? [`/api/users/${user?.id}/stats`, token] : null,
     ([url, token]) => fetcher(url, token)
   );
   const [activeTab, setActiveTab] = React.useState("All");

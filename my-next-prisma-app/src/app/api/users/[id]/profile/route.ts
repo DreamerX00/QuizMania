@@ -1,10 +1,21 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/session";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 
-function withNotSetFields(user: any) {
+interface User {
+  id: string;
+  email: string;
+  name?: string | null;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  socials?: string | null;
+  region?: string | null;
+  [key: string]: unknown;
+}
+
+function withNotSetFields(user: User) {
   return {
     ...user,
     name: user.name || "Not set",
@@ -17,18 +28,23 @@ function withNotSetFields(user: any) {
   };
 }
 
-export async function GET(request: Request, context: any) {
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
+
+export async function GET(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId || userId !== id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // Only select fields we actually need
-  let user = await prisma.user.findUnique({
-    where: { clerkId: userId },
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
     select: {
-      clerkId: true,
+      id: true,
       email: true,
       name: true,
       avatarUrl: true,
@@ -54,41 +70,7 @@ export async function GET(request: Request, context: any) {
     },
   });
   if (!user) {
-    // Try to fetch from Clerk and upsert
-    try {
-      const client = await clerkClient();
-      const clerkUser = await client.users.getUser(userId);
-      if (clerkUser) {
-        user = await prisma.user.upsert({
-          where: { clerkId: userId },
-          update: {
-            email: clerkUser.emailAddresses[0]?.emailAddress || "",
-            name: clerkUser.firstName
-              ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
-              : undefined,
-            avatarUrl: clerkUser.imageUrl,
-          },
-          create: {
-            clerkId: userId,
-            email: clerkUser.emailAddresses[0]?.emailAddress || "",
-            name: clerkUser.firstName
-              ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
-              : undefined,
-            avatarUrl: clerkUser.imageUrl,
-          },
-          include: {
-            premiumSummary: true,
-          },
-        });
-      }
-    } catch (e) {
-      return NextResponse.json(
-        { error: "User not found and failed to sync from Clerk" },
-        { status: 404 }
-      );
-    }
-  }
-  if (!user) {
+    // Clerk removed - user must exist in database
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
   return NextResponse.json(withNotSetFields(user));
@@ -104,18 +86,23 @@ const updateProfileSchema = z.object({
   region: z.string().max(100).optional(),
 });
 
+interface ValidatedRequest extends Request {
+  validated?: z.infer<typeof updateProfileSchema>;
+}
+
 export const PATCH = withValidation(
   updateProfileSchema,
-  async (request: any, context: any) => {
+  async (request: ValidatedRequest, context: RouteContext) => {
     const { id } = await context.params;
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
     if (!userId || userId !== id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     try {
-      const data = request.validated;
+      const data = request.validated!;
       const updated = await prisma.user.update({
-        where: { clerkId: id },
+        where: { id: id },
         data: {
           name: data.name,
           avatarUrl: data.avatarUrl,
@@ -126,7 +113,7 @@ export const PATCH = withValidation(
           region: data.region,
         },
         select: {
-          clerkId: true,
+          id: true,
           email: true,
           name: true,
           avatarUrl: true,
@@ -147,7 +134,7 @@ export const PATCH = withValidation(
         },
       });
       return NextResponse.json(withNotSetFields(updated));
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: "Failed to update user profile" },
         { status: 500 }

@@ -24,14 +24,14 @@ export default function ProfilePage() {
     }
   }, []);
 
-  // Add a key that includes user.id so SWR refetches when user changes
+  // Add a key that includes user?.id so SWR refetches when user changes
   const {
     data: profileData,
     error: profileError,
     isValidating: profileValidating,
     mutate: mutateProfile
   } = useSWR(
-    user ? ['/api/users/' + user.id + '/profile', user.id] : null,
+    user ? ['/api/users/' + user?.id + '/profile', user?.id] : null,
     ([url]) => fetch(url).then(res => res.json()),
     { revalidateOnFocus: true, shouldRetryOnError: false }
   );

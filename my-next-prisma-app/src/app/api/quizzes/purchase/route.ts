@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from '@/lib/session';
 import prisma from "@/lib/prisma";
 import { RazorpayService } from "@/services/razorpayService";
 import { QuizAttemptService } from "@/services/quizAttemptService";
@@ -18,7 +18,8 @@ const purchaseQuizSchema = z.object({
 
 export const POST = withValidation(purchaseQuizSchema, async (request: any) => {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -56,7 +57,7 @@ export const POST = withValidation(purchaseQuizSchema, async (request: any) => {
 
     // Fetch the creator
     const creator = await prisma.user.findUnique({
-      where: { clerkId: quiz.creatorId },
+      where: { id: quiz.creatorId },
     });
 
     if (!creator) {
@@ -95,7 +96,7 @@ export const POST = withValidation(purchaseQuizSchema, async (request: any) => {
         notes: {
           role: "quiz_creator",
           quizId: quiz.id,
-          creatorId: creator.clerkId,
+          creatorId: creator.id,
         },
       },
       {
@@ -127,7 +128,7 @@ export const POST = withValidation(purchaseQuizSchema, async (request: any) => {
         type: "QUIZ_PURCHASE",
         metadata: {
           quizId: quiz.id,
-          creatorId: creator.clerkId,
+          creatorId: creator.id,
           transfers: transfers,
           description: `Purchase of quiz: ${quiz.title}`,
         },

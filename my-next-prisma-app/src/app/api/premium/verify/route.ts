@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { RazorpayService } from '@/services/razorpayService';
 import { z } from 'zod';
@@ -13,7 +13,8 @@ const verifySchema = z.object({
 
 export const POST = withValidation(verifySchema, async (request: any) => {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -39,7 +40,7 @@ export const POST = withValidation(verifySchema, async (request: any) => {
 
     // Get user
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId }
+      where: { id: userId }
     });
 
     if (!user) {
@@ -50,7 +51,7 @@ export const POST = withValidation(verifySchema, async (request: any) => {
     const paymentTransaction = await prisma.paymentTransaction.findFirst({
       where: {
         razorpayOrderId: orderId,
-        userId: user.clerkId,
+        userId: user.id,
         status: 'PENDING'
       }
     });
@@ -91,13 +92,13 @@ export const POST = withValidation(verifySchema, async (request: any) => {
 
     // Update user to premium
     const updatedUser = await prisma.user.update({
-      where: { clerkId: user.clerkId },
+      where: { id: user.id },
       data: {
         premiumUntil: premiumUntil,
         accountType: 'PREMIUM'
       },
       select: {
-        clerkId: true,
+        id: true,
         email: true,
         name: true,
         accountType: true,
@@ -108,10 +109,10 @@ export const POST = withValidation(verifySchema, async (request: any) => {
 
     // Create or update premium summary
     await prisma.premiumSummary.upsert({
-      where: { userId: user.clerkId },
+      where: { userId: user.id },
       update: {},
       create: {
-        userId: user.clerkId,
+        userId: user.id,
         templatesUsed: 0,
         quizPacks: 0,
         timeSaved: 0,

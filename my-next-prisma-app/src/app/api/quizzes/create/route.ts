@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
+import { getCurrentUser } from '@/lib/session';
 import { getPricingConfig } from "@/constants/pricing";
 import slugify from "slugify";
 import { z } from "zod";
@@ -23,8 +23,9 @@ const createQuizSchema = z.object({
 });
 
 export const POST = withValidation(createQuizSchema, async (req: any) => {
-  const auth = getAuth(req);
-  if (!auth.userId) {
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
+  if (!userId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
   try {

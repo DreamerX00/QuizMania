@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { toast } from 'react-hot-toast';
@@ -15,7 +15,9 @@ import { CheckCircle, Loader2, DollarSign, AlertCircle } from 'lucide-react';
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function PayoutSettingsPage() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { status } = useSession();
+  const isLoaded = status !== 'loading';
+  const isSignedIn = status === 'authenticated';
   const router = useRouter();
   const [upiId, setUpiId] = useState('');
   const [isLoading, setIsLoading] = useState(false);

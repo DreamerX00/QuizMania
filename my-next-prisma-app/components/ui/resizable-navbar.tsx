@@ -11,13 +11,7 @@ import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "../../src/context/ThemeContext";
-import {
-  UserButton,
-  SignedIn,
-  SignedOut,
-  useUser,
-  useClerk,
-} from "@clerk/nextjs";
+import { signOut } from 'next-auth/react';
 import { Brain, Sun, Moon, Sparkles, Zap } from "lucide-react";
 
 interface NavbarProps {

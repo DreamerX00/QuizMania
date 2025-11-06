@@ -18,7 +18,7 @@ const SOCIALS = [
 export function AccountSettings({ onClose, onSave }: { onClose?: () => void; onSave?: () => void }) {
   const { user } = useAuth();
   const { data, isLoading, mutate: mutateProfile } = useSWR(
-    user ? `/api/users/${user.id}/profile` : null,
+    user ? `/api/users/${user?.id}/profile` : null,
     url => fetch(url).then(res => res.json())
   );
   const [form, setForm] = useState({
@@ -73,7 +73,7 @@ export function AccountSettings({ onClose, onSave }: { onClose?: () => void; onS
     setFeedback('');
     const payload = { ...form, socials: JSON.stringify(form.socials) };
     try {
-      await fetch(`/api/users/${user.id}/profile`, {
+      await fetch(`/api/users/${user?.id}/profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

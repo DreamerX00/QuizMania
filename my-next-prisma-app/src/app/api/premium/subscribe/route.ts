@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { RazorpayService } from '@/services/razorpayService';
 import { z } from 'zod';
@@ -11,7 +11,8 @@ const subscribeSchema = z.object({
 
 export const POST = withValidation(subscribeSchema, async (request: any) => {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -19,7 +20,7 @@ export const POST = withValidation(subscribeSchema, async (request: any) => {
     // Only one plan: 'premium'
     // Get user
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId }
+      where: { id: userId }
     });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -33,11 +34,11 @@ export const POST = withValidation(subscribeSchema, async (request: any) => {
     // Set price for premium plan (₹400)
     const amount = 400; // Amount in INR, service will convert to paise
     // Create Razorpay order
-    const order = await RazorpayService.createOrder(user.clerkId, amount);
+    const order = await RazorpayService.createOrder(user.id, amount);
     // Store order in database
     await prisma.paymentTransaction.create({
       data: {
-        userId: user.clerkId,
+        userId: user.id,
         razorpayOrderId: order.id,
         amount: order.amount, // Use amount from the created order (in paise)
         currency: 'INR',
@@ -73,13 +74,14 @@ export const POST = withValidation(subscribeSchema, async (request: any) => {
 // GET endpoint to check subscription status
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { id: userId },
       select: {
         accountType: true,
         premiumUntil: true,

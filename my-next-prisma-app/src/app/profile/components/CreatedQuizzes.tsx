@@ -6,7 +6,7 @@ import useSWR from 'swr';
 export function CreatedQuizzes() {
   const { user } = useAuth();
   const { data, isLoading } = useSWR(
-    user ? `/api/users/${user.id}/profile` : null,
+    user ? `/api/users/${user?.id}/profile` : null,
     url => fetch(url).then(res => res.json())
   );
 

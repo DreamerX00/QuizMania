@@ -9,7 +9,7 @@ const COLORS = ["#34d399", "#60a5fa", "#fbbf24", "#f472b6"];
 export const PerformancePanel = memo(function PerformancePanel() {
   const { user } = useAuth();
   const { data, isLoading } = useSWR(
-    user ? `/api/users/${user.id}/profile` : null,
+    user ? `/api/users/${user?.id}/profile` : null,
     (url) => fetch(url).then((res) => res.json())
   );
 

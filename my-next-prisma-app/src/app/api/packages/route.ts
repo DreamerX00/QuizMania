@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import { updatePackageStats } from '@/services/updatePackageStats';
 import { z } from 'zod';
 import { withValidation } from '@/utils/validation';
 
 // GET: List all packages for the authenticated user, with optional isPublished filter
 export async function GET(req: NextRequest) {
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const isPublishedParam = req.nextUrl.searchParams.get('isPublished');
   const where: any = { userId };
@@ -43,7 +44,8 @@ const deletePackageSchema = z.object({
 });
 
 export const POST = withValidation(createPackageSchema, async (req: any) => {
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const data = req.validated;
   const pkg = await prisma.quizPackage.create({
@@ -62,7 +64,8 @@ export const POST = withValidation(createPackageSchema, async (req: any) => {
 });
 
 export const PUT = withValidation(updatePackageSchema, async (req: any) => {
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const data = req.validated;
   const pkg = await prisma.quizPackage.findUnique({ where: { id: data.id } });
@@ -83,7 +86,8 @@ export const PUT = withValidation(updatePackageSchema, async (req: any) => {
 });
 
 export const DELETE = withValidation(deletePackageSchema, async (req: any) => {
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const data = req.validated;
   const pkg = await prisma.quizPackage.findUnique({ where: { id: data.id } });

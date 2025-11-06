@@ -17,7 +17,7 @@ import RoomLobby from "@/components/rooms/RoomLobby";
 import { Button } from "@/components/ui/button";
 import useSWR from "swr";
 import toast from "react-hot-toast";
-import { useAuth } from "@clerk/nextjs";
+import { useSession } from 'next-auth/react';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -28,7 +28,8 @@ const RoomModalOverlay = ({
   open: boolean;
   onClose: () => void;
 }) => {
-  const { userId } = useAuth();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const [step, setStep] = useState<"choose" | "join" | "create" | "lobby">(
     "choose"
   );

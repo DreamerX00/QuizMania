@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import { QuizAttemptService } from '@/services/quizAttemptService';
 import { updatePackageStatsForQuiz } from '@/services/updatePackageStats';
 import { z } from 'zod';
@@ -13,7 +13,8 @@ const attemptSchema = z.object({
 });
 
 export const POST = withValidation(attemptSchema, async (request: any, { params }: { params: Promise<{ quizId: string }> }) => {
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -66,7 +67,8 @@ export const POST = withValidation(attemptSchema, async (request: any, { params 
 // GET endpoint to check if user can attempt a quiz
 const quizIdParamSchema = z.object({ quizId: z.string().min(1) });
 export const GET = withValidation(quizIdParamSchema, async (request: any, { params }: { params: Promise<{ quizId: string }> }) => {
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

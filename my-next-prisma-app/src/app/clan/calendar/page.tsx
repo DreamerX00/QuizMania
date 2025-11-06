@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +41,8 @@ interface Clan {
 }
 
 export default function ClanCalendarPage() {
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [clan, setClan] = useState<Clan | null>(null);
   const [events, setEvents] = useState<ClanEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -138,7 +139,7 @@ export default function ClanCalendarPage() {
             const updatedRsvpList = event.rsvpList.filter(rsvp => rsvp.userId !== user?.id);
             updatedRsvpList.push({
               userId: user?.id || '',
-              userName: user?.fullName || '',
+              userName: user?.name || '',
               status,
               respondedAt: new Date()
             });

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Crown, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -94,7 +94,10 @@ function loadRazorpayScript() {
 const PREMIUM_AMOUNT = 400; // ₹400 in paise
 
 export default function PremiumPage() {
-  const { userId, isLoaded, isSignedIn } = useAuth();
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id;
+  const isLoaded = status !== 'loading';
+  const isSignedIn = status === 'authenticated';
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [testModeData, setTestModeData] = useState<{

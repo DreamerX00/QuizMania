@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from 'next-auth/react';
 import { useSocket } from '@/lib/socket';
 import { useCurrentRoom, useParticipants, useGame, useVoice, useUI, useMultiplayerActions } from '@/store/multiplayer';
 import GameSetup from './_components/GameSetup';
@@ -19,7 +19,8 @@ import { Button } from '@/components/ui/button';
 import { FloatingDock } from '@/components/ui/floating-dock';
 
 export default function MultiplayerArenaPage() {
-  const { userId } = useAuth();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const { isConnected } = useSocket();
   
   // Multiplayer store state

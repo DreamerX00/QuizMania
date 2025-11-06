@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { withValidation } from '@/utils/validation';
 
 // GET: List all clans, or clans the user is a member of
 export async function GET(req: NextRequest) {
-  const { userId } = getAuth(req);
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search') || '';
   const region = searchParams.get('region') || undefined;
@@ -38,8 +39,8 @@ export async function GET(req: NextRequest) {
     const isOpen = true; // TODO: add open/approval logic
     let isMember = false, hasRequested = false;
     if (userId) {
-      isMember = clan.memberships.some(m => m.userId === userId);
-      hasRequested = clan.joinRequests.some(r => r.userId === userId && r.status === 'PENDING');
+      isMember = clan.memberships.some(m => m.id === userId);
+      hasRequested = clan.joinRequests.some(r => r.id === userId && r.status === 'PENDING');
     }
     return {
       id: clan.id,
@@ -68,7 +69,8 @@ const deleteClanSchema = z.object({
 });
 
 export const POST = withValidation(createClanSchema, async (req: any) => {
-  const { userId } = getAuth(req);
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { name, motto, region, emblemUrl } = req.validated;
   // Check for duplicate name
@@ -89,7 +91,7 @@ export const POST = withValidation(createClanSchema, async (req: any) => {
 
 export const DELETE = withValidation(deleteClanSchema, async (request: any) => {
   try {
-    const { userId } = await getAuth(request);
+    const { userId } = await await getCurrentUser();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

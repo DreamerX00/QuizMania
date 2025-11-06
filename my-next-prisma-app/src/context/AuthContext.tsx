@@ -1,6 +1,6 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useUser as useClerkUser } from '@clerk/nextjs';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 // User type for context consumers
 export interface AppUser {
@@ -8,6 +8,7 @@ export interface AppUser {
   email: string;
   name?: string;
   avatarUrl?: string;
+  image?: string;
 }
 
 interface AuthContextType {
@@ -15,43 +16,37 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { user, isSignedIn, isLoaded } = useClerkUser();
+  const { data: session, status } = useSession();
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function syncUser() {
-      if (isLoaded && isSignedIn && user) {
-        console.log('Syncing user to DB:', user.id, user.emailAddresses[0]?.emailAddress);
-        const res = await fetch('/api/users/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            clerkId: user.id,
-            email: user.emailAddresses[0]?.emailAddress || '',
-            name: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : undefined,
-            avatarUrl: user.imageUrl,
-          }),
-        });
-        const dbUser = await res.json();
-        console.log('DB user after sync:', dbUser);
-        setAppUser({
-          id: dbUser.clerkId,
-          email: dbUser.email,
-          name: dbUser.name,
-          avatarUrl: dbUser.avatarUrl,
-        });
-        setLoading(false);
-      } else {
-        setAppUser(null);
-        setLoading(false);
-      }
+    if (status === "loading") {
+      setLoading(true);
+      return;
     }
-    syncUser();
-  }, [isLoaded, isSignedIn, user]);
+
+    if (status === "authenticated" && session?.user) {
+      const user = session.user;
+      setAppUser({
+        id: user.id,
+        email: user.email || "",
+        name: user.name || undefined,
+        avatarUrl: user.avatarUrl || user.image || undefined,
+        image: user.image || undefined,
+      });
+      setLoading(false);
+    } else {
+      setAppUser(null);
+      setLoading(false);
+    }
+  }, [session, status]);
 
   return (
     <AuthContext.Provider value={{ user: appUser, loading }}>
@@ -62,4 +57,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   return useContext(AuthContext);
-} 
+}

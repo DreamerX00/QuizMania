@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/session';
 import prisma from '@/lib/prisma';
 
 // GET: Search users by name or alias (excluding self and existing friends/requests)
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const currentUser = await getCurrentUser();
+  const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -35,12 +36,12 @@ export async function GET(request: NextRequest) {
           { name: { contains: q, mode: 'insensitive' } },
           { alias: { contains: q, mode: 'insensitive' } },
         ],
-        clerkId: { notIn: Array.from(relatedIds) },
+        id: { notIn: Array.from(relatedIds) },
       },
       take: 10,
     });
     return NextResponse.json({ users: users.map(u => ({
-      userId: u.clerkId,
+      userId: u.id,
       name: u.name,
       alias: u.alias,
       avatar: u.avatarUrl,

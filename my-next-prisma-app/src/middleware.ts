@@ -1,39 +1,73 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-  '/',
-  '/login(.*)',
-  '/signup(.*)',
-  '/sso-callback(.*)',
-]);
+// Public routes that don't require authentication
+const publicRoutes = [
+  "/",
+  "/auth/signin",
+  "/auth/error",
+  "/login",
+  "/signup",
+  "/sso-callback",
+];
 
-// Error route matcher copied from root middleware.ts
-const errorCodes = ['401', '403', '404', '500'];
-function isErrorRoute(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  return pathname.startsWith('/errors/');
+// Error route matcher
+const errorCodes = ["401", "403", "404", "500"];
+function isErrorRoute(pathname: string) {
+  return pathname.startsWith("/errors/");
 }
 
-export default clerkMiddleware((auth, req) => {
-  // Error route logic: allow through, but redirect if not a known error code
-  if (isErrorRoute(req)) {
+function isPublicRoute(pathname: string) {
+  return publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
+  );
+}
+
+export default withAuth(
+  function middleware(req) {
     const { pathname } = req.nextUrl;
-    if (!errorCodes.includes(pathname.split('/')[2])) {
-      return NextResponse.redirect(new URL('/errors/404', req.url));
+
+    // Allow error routes
+    if (isErrorRoute(pathname)) {
+      if (!errorCodes.includes(pathname.split("/")[2])) {
+        return NextResponse.redirect(new URL("/errors/404", req.url));
+      }
+      return NextResponse.next();
     }
+
+    // Allow public routes
+    if (isPublicRoute(pathname)) {
+      return NextResponse.next();
+    }
+
+    // Protected routes require authentication (handled by withAuth)
     return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ req, token }) => {
+        const { pathname } = req.nextUrl;
+
+        // Allow public routes and auth routes
+        if (isPublicRoute(pathname) || pathname.startsWith("/api/auth")) {
+          return true;
+        }
+
+        // Require token for protected routes
+        return !!token;
+      },
+    },
+    pages: {
+      signIn: "/auth/signin",
+    },
   }
-  // Clerk protection for non-error, non-public routes
-  if (!isPublicRoute(req)) {
-    auth.protect();
-  }
-});
+);
 
 export const config = {
-  // Protects all routes, including api/trpc.
-  // See https://clerk.com/docs/references/nextjs/auth-middleware
-  // for more information about configuring your Middleware
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)", "/errors/:path*"],
-}; 
+  matcher: [
+    "/((?!.+\\.[\\w]+$|_next).*)",
+    "/",
+    "/(api|trpc)(.*)",
+    "/errors/:path*",
+  ],
+};

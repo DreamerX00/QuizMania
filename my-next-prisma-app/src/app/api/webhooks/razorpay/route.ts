@@ -86,7 +86,7 @@ async function handlePaymentCaptured(payment: any) {
       premiumUntil.setDate(premiumUntil.getDate() + 30);
 
       await prisma.user.update({
-        where: { clerkId: transaction.userId },
+        where: { id: transaction.userId },
         data: {
           accountType: 'PREMIUM',
           premiumUntil: premiumUntil
