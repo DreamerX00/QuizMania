@@ -94,7 +94,7 @@ const RankModal = ({ isOpen, onClose, xp }: RankModalProps) => {
                                       <div className="w-full">
                                         <div className="h-3 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                                           <div
-                                            className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
+                                            className="h-full rounded-full bg-linear-to-r from-purple-500 to-blue-500 transition-all duration-500"
                                             style={{ width: `${rankInfo.progressPercent}%` }}
                                           />
                                         </div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Modal from "@/components/ui/Modal";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Brain, Link2, BookOpen, UserCircle2 } from "lucide-react";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
@@ -129,14 +130,14 @@ export default function QuizInitModal({
           </button>
         </div>
       ) : (
-        <div className="flex flex-col h-full w-full items-center justify-center p-0 md:p-6 bg-gradient-to-br from-[#1a1333] via-[#1e2235] to-[#2a1a3a] dark:from-[#0e0a1a] dark:via-[#181a23] dark:to-[#1a1333]">
+        <div className="flex flex-col h-full w-full items-center justify-center p-0 md:p-6 bg-linear-to-br from-[#1a1333] via-[#1e2235] to-[#2a1a3a] dark:from-[#0e0a1a] dark:via-[#181a23] dark:to-[#1a1333]">
           {/* Hero Icon & Sparkles */}
           <div className="relative flex flex-col items-center mt-8 mb-2 select-none">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 120, damping: 12 }}
-              className="rounded-full bg-gradient-to-tr from-purple-500 via-fuchsia-500 to-blue-400 p-4 shadow-2xl border-4 border-white/10 dark:border-black/20"
+              className="rounded-full bg-linear-to-tr from-purple-500 via-fuchsia-500 to-blue-400 p-4 shadow-2xl border-4 border-white/10 dark:border-black/20"
             >
               <Brain className="w-16 h-16 text-white drop-shadow-xl animate-pulse" />
             </motion.div>
@@ -155,7 +156,7 @@ export default function QuizInitModal({
             className="relative w-[90vw] md:w-[70vw] h-[80vh] max-w-full md:max-w-[1200px] max-h-[90vh] md:max-h-[80vh] rounded-3xl shadow-2xl overflow-hidden border border-purple-700/60 bg-white/70 dark:bg-gray-900/80 backdrop-blur-2xl flex flex-col"
           >
             {/* Animated Gradient Border */}
-            <div className="absolute inset-0 pointer-events-none z-0 rounded-3xl border-4 border-transparent bg-gradient-to-br from-purple-500 via-fuchsia-500 to-blue-400 bg-clip-border animate-gradient-x opacity-60" />
+            <div className="absolute inset-0 pointer-events-none z-0 rounded-3xl border-4 border-transparent bg-linear-to-br from-purple-500 via-fuchsia-500 to-blue-400 bg-clip-border animate-gradient-x opacity-60" />
             {/* Tab Navigation */}
             <div className="relative flex gap-2 px-4 md:px-8 pt-6 md:pt-8 pb-2 z-10">
               {TABS.map((t) => {
@@ -167,7 +168,7 @@ export default function QuizInitModal({
                     className={`relative flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition border-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-400/60 focus:ring-offset-2
                     ${
                       isActive
-                        ? "bg-gradient-to-tr from-purple-500 via-fuchsia-500 to-blue-400 text-white border-fuchsia-400 shadow-lg"
+                        ? "bg-linear-to-tr from-purple-500 via-fuchsia-500 to-blue-400 text-white border-fuchsia-400 shadow-lg"
                         : "bg-white/30 dark:bg-gray-800/40 text-gray-700 dark:text-gray-200 border-transparent hover:bg-fuchsia-100/30 dark:hover:bg-fuchsia-900/20"
                     }
                   `}
@@ -180,7 +181,7 @@ export default function QuizInitModal({
                     {isActive && (
                       <motion.div
                         layoutId="tab-underline"
-                        className="absolute left-0 right-0 -bottom-1 h-1 rounded-b-xl bg-gradient-to-r from-fuchsia-400 via-purple-400 to-blue-400"
+                        className="absolute left-0 right-0 -bottom-1 h-1 rounded-b-xl bg-linear-to-r from-fuchsia-400 via-purple-400 to-blue-400"
                       />
                     )}
                   </button>
@@ -189,7 +190,7 @@ export default function QuizInitModal({
             </div>
             {/* Content Area */}
             <div
-              className={`relative z-10 flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-4 md:py-6 transition-all duration-300 bg-gradient-to-br ${
+              className={`relative z-10 flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-4 md:py-6 transition-all duration-300 bg-linear-to-br ${
                 tabBg[tab as keyof typeof tabBg]
               } rounded-2xl overflow-y-auto`}
             >
@@ -228,11 +229,13 @@ export default function QuizInitModal({
                     className="flex flex-col items-center gap-3 w-full"
                   >
                     <div className="relative">
-                      <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-yellow-300 via-fuchsia-400 to-purple-400 blur-lg opacity-60 animate-pulse" />
+                      <div className="absolute -inset-1 rounded-full bg-linear-to-tr from-yellow-300 via-fuchsia-400 to-purple-400 blur-lg opacity-60 animate-pulse" />
                       {creatorInfo.profileImage ? (
-                        <img
+                        <Image
                           src={creatorInfo.profileImage}
                           alt={creatorInfo.name}
+                          width={80}
+                          height={80}
                           className="w-20 h-20 rounded-full border-4 border-fuchsia-400 shadow-xl relative z-10"
                         />
                       ) : (
@@ -266,7 +269,7 @@ export default function QuizInitModal({
                     {!link && (
                       <motion.button
                         whileTap={{ scale: 0.97 }}
-                        className="px-6 py-3 rounded-xl bg-gradient-to-tr from-fuchsia-500 via-purple-500 to-blue-400 text-white font-bold text-lg shadow-lg hover:brightness-110 transition flex items-center gap-2"
+                        className="px-6 py-3 rounded-xl bg-linear-to-tr from-fuchsia-500 via-purple-500 to-blue-400 text-white font-bold text-lg shadow-lg hover:brightness-110 transition flex items-center gap-2"
                         onClick={handleGenerateLink}
                         disabled={linkLoading || !consent}
                       >
@@ -348,7 +351,7 @@ export default function QuizInitModal({
             <div className="flex justify-end mt-6 px-4 md:px-8 pb-6 md:pb-8">
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                className="px-10 py-4 rounded-2xl bg-gradient-to-tr from-fuchsia-500 via-purple-500 to-blue-400 text-white font-bold text-xl shadow-xl hover:brightness-110 transition disabled:opacity-60 disabled:grayscale focus:outline-none focus:ring-2 focus:ring-fuchsia-400/60 focus:ring-offset-2"
+                className="px-10 py-4 rounded-2xl bg-linear-to-tr from-fuchsia-500 via-purple-500 to-blue-400 text-white font-bold text-xl shadow-xl hover:brightness-110 transition disabled:opacity-60 disabled:grayscale focus:outline-none focus:ring-2 focus:ring-fuchsia-400/60 focus:ring-offset-2"
                 onClick={onAcknowledge}
                 disabled={loading || (tab === "link" && !link) || !consent}
                 aria-disabled={loading || (tab === "link" && !link) || !consent}
@@ -362,3 +365,4 @@ export default function QuizInitModal({
     </Modal>
   );
 }
+

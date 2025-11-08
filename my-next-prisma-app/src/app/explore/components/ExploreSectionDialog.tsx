@@ -43,9 +43,9 @@ export default function ExploreSectionDialog({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-lg pt-16 sm:pt-16">
       <div className="absolute inset-0" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-6xl h-[calc(90vh-4rem)] bg-gradient-to-br from-[#181a2a]/90 to-[#23234d]/90 border border-purple-500/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden mt-0">
+      <div className="relative z-10 w-full max-w-6xl h-[calc(90vh-4rem)] bg-linear-to-br from-[#181a2a]/90 to-[#23234d]/90 border border-purple-500/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden mt-0">
         <div className="flex items-center justify-between px-8 py-6 border-b border-white/10">
-          <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent animate-gradient-move">
+          <h2 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent animate-gradient-move">
             {title}
           </h2>
           <button onClick={onClose} className="text-white/70 hover:text-white hover:scale-110 transition-transform" aria-label="Close">

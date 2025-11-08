@@ -13,15 +13,31 @@ const LOTTIE_URLS: Record<string, string> = {
   "500": "https://assets2.lottiefiles.com/packages/lf20_j1adxtyb.json", // Server Error
 };
 
-const ERROR_CONFIG: Record<string, any> = {
+interface ErrorCTA {
+  label: string;
+  href?: string;
+  action?: string;
+  primary: boolean;
+}
+
+interface ErrorConfig {
+  code: string;
+  title: string;
+  message: string;
+  accent: string;
+  cta: ErrorCTA[];
+  animation: string;
+}
+
+const ERROR_CONFIG: Record<string, ErrorConfig> = {
   "401": {
     code: "401",
     title: "Oops, You Need to Log In!",
     message:
-      "We couldn’t verify your identity. Please sign in to access this page.",
+      "We couldn't verify your identity. Please sign in to access this page.",
     accent: "from-yellow-200 via-yellow-400 to-red-400",
     cta: [
-      { label: "Sign In", href: "/login", primary: true },
+      { label: "Sign In", href: "/auth/signin", primary: true },
       { label: "Back to Home", href: "/", primary: false },
     ],
     animation: "/assets/animations/unauthorized.json", // placeholder
@@ -103,8 +119,8 @@ function ReportIssueModal({
       });
       if (!res.ok) throw new Error("Failed to submit report");
       setSubmitted(true);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     }
   }
 
@@ -129,7 +145,7 @@ function ReportIssueModal({
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <textarea
-              className="rounded border border-gray-300 dark:border-gray-700 p-2 min-h-[80px] resize-y bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="rounded border border-gray-300 dark:border-gray-700 p-2 min-h-20 resize-y bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               placeholder="Describe the issue..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -158,7 +174,7 @@ export default function ErrorPage() {
     ERROR_CONFIG[status as keyof typeof ERROR_CONFIG] || ERROR_CONFIG["404"];
   const [showReport, setShowReport] = useState(false);
 
-  function handleCTA(cta: any) {
+  function handleCTA(cta: ErrorCTA) {
     if (cta.action === "reload") {
       router.refresh();
     } else if (cta.action === "report") {
@@ -168,7 +184,7 @@ export default function ErrorPage() {
 
   return (
     <main
-      className={`min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-gradient-to-br ${config.accent} dark:from-gray-900 dark:to-gray-950 transition-colors duration-500`}
+      className={`min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-linear-to-br ${config.accent} dark:from-gray-900 dark:to-gray-950 transition-colors duration-500`}
     >
       {/* Logo/Header */}
       <Link
@@ -177,14 +193,14 @@ export default function ErrorPage() {
         aria-label="Go to homepage"
       >
         {/* Replace with logo SVG if available */}
-        <span className="text-2xl font-heading text-[var(--primary-accent)]">
+        <span className="text-2xl font-heading text-(--primary-accent)">
           QuizMania
         </span>
       </Link>
       {/* Animation */}
       <LottieErrorAnimation code={config.code} />
       {/* Error Code & Title */}
-      <h1 className="text-5xl font-bold font-heading text-[var(--primary-accent)] dark:text-purple-400 mb-2">
+      <h1 className="text-5xl font-bold font-heading text-(--primary-accent) dark:text-purple-400 mb-2">
         {config.code}
       </h1>
       <h2 className="text-2xl font-semibold mt-2 text-gray-800 dark:text-gray-200 text-center">
@@ -195,34 +211,40 @@ export default function ErrorPage() {
       </p>
       {/* CTA Buttons */}
       <div className="mt-6 flex flex-wrap gap-4 justify-center">
-        {config.cta.map((cta: any, i: number) =>
-          cta.href ? (
-            <Link
-              key={cta.label}
-              href={cta.href}
-              className={`futuristic-button ${
-                cta.primary
-                  ? "scale-105"
-                  : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
-              } transition-transform duration-300 focus:ring-4 focus:ring-[var(--primary-accent)]`}
-              aria-label={cta.label}
-            >
-              {cta.label}
-            </Link>
-          ) : (
-            <button
-              key={cta.label}
-              onClick={() => handleCTA(cta)}
-              className={`futuristic-button ${
-                cta.primary
-                  ? "scale-105"
-                  : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
-              } transition-transform duration-300 focus:ring-4 focus:ring-[var(--primary-accent)]`}
-              aria-label={cta.label}
-            >
-              {cta.label}
-            </button>
-          )
+        {config.cta.map(
+          (cta: {
+            label: string;
+            href?: string;
+            onClick?: () => void;
+            primary: boolean;
+          }) =>
+            cta.href ? (
+              <Link
+                key={cta.label}
+                href={cta.href}
+                className={`futuristic-button ${
+                  cta.primary
+                    ? "scale-105"
+                    : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
+                } transition-transform duration-300 focus:ring-4 focus:ring-(--primary-accent)`}
+                aria-label={cta.label}
+              >
+                {cta.label}
+              </Link>
+            ) : (
+              <button
+                key={cta.label}
+                onClick={() => handleCTA(cta)}
+                className={`futuristic-button ${
+                  cta.primary
+                    ? "scale-105"
+                    : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
+                } transition-transform duration-300 focus:ring-4 focus:ring-(--primary-accent)`}
+                aria-label={cta.label}
+              >
+                {cta.label}
+              </button>
+            )
         )}
       </div>
       {/* Report Issue Modal for 500 */}

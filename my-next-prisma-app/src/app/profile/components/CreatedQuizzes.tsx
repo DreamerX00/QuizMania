@@ -11,22 +11,22 @@ export function CreatedQuizzes() {
   );
 
   if (isLoading || !data) {
-    return <div className="bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />;
+    return <div className="bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />;
   }
 
   const quizzes = Array.isArray(data) ? data : [];
 
   return (
     <motion.div
-      className="relative bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
+      className="relative bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.7 }}
     >
       {/* Floating Orbs */}
-      <div className="absolute -top-8 -right-8 w-16 h-16 bg-gradient-to-br from-yellow-400/10 to-pink-400/10 dark:from-yellow-400/20 dark:to-pink-400/20 rounded-full blur-2xl animate-float z-0" />
-      <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '2s' }} />
+      <div className="absolute -top-8 -right-8 w-16 h-16 bg-linear-to-br from-yellow-400/10 to-pink-400/10 dark:from-yellow-400/20 dark:to-pink-400/20 rounded-full blur-2xl animate-float z-0" />
+      <div className="absolute bottom-0 left-0 w-12 h-12 bg-linear-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '2s' }} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 z-10 relative">
         {quizzes.length === 0 ? (
           <div className="text-gray-500 dark:text-gray-500 col-span-2 text-center py-8">No quizzes created yet.</div>
@@ -34,7 +34,7 @@ export function CreatedQuizzes() {
           quizzes.map((quiz: any, i: number) => (
             <motion.div
               key={quiz.id}
-              className="bg-gradient-to-br from-yellow-100 to-pink-100 dark:from-yellow-900/60 dark:to-pink-900/40 rounded-xl p-3 flex flex-col gap-2 hover:scale-[1.02] transition shadow border border-gray-200 dark:border-white/10 backdrop-blur-md"
+              className="bg-linear-to-br from-yellow-100 to-pink-100 dark:from-yellow-900/60 dark:to-pink-900/40 rounded-xl p-3 flex flex-col gap-2 hover:scale-[1.02] transition shadow border border-gray-200 dark:border-white/10 backdrop-blur-md"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

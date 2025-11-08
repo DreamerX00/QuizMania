@@ -116,3 +116,4 @@ const ClanModule = () => {
 };
 
 export default ClanModule;
+

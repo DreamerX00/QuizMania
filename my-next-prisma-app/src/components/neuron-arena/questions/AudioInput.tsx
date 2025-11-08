@@ -42,12 +42,12 @@ const AudioInput = ({ question }: { question: Question }) => {
         progressColor: "#00C2FF",
         height: 48,
         barWidth: 2,
-      } as any);
+      });
       ws.load(audioUrl);
       setWaveform(ws);
       return () => ws.destroy();
     }
-  }, [audioUrl]);
+  }, [audioUrl, waveform]);
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -127,7 +127,7 @@ const AudioInput = ({ question }: { question: Question }) => {
         accept="audio/*"
         onChange={handleFile}
         aria-label="Upload audio response"
-        className="focus:ring-2 focus:ring-[var(--primary-accent)] rounded"
+        className="focus:ring-2 focus:ring-(--primary-accent) rounded"
       />
       {file && (
         <motion.div
@@ -188,3 +188,4 @@ const AudioInput = ({ question }: { question: Question }) => {
 };
 
 export default AudioInput;
+

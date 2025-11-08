@@ -14,11 +14,9 @@ import {
   Lock,
   Globe,
   UsersRound,
-  Droplets,
   BrainCircuit,
   Globe2,
   Settings,
-  Zap,
   Target,
   Shield,
 } from "lucide-react";
@@ -123,7 +121,7 @@ const GameSetup = () => {
 
   if (isLoading)
     return (
-      <div className="h-full bg-gradient-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex items-center justify-center border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl">
+      <div className="h-full bg-linear-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex items-center justify-center border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-slate-600 dark:text-slate-400">Loading setup...</p>
@@ -133,7 +131,7 @@ const GameSetup = () => {
 
   if (error)
     return (
-      <div className="h-full bg-gradient-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex items-center justify-center border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl">
+      <div className="h-full bg-linear-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex items-center justify-center border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl">
         <div className="text-center text-red-500">
           <p>Failed to load game setup.</p>
         </div>
@@ -145,10 +143,10 @@ const GameSetup = () => {
       initial={{ opacity: 0, x: -50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="h-full bg-gradient-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex flex-col gap-6 text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
+      className="h-full bg-linear-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex flex-col gap-6 text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
     >
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
 
       {/* Header */}
       <div className="relative z-10 flex items-center gap-3">
@@ -156,7 +154,7 @@ const GameSetup = () => {
           <Settings className="w-6 h-6 text-purple-600 dark:text-purple-400" />
           <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
         </div>
-        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+        <h2 className="text-xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
           Battle Configuration
         </h2>
       </div>
@@ -205,7 +203,7 @@ const GameSetup = () => {
               onClick={() => handleGameModeClick(mode.name)}
               className={`p-4 rounded-xl cursor-pointer flex flex-col items-center justify-center gap-2 border transition-all duration-300 ${
                 selectedGameMode === mode.name
-                  ? "bg-gradient-to-br from-purple-600 to-blue-600 border-purple-500 text-white shadow-lg shadow-purple-600/30"
+                  ? "bg-linear-to-br from-purple-600 to-blue-600 border-purple-500 text-white shadow-lg shadow-purple-600/30"
                   : "bg-white/80 dark:bg-slate-800/80 border-slate-300/50 dark:border-slate-600/50 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md"
               }`}
             >
@@ -239,7 +237,7 @@ const GameSetup = () => {
               className={({ isSelected }) =>
                 `flex items-center justify-center gap-2 p-3 rounded-lg cursor-pointer transition-all duration-300 ${
                   isSelected
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                    ? "bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-lg"
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                 }`
               }
@@ -251,7 +249,7 @@ const GameSetup = () => {
               className={({ isSelected }) =>
                 `flex items-center justify-center gap-2 p-3 rounded-lg cursor-pointer transition-all duration-300 ${
                   isSelected
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                    ? "bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-lg"
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                 }`
               }
@@ -263,7 +261,7 @@ const GameSetup = () => {
               className={({ isSelected }) =>
                 `flex items-center justify-center gap-2 p-3 rounded-lg cursor-pointer transition-all duration-300 ${
                   isSelected
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                    ? "bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-lg"
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                 }`
               }
@@ -302,11 +300,11 @@ const GameSetup = () => {
       </div>
 
       {/* Spacer */}
-      <div className="flex-grow"></div>
+      <div className="grow"></div>
 
       {/* Impact Indicator */}
       <div className="relative z-10">
-        <div className="bg-gradient-to-r from-white/80 to-slate-50/80 dark:from-slate-800/80 dark:to-slate-700/80 rounded-2xl p-4 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm shadow-lg">
+        <div className="bg-linear-to-r from-white/80 to-slate-50/80 dark:from-slate-800/80 dark:to-slate-700/80 rounded-2xl p-4 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -358,3 +356,4 @@ const GameSetup = () => {
 };
 
 export default GameSetup;
+

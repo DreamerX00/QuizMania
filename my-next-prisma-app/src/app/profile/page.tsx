@@ -48,7 +48,7 @@ export default function ProfilePage() {
   // Improved loading state: show spinner if user context or profile is loading/validating
   if (loading || profileValidating) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-white dark:bg-gradient-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white">
+      <main className="min-h-screen flex items-center justify-center bg-white dark:bg-linear-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white">
         <div className="text-xl">Loading profile...</div>
       </main>
     );
@@ -56,7 +56,7 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-white dark:bg-gradient-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white">
+      <main className="min-h-screen flex items-center justify-center bg-white dark:bg-linear-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white">
         <div className="text-xl">You must be signed in to view this page.</div>
       </main>
     );
@@ -65,7 +65,7 @@ export default function ProfilePage() {
   // Improved error handling: show retry button if fetch failed
   if (profileData?.error || profileError) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-white dark:bg-gradient-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white">
+      <main className="min-h-screen flex items-center justify-center bg-white dark:bg-linear-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white">
         <div className="bg-white dark:bg-[#181a2a]/90 p-8 rounded-2xl shadow-2xl text-center border border-gray-200 dark:border-white/10">
           <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Profile Not Found</h1>
           <p className="mb-4 text-gray-600 dark:text-gray-300">We couldn't find your profile in the database. Try logging out and logging in again, or contact support if the issue persists.</p>
@@ -81,11 +81,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white relative overflow-x-hidden pt-16 md:pt-20">
+    <main className="min-h-screen bg-white dark:bg-linear-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white relative overflow-x-hidden pt-16 md:pt-20">
       {/* Floating Orbs */}
-      <div className="absolute -top-20 -left-20 w-60 h-60 bg-gradient-to-br from-purple-500/10 to-blue-600/10 dark:from-purple-500/30 dark:to-blue-600/30 rounded-full blur-3xl animate-float z-0" />
-      <div className="absolute top-1/2 right-0 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-purple-600/10 dark:from-blue-500/30 dark:to-purple-600/30 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '2s' }} />
-      <div className="absolute bottom-0 left-1/3 w-32 h-32 bg-gradient-to-br from-yellow-500/10 to-orange-600/10 dark:from-yellow-500/20 dark:to-orange-600/20 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '4s' }} />
+      <div className="absolute -top-20 -left-20 w-60 h-60 bg-linear-to-br from-purple-500/10 to-blue-600/10 dark:from-purple-500/30 dark:to-blue-600/30 rounded-full blur-3xl animate-float z-0" />
+      <div className="absolute top-1/2 right-0 w-40 h-40 bg-linear-to-br from-blue-500/10 to-purple-600/10 dark:from-blue-500/30 dark:to-purple-600/30 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '2s' }} />
+      <div className="absolute bottom-0 left-1/3 w-32 h-32 bg-linear-to-br from-yellow-500/10 to-orange-600/10 dark:from-yellow-500/20 dark:to-orange-600/20 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '4s' }} />
       <section className="relative z-10 max-w-7xl mx-auto py-8 sm:py-12 px-2 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
         {/* Left Column */}
         <div className="flex flex-col gap-6 sm:gap-8 col-span-1">
@@ -142,11 +142,11 @@ export default function ProfilePage() {
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <span className="h-1 w-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-glow" />
-      <h2 className="text-xl md:text-2xl font-bold futuristic-title tracking-wide bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent animate-gradient-move">
+      <span className="h-1 w-6 bg-linear-to-r from-purple-500 to-blue-500 rounded-full animate-glow" />
+      <h2 className="text-xl md:text-2xl font-bold futuristic-title tracking-wide bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent animate-gradient-move">
         {children}
       </h2>
-      <span className="flex-1 h-0.5 bg-gradient-to-r from-blue-500/40 to-transparent rounded-full" />
+      <span className="flex-1 h-0.5 bg-linear-to-r from-blue-500/40 to-transparent rounded-full" />
     </div>
   );
 } 

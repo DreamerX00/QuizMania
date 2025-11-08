@@ -6,7 +6,6 @@ import {
   Vote,
   Puzzle,
   FileText,
-  Mic,
   CheckSquare,
   Target,
   Zap,
@@ -17,6 +16,11 @@ import {
 import VoteTypesDialog from "../components/VoteTypesDialog";
 import toast from "react-hot-toast";
 import useSWR from "swr";
+
+interface VoteData {
+  type: string;
+  count: number;
+}
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -79,18 +83,18 @@ const VotingSystem = memo(function VotingSystem({
 
   const votes = data?.votes || [];
   const getVoteCount = (type: string) =>
-    votes.find((v: any) => v.type === type)?.count || 0;
-  const totalVotes = votes.reduce((a: number, v: any) => a + v.count, 0);
+    votes.find((v: VoteData) => v.type === type)?.count || 0;
+  const totalVotes = votes.reduce((a: number, v: VoteData) => a + v.count, 0);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className="h-full bg-gradient-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-4 sm:p-6 flex flex-col text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
+      className="h-full bg-linear-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-4 sm:p-6 flex flex-col text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
     >
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
 
       {/* Header */}
       <div className="relative z-10 flex items-center justify-between mb-4 sm:mb-6">
@@ -100,7 +104,7 @@ const VotingSystem = memo(function VotingSystem({
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h2 className="text-lg sm:text-xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               Match Type Vote
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
@@ -130,10 +134,10 @@ const VotingSystem = memo(function VotingSystem({
           >
             {/* Icon */}
             <div
-              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${option.bgColor} border ${option.borderColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
+              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-linear-to-br ${option.bgColor} border ${option.borderColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
             >
               <div
-                className={`text-white bg-gradient-to-br ${option.color} bg-clip-text text-transparent`}
+                className={`text-white bg-linear-to-br ${option.color} bg-clip-text text-transparent`}
               >
                 {option.icon}
               </div>
@@ -147,7 +151,7 @@ const VotingSystem = memo(function VotingSystem({
             {/* Progress Bar */}
             <div className="w-full bg-slate-200/80 dark:bg-slate-700/80 rounded-full h-2 relative overflow-hidden">
               <motion.div
-                className={`absolute top-0 left-0 h-full bg-gradient-to-r ${option.color} rounded-full`}
+                className={`absolute top-0 left-0 h-full bg-linear-to-r ${option.color} rounded-full`}
                 initial={{ width: 0 }}
                 animate={{
                   width: `${
@@ -169,7 +173,7 @@ const VotingSystem = memo(function VotingSystem({
             {/* Vote Button */}
             <Button
               size="sm"
-              className={`w-full bg-gradient-to-r ${option.color} hover:opacity-90 text-white font-semibold border-none shadow-lg transition-all duration-300 group-hover:shadow-xl`}
+              className={`w-full bg-linear-to-r ${option.color} hover:opacity-90 text-white font-semibold border-none shadow-lg transition-all duration-300 group-hover:shadow-xl`}
               onClick={() => handleVote(option.name)}
             >
               <Zap className="w-4 h-4 mr-2" />
@@ -209,7 +213,7 @@ const VotingSystem = memo(function VotingSystem({
             setShowDialog(true);
             toast("Viewing all vote types...");
           }}
-          className="bg-gradient-to-r from-lime-500 to-green-500 hover:from-lime-600 hover:to-green-600 text-white font-semibold px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+          className="bg-linear-to-r from-lime-500 to-green-500 hover:from-lime-600 hover:to-green-600 text-white font-semibold px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
         >
           <Target className="w-4 h-4 mr-2" />
           View All Types
@@ -225,3 +229,4 @@ const VotingSystem = memo(function VotingSystem({
 });
 
 export default VotingSystem;
+

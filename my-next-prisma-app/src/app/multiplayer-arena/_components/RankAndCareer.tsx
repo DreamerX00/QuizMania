@@ -28,7 +28,7 @@ const Confetti = ({ show }: { show: boolean }) => (
 
 const ThreeDBadgePlaceholder = ({ rankName }: { rankName: string }) => (
   <div className="mt-6 flex flex-col items-center">
-    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-200 via-purple-400 to-blue-400 shadow-2xl flex items-center justify-center animate-pulse border-4 border-white/20">
+    <div className="w-24 h-24 rounded-full bg-linear-to-br from-yellow-200 via-purple-400 to-blue-400 shadow-2xl flex items-center justify-center animate-pulse border-4 border-white/20">
       <span className="text-4xl">🏅</span>
     </div>
     <div className="text-xs text-slate-400 mt-2">3D Badge Coming Soon for {rankName}</div>

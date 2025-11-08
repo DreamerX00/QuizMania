@@ -20,6 +20,7 @@ enum Role {
 enum AccountType {
   FREE
   PREMIUM
+  PREMIUM_PLUS
   LIFETIME
 }
 
@@ -113,6 +114,46 @@ enum ReportStatus {
   UnderReview
 }
 
+// ==========================================
+// AI QUIZ GENERATION SYSTEM ENUMS
+// ==========================================
+
+enum AIProviderType {
+  OPENAI
+  ANTHROPIC
+  GOOGLE_GEMINI
+  COHERE
+  MISTRAL
+  META_LLAMA
+  PERPLEXITY
+  AI21
+  HUGGINGFACE
+  OTHER
+}
+
+enum AIQuizStatus {
+  DRAFT
+  GENERATING
+  READY
+  ACTIVE
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+enum DifficultyTier {
+  NOVICE // Level 1
+  BEGINNER // Level 2
+  ELEMENTARY // Level 3
+  INTERMEDIATE // Level 4
+  ADVANCED // Level 5
+  EXPERT // Level 6
+  MASTER // Level 7
+  VIRTUOSO // Level 8
+  LEGENDARY // Level 9
+  GOD_LEVEL // Level 10
+}
+
 model reports {
   id          String       @id @default(uuid())
   description String
@@ -183,6 +224,12 @@ model User {
   reportsReceived            UserReport[]         @relation("Reported")
   adminLogs                  AdminLog[]           @relation("AdminLogs")
   userAchievements           UserAchievement[]
+
+  // AI Quiz Relations
+  aiGeneratedQuizzes    AIGeneratedQuiz[]
+  aiQuizAttempts        AIQuizAttempt[]
+  aiQuizGenerationQuota AIQuizGenerationQuota?
+  aiQuizAchievements    AIQuizAchievement[]
 }
 
 // NextAuth models
@@ -770,4 +817,282 @@ model UserAchievement {
   @@unique([userId, achievementId])
   @@index([userId])
   @@index([achievementId])
+}
+
+// ==========================================
+// AI QUIZ GENERATION SYSTEM MODELS
+// ==========================================
+
+// AI Provider Configuration (Admin Only)
+model AIProvider {
+  id           String         @id @default(cuid())
+  name         String         @unique // "OpenAI", "Anthropic", etc.
+  type         AIProviderType
+  apiKeyEnvVar String // Name of env variable (e.g., "OPENAI_API_KEY")
+  apiEndpoint  String
+  modelName    String // "gpt-4o", "claude-3-5-sonnet-20241022"
+  modelVersion String?
+
+  // Capabilities
+  maxTokens           Int      @default(4096)
+  maxQuestionsPerCall Int      @default(50)
+  supportsStreaming   Boolean  @default(false)
+  supportsImages      Boolean  @default(false)
+  supportsCode        Boolean  @default(true)
+  supportedLanguages  String[] @default(["en"])
+
+  // Performance & Cost
+  avgResponseTime   Int   @default(30) // seconds
+  costPerRequest    Float @default(0.0) // USD
+  tokensPerQuestion Int   @default(500) // estimated
+  successRate       Float @default(0.95)
+
+  // Status
+  isActive      Boolean @default(true)
+  isRecommended Boolean @default(false)
+  isPremiumOnly Boolean @default(false)
+
+  // Metadata
+  description String? @db.Text
+  icon        String?
+  websiteUrl  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  generatedQuizzes AIGeneratedQuiz[]
+
+  @@index([isActive, isRecommended])
+}
+
+// AI Generated Quiz
+model AIGeneratedQuiz {
+  id         String @id @default(cuid())
+  slug       String @unique
+  userId     String
+  providerId String
+
+  // Quiz Configuration
+  title       String  @default("AI Generated Quiz")
+  description String? @db.Text
+
+  subject   String // "Mathematics", "Science", "History", etc.
+  className String? // "10th Grade", "Undergraduate", "Professional"
+  domain    String? // "Algebra", "Physics", "World History"
+  topics    String[] // ["Quadratic Equations", "Polynomials"]
+
+  difficultyLevel Int // 1-10
+  difficultyTier  DifficultyTier
+  questionCount   Int
+
+  // AI Generation Details
+  aiPrompt       String    @db.Text
+  aiResponse     String?   @db.Text
+  generationTime Int // milliseconds
+  tokensUsed     Int       @default(0)
+  modelUsed      String
+  generatedAt    DateTime?
+
+  // Quiz Content (JSON Structure)
+  questions Json // Array of QuestionObject
+
+  // Quiz Settings
+  timeLimit        Int? // seconds (null = unlimited)
+  allowSkip        Boolean @default(true)
+  showExplanations Boolean @default(true)
+  shuffleQuestions Boolean @default(true)
+  shuffleOptions   Boolean @default(true)
+  isAdaptive       Boolean @default(false)
+
+  // Access Control
+  status          AIQuizStatus @default(DRAFT)
+  isPublic        Boolean      @default(false)
+  allowReplay     Boolean      @default(true)
+  requiresPremium Boolean      @default(true)
+
+  // XP & Rewards
+  baseXP            Int
+  bonusXPMultiplier Float   @default(1.0)
+  perfectScoreBonus Int     @default(0)
+  speedBonusEnabled Boolean @default(true)
+
+  // Statistics
+  viewCount      Int   @default(0)
+  attemptCount   Int   @default(0)
+  averageScore   Float @default(0)
+  completionRate Float @default(0)
+
+  // Metadata
+  tags       String[] @default([])
+  isArchived Boolean  @default(false)
+  isFeatured Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider AIProvider      @relation(fields: [providerId], references: [id])
+  attempts AIQuizAttempt[]
+
+  @@index([userId, status])
+  @@index([subject, difficultyLevel])
+  @@index([isPublic, isFeatured])
+  @@index([createdAt])
+}
+
+// User's Quiz Attempt
+model AIQuizAttempt {
+  id            String @id @default(cuid())
+  quizId        String
+  userId        String
+  attemptNumber Int    @default(1)
+
+  // Attempt Status
+  status String @default("in-progress") // in-progress, completed, abandoned
+
+  // Answers (JSON Structure)
+  answers Json // {questionId: {selected: string, timeSpent: number, skipped: boolean}}
+
+  // Scoring
+  totalQuestions Int
+  correctCount   Int   @default(0)
+  wrongCount     Int   @default(0)
+  skippedCount   Int   @default(0)
+  score          Int   @default(0) // Out of 100
+  percentage     Float @default(0)
+
+  // Timing
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  totalTimeSpent  Int       @default(0) // seconds
+  averageTimePerQ Int       @default(0) // seconds
+
+  // Performance Metrics
+  accuracy      Float @default(0)
+  streak        Int   @default(0)
+  fastestAnswer Int? // seconds
+  slowestAnswer Int? // seconds
+
+  // XP & Rewards
+  xpEarned      Int @default(0)
+  baseXP        Int @default(0)
+  accuracyBonus Int @default(0)
+  speedBonus    Int @default(0)
+  streakBonus   Int @default(0)
+  perfectBonus  Int @default(0)
+
+  // Additional Data
+  deviceType String?
+  userAgent  String?
+  ipAddress  String?
+
+  // Review Status
+  hasReviewed Boolean   @default(false)
+  reviewedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  quiz AIGeneratedQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, userId, attemptNumber])
+  @@index([userId, status])
+  @@index([quizId])
+  @@index([createdAt])
+}
+
+// Quiz Generation Quota Tracking
+model AIQuizGenerationQuota {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Daily Quota
+  dailyLimit    Int // Based on plan: Basic=5, Plus=15, Lifetime=999
+  dailyUsed     Int      @default(0)
+  lastResetDate DateTime @default(now())
+
+  // Lifetime Stats
+  totalGenerated Int @default(0)
+  totalAttempts  Int @default(0)
+  totalXPEarned  Int @default(0)
+
+  // Current Session
+  currentStreak Int @default(0)
+  longestStreak Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lastResetDate])
+}
+
+// Pre-made Quiz Templates
+model AIQuizTemplate {
+  id          String @id @default(cuid())
+  name        String
+  description String @db.Text
+  icon        String @default("📝")
+  category    String // "Exam Prep", "Study Guide", "Practice Test"
+
+  // Pre-configured Settings
+  subject         String
+  className       String?
+  domain          String?
+  topics          String[]
+  difficultyLevel Int
+  difficultyTier  DifficultyTier
+  questionCount   Int
+  timeLimit       Int?
+
+  // AI Instructions
+  customPrompt  String?  @db.Text
+  focusAreas    String[] @default([])
+  excludeTopics String[] @default([])
+
+  // Template Settings
+  isPopular     Boolean @default(false)
+  isFeatured    Boolean @default(false)
+  isPremiumOnly Boolean @default(false)
+
+  // Usage Stats
+  usageCount    Int   @default(0)
+  averageRating Float @default(0)
+
+  // Metadata
+  tags      String[] @default([])
+  createdBy String? // userId or "system"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPopular, isFeatured])
+  @@index([category, subject])
+}
+
+// User's AI Quiz Achievements
+model AIQuizAchievement {
+  id     String @id @default(cuid())
+  userId String
+
+  achievementKey  String // "first_ai_quiz", "perfectionist", "speed_demon"
+  achievementName String
+  description     String
+  icon            String
+
+  unlockedAt DateTime @default(now())
+
+  // Stats at unlock time
+  totalQuizzes Int @default(0)
+  totalScore   Int @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementKey])
+  @@index([userId])
 }

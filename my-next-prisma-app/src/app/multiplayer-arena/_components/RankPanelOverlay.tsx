@@ -19,7 +19,7 @@ const StatCard = ({ icon, label, value, color = "purple" }: { icon: React.ReactN
     whileHover={{ scale: 1.02, y: -2 }}
     className={`bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 flex items-center gap-4 shadow-lg hover:shadow-xl transition-all duration-300`}
   >
-    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br from-${color}-500/10 to-${color}-600/10 border border-${color}-500/30 flex items-center justify-center`}>
+    <div className={`w-12 h-12 rounded-xl bg-linear-to-br from-${color}-500/10 to-${color}-600/10 border border-${color}-500/30 flex items-center justify-center`}>
       <div className={`text-${color}-600 dark:text-${color}-400`}>{icon}</div>
     </div>
     <div>
@@ -83,14 +83,14 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-6xl max-h-[90vh] bg-gradient-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-6xl max-h-[90vh] bg-linear-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Background Pattern */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
+            <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
             
             {/* Header */}
-            <div className="relative z-10 p-6 pb-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
+            <div className="relative z-10 p-6 pb-4 bg-linear-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
@@ -98,7 +98,7 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                     <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   </div>
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    <h2 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                       Battle Rank
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
@@ -137,7 +137,7 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                   <div className="w-full mt-2">
                     <div className="h-3 rounded-full bg-slate-200/80 dark:bg-slate-700/80 overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500"
+                        className="h-full rounded-full bg-linear-to-r from-purple-500 to-blue-500"
                         initial={{ width: 0 }}
                         animate={{ width: `${data?.progressPercent || 0}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
@@ -154,28 +154,28 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                 <TabsList className="mx-6 mt-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-600/50 rounded-xl p-1">
                   <TabsTrigger 
                     value="overview" 
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
+                    className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <Target className="w-4 h-4 mr-2" />
                     Overview
                   </TabsTrigger>
                   <TabsTrigger 
                     value="history" 
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
+                    className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <Clock className="w-4 h-4 mr-2" />
                     Battles
                   </TabsTrigger>
                   <TabsTrigger 
                     value="rank-history" 
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
+                    className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <Trophy className="w-4 h-4 mr-2" />
                     Progression
                   </TabsTrigger>
                   <TabsTrigger 
                     value="performance" 
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
+                    className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <TrendingUp className="w-4 h-4 mr-2" />
                     Analytics
@@ -300,7 +300,7 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm rounded-2xl border border-purple-200/50 dark:border-purple-700/50 shadow-lg hover:shadow-xl transition-all duration-300"
+                            className="flex justify-between items-center p-4 bg-linear-to-r from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm rounded-2xl border border-purple-200/50 dark:border-purple-700/50 shadow-lg hover:shadow-xl transition-all duration-300"
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-2xl" role="img" aria-label="Old Rank">{entry.oldRankEmoji}</span>

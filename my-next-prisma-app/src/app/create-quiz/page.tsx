@@ -26,7 +26,6 @@ import {
 import MyTemplateDialog from "./MyTemplateDialog";
 import FactoryDialog from "./FactoryDialog";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 import { nanoid } from "nanoid";
 import Image from "next/image";
 
@@ -187,7 +186,7 @@ interface Question {
 
   // Type-specific fields
   options?: Option[]; // For MCQ
-  correctAnswer?: any; // For MCQ (single/multiple), True/False, Short Answer
+  correctAnswer?: unknown; // Flexible type for different question types
 
   matchPairs?: MatchPair[]; // For Matching
 
@@ -209,6 +208,7 @@ interface QuizData {
   quizTitle: string;
   tags: string[];
   questions: Question[];
+  description?: string;
   totalMarks?: number;
   equalMarks?: boolean;
   marksPerQuestion?: number;
@@ -485,7 +485,11 @@ const validateQuestion = (
           message: "Image-based questions must have an image URL.",
         };
       }
-      if (!question.correctAnswer || !question.correctAnswer.trim()) {
+      if (
+        !question.correctAnswer ||
+        (typeof question.correctAnswer === "string" &&
+          !question.correctAnswer.trim())
+      ) {
         return {
           isValid: false,
           message: "Image-based questions must have a correct answer.",
@@ -500,7 +504,11 @@ const validateQuestion = (
           message: "Code output questions must have a code snippet.",
         };
       }
-      if (!question.correctAnswer || !question.correctAnswer.trim()) {
+      if (
+        !question.correctAnswer ||
+        (typeof question.correctAnswer === "string" &&
+          !question.correctAnswer.trim())
+      ) {
         return {
           isValid: false,
           message: "Code output questions must have a correct answer.",
@@ -572,7 +580,6 @@ function CreateQuizPageComponent() {
     number | null
   >(null);
   const [showMyTemplatesDialog, setShowMyTemplatesDialog] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [questionPanelView, setQuestionPanelView] = useState<"grid" | "list">(
     "grid"
   );
@@ -605,7 +612,7 @@ function CreateQuizPageComponent() {
     const quizId = searchParams.get("id");
     if (quizId) {
       const fetchQuiz = async () => {
-        setIsLoading(true);
+        // setIsLoading(true);
         try {
           const response = await fetch(`/api/quizzes/templates/${quizId}`);
           if (!response.ok) {
@@ -662,7 +669,7 @@ function CreateQuizPageComponent() {
           toast.error("Failed to load quiz for editing.");
           console.error(error);
         } finally {
-          setIsLoading(false);
+          // setIsLoading(false);
         }
       };
       fetchQuiz();
@@ -812,11 +819,6 @@ function CreateQuizPageComponent() {
     []
   );
 
-  const saveToLocal = useCallback(() => {
-    localStorage.setItem("quiz-draft", JSON.stringify(quizData));
-    // Show success toast
-  }, [quizData]);
-
   const downloadJSON = useCallback(() => {
     const dataStr = JSON.stringify(quizData, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
@@ -839,7 +841,7 @@ function CreateQuizPageComponent() {
             return;
           }
 
-          let importedData: any;
+          let importedData: { questions?: Question[] } | Question[];
           try {
             importedData = JSON.parse(e.target.result as string);
           } catch (parseError) {
@@ -849,9 +851,9 @@ function CreateQuizPageComponent() {
           }
 
           // Validate questions array
-          const questionsToValidate =
-            importedData.questions ||
-            (Array.isArray(importedData) ? importedData : []);
+          const questionsToValidate = Array.isArray(importedData)
+            ? importedData
+            : (importedData as { questions?: Question[] }).questions || [];
           if (!Array.isArray(questionsToValidate)) {
             toast.error(
               "The file must contain a questions array or be an array of questions."
@@ -865,10 +867,10 @@ function CreateQuizPageComponent() {
 
           // Validate each question
           const validQuestions: Question[] = [];
-          const invalidQuestions: { question: any; reason: string }[] = [];
+          const invalidQuestions: { question: Question; reason: string }[] = [];
           const seenIds = new Set<string>();
 
-          questionsToValidate.forEach((q: any, index: number) => {
+          questionsToValidate.forEach((q: Question, index: number) => {
             // Check for duplicate IDs (in seenIds or already in quizData)
             if (
               seenIds.has(q.id) ||
@@ -942,7 +944,7 @@ function CreateQuizPageComponent() {
   );
 
   const handleFinalizeAndSaveToServer = async (
-    finalData: any,
+    finalData: QuizData,
     isPublished: boolean
   ) => {
     if (!user?.id) {
@@ -985,20 +987,20 @@ function CreateQuizPageComponent() {
     }
   };
 
-  const handleEditQuestion = (question: Question) => {
-    setEditingQuestion({ ...question });
-  };
+  // const handleEditQuestion = (question: Question) => {
+  //   setEditingQuestion({ ...question });
+  // };
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-background to-white dark:from-[#0f1021] dark:via-[#23234d] dark:to-[#1a1a2e] pt-20 overflow-x-hidden">
+    <div className="relative min-h-screen flex flex-col bg-linear-to-br from-background to-white dark:from-[#0f1021] dark:via-[#23234d] dark:to-[#1a1a2e] pt-20 overflow-x-hidden">
       {/* Animated Orbs */}
       <motion.div
-        className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-purple-500/30 to-blue-600/30 rounded-full blur-3xl animate-float z-0"
+        className="absolute -top-32 -left-32 w-96 h-96 bg-linear-to-br from-purple-500/30 to-blue-600/30 rounded-full blur-3xl animate-float z-0"
         animate={{ y: [0, 30, 0], x: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity, repeatType: "mirror" }}
       />
       <motion.div
-        className="absolute top-1/2 right-0 w-72 h-72 bg-gradient-to-br from-blue-500/30 to-purple-600/30 rounded-full blur-2xl animate-float z-0"
+        className="absolute top-1/2 right-0 w-72 h-72 bg-linear-to-br from-blue-500/30 to-purple-600/30 rounded-full blur-2xl animate-float z-0"
         animate={{ y: [0, -40, 0], x: [0, -30, 0] }}
         transition={{
           duration: 12,
@@ -1008,7 +1010,7 @@ function CreateQuizPageComponent() {
         }}
       />
       <motion.div
-        className="absolute bottom-0 left-1/3 w-60 h-60 bg-gradient-to-br from-yellow-500/20 to-orange-600/20 rounded-full blur-2xl animate-float z-0"
+        className="absolute bottom-0 left-1/3 w-60 h-60 bg-linear-to-br from-yellow-500/20 to-orange-600/20 rounded-full blur-2xl animate-float z-0"
         animate={{ y: [0, 20, 0], x: [0, 10, 0] }}
         transition={{
           duration: 14,
@@ -1054,7 +1056,7 @@ function CreateQuizPageComponent() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-wrap items-center justify-between gap-4 md:gap-0">
             <div className="flex items-center gap-4 w-full md:w-auto">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent drop-shadow-glow">
+              <h1 className="text-2xl font-bold bg-linear-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent drop-shadow-glow">
                 Create Your Quiz
               </h1>
             </div>
@@ -1104,7 +1106,7 @@ function CreateQuizPageComponent() {
                       setShowFinalizeModal(true);
                     }
                   }}
-                  className="futuristic-button flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white border-none hover:from-blue-600 hover:to-cyan-500"
+                  className="futuristic-button flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-500 to-cyan-400 text-white border-none hover:from-blue-600 hover:to-cyan-500"
                 >
                   <FiSave />
                   <span>Save</span>
@@ -1141,7 +1143,7 @@ function CreateQuizPageComponent() {
                   <button
                     className={`px-3 py-1 flex items-center gap-2 transition-all ${
                       questionPanelView === "grid"
-                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                        ? "bg-linear-to-r from-purple-500 to-blue-500 text-white"
                         : "text-white/60 hover:bg-white/10"
                     }`}
                     onClick={() => setQuestionPanelView("grid")}
@@ -1153,7 +1155,7 @@ function CreateQuizPageComponent() {
                   <button
                     className={`px-3 py-1 flex items-center gap-2 transition-all ${
                       questionPanelView === "list"
-                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                        ? "bg-linear-to-r from-purple-500 to-blue-500 text-white"
                         : "text-white/60 hover:bg-white/10"
                     }`}
                     onClick={() => setQuestionPanelView("list")}
@@ -1185,7 +1187,7 @@ function CreateQuizPageComponent() {
                           : "flex flex-col px-3 py-2"
                       } shadow-sm hover:shadow-lg hover:bg-white/10 ${
                         questionPanelView === "grid"
-                          ? "bg-gradient-to-r from-purple-500/30 to-blue-500/30 border-purple-400/40 shadow-lg"
+                          ? "bg-linear-to-r from-purple-500/30 to-blue-500/30 border-purple-400/40 shadow-lg"
                           : "bg-white/5"
                       }`}
                       onClick={() => setCurrentQuestionIndex(index)}
@@ -1286,7 +1288,7 @@ function CreateQuizPageComponent() {
                       <motion.button
                         key={type.id}
                         onClick={() => handleAddNewQuestion(type.id)}
-                        className="p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 hover:border-white/20 transition-all duration-300 group"
+                        className="p-6 rounded-xl bg-linear-to-br from-white/5 to-white/10 border border-white/10 hover:border-white/20 transition-all duration-300 group"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -1317,7 +1319,7 @@ function CreateQuizPageComponent() {
                       <motion.button
                         key={type.id}
                         onClick={() => handleAddNewQuestion(type.id)}
-                        className="p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 hover:border-white/20 transition-all duration-300 group"
+                        className="p-6 rounded-xl bg-linear-to-br from-white/5 to-white/10 border border-white/10 hover:border-white/20 transition-all duration-300 group"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -1337,7 +1339,7 @@ function CreateQuizPageComponent() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setShowQuestionModal(true)}
-                        className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300"
+                        className="px-4 py-2 bg-linear-to-r from-purple-500 to-blue-500 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300"
                       >
                         Edit Question
                       </button>
@@ -1380,7 +1382,7 @@ function CreateQuizPageComponent() {
           <div className="mt-8 text-center">
             <button
               onClick={() => setShowFinalizeModal(true)}
-              className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 text-lg font-semibold shadow-lg"
+              className="px-8 py-4 bg-linear-to-r from-green-500 to-emerald-500 rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 text-lg font-semibold shadow-lg"
             >
               Finalize & Save Quiz
             </button>
@@ -1636,7 +1638,7 @@ function QuestionEditorModal({
           </button>
           <button
             onClick={handleSave}
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300 text-white"
+            className="px-6 py-2 bg-linear-to-r from-purple-500 to-blue-500 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300 text-white"
           >
             Save Question
           </button>
@@ -1676,12 +1678,14 @@ function QuestionSettings({
     setFormData({ ...formData, options: newOptions });
   };
 
-  const handleCorrectChange = (value: any) => {
+  const handleCorrectChange = (value: unknown) => {
     setFormData({ ...formData, correctAnswer: value });
   };
 
   const handleMultipleCorrectChange = (optionId: string) => {
-    const currentCorrect = formData.correctAnswer || [];
+    const currentCorrect = (
+      Array.isArray(formData.correctAnswer) ? formData.correctAnswer : []
+    ) as string[];
     const newCorrect = currentCorrect.includes(optionId)
       ? currentCorrect.filter((id: string) => id !== optionId)
       : [...currentCorrect, optionId];
@@ -1817,7 +1821,12 @@ function QuestionSettings({
   };
 
   const handleMatrixCorrectChange = (rowId: string, colId: string) => {
-    const newCorrectAnswer = { ...(formData.correctAnswer || {}) };
+    const newCorrectAnswer = (
+      typeof formData.correctAnswer === "object" &&
+      !Array.isArray(formData.correctAnswer)
+        ? { ...(formData.correctAnswer as Record<string, string>) }
+        : {}
+    ) as Record<string, string>;
     newCorrectAnswer[rowId] = colId;
     setFormData({ ...formData, correctAnswer: newCorrectAnswer });
   };
@@ -1844,7 +1853,10 @@ function QuestionSettings({
                 ) : (
                   <input
                     type="checkbox"
-                    checked={(formData.correctAnswer || []).includes(option.id)}
+                    checked={(Array.isArray(formData.correctAnswer)
+                      ? (formData.correctAnswer as string[])
+                      : []
+                    ).includes(option.id)}
                     onChange={() => handleMultipleCorrectChange(option.id)}
                     className="form-checkbox h-5 w-5 text-purple-500 bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/20 rounded focus:ring-purple-500"
                   />
@@ -2230,7 +2242,11 @@ function QuestionSettings({
               Expected Output
             </label>
             <textarea
-              value={formData.correctAnswer || ""}
+              value={
+                typeof formData.correctAnswer === "string"
+                  ? formData.correctAnswer
+                  : ""
+              }
               onChange={(e) => handleCorrectChange(e.target.value)}
               className="w-full p-3 bg-black/50 rounded-lg border border-white/20 focus:border-purple-400 focus:outline-none font-mono text-sm"
               rows={3}
@@ -2290,7 +2306,11 @@ function QuestionSettings({
             </label>
             <input
               type="text"
-              value={formData.correctAnswer || ""}
+              value={
+                typeof formData.correctAnswer === "string"
+                  ? formData.correctAnswer
+                  : ""
+              }
               onChange={(e) => handleCorrectChange(e.target.value)}
               className="w-full p-3 bg-white/10 rounded-lg border border-white/20 focus:border-purple-400 focus:outline-none"
               placeholder="Enter the correct answer"
@@ -2307,7 +2327,12 @@ function QuestionSettings({
           </label>
           <input
             type="number"
-            value={formData.correctAnswer || ""}
+            value={
+              typeof formData.correctAnswer === "number" ||
+              typeof formData.correctAnswer === "string"
+                ? formData.correctAnswer
+                : ""
+            }
             onChange={(e) =>
               handleCorrectChange(parseInt(e.target.value) || undefined)
             }
@@ -2434,7 +2459,15 @@ function QuestionSettings({
                             type="radio"
                             name={`matrix-row-${row.id}`}
                             checked={
-                              formData.correctAnswer?.[row.id] === col.id
+                              (typeof formData.correctAnswer === "object" &&
+                              !Array.isArray(formData.correctAnswer)
+                                ? (
+                                    formData.correctAnswer as Record<
+                                      string,
+                                      string
+                                    >
+                                  )[row.id]
+                                : undefined) === col.id
                             }
                             onChange={() =>
                               handleMatrixCorrectChange(row.id, col.id)
@@ -2586,7 +2619,7 @@ function FinalizeModal({
   onClose,
 }: {
   quizData: QuizData;
-  onSave: (data: any, isPublished: boolean) => void;
+  onSave: (data: QuizData, isPublished: boolean) => void;
   onClose: () => void;
 }) {
   const [formData, setFormData] = useState({
@@ -2608,7 +2641,6 @@ function FinalizeModal({
   const [subjectSearch, setSubjectSearch] = useState("");
   const [showFieldDropdown, setShowFieldDropdown] = useState(false);
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [durationError, setDurationError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [difficultySearch, setDifficultySearch] = useState("");
@@ -2647,7 +2679,7 @@ function FinalizeModal({
 
   // --- Duration logic ---
   const handleDurationChange = (value: string) => {
-    let num = parseInt(value) || 0;
+    const num = parseInt(value) || 0;
     setFormData((f) => ({
       ...f,
       durationInSeconds: num * (f.durationUnit === "minutes" ? 60 : 1),
@@ -2667,7 +2699,7 @@ function FinalizeModal({
   // --- Password logic ---
   const handleLockToggle = () => {
     setFormData((f) => ({ ...f, isLocked: !f.isLocked, lockPassword: "" }));
-    setShowPassword((v) => !v);
+    // setShowPassword((prev) => !prev);
     setPasswordError("");
   };
 
@@ -2715,6 +2747,7 @@ function FinalizeModal({
     onSave(
       {
         ...formData,
+        quizTitle: formData.title,
         tags: formData.tags
           .split(",")
           .map((t) => t.trim())
@@ -2744,7 +2777,7 @@ function FinalizeModal({
       if (untouched) {
         return {
           title: quizData.quizTitle || "My Awesome Quiz",
-          description: (quizData as any).description || "",
+          description: quizData.description || "",
           tags: Array.isArray(quizData.tags) ? quizData.tags.join(", ") : "",
           imageUrl: quizData.imageUrl || "",
           price: typeof quizData.price === "number" ? quizData.price : 0,
@@ -2890,7 +2923,7 @@ function FinalizeModal({
                                 setShowFieldDropdown(false);
                               }}
                             >
-                              Add "{fieldSearch}" as new field
+                              Add &quot;{fieldSearch}&quot; as new field
                             </div>
                           )}
                         </div>
@@ -2948,7 +2981,7 @@ function FinalizeModal({
                                 setShowSubjectDropdown(false);
                               }}
                             >
-                              Add "{subjectSearch}" as new subject
+                              Add &quot;{subjectSearch}&quot; as new subject
                             </div>
                           )}
                         </div>
@@ -3440,13 +3473,13 @@ function ImportModal({
             <button
               onClick={() => file && onImport(file)}
               disabled={!file}
-              className="px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+              className="px-6 py-2 bg-linear-to-r from-purple-500 to-blue-500 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-white"
             >
               Import
             </button>
             <button
               onClick={downloadSample}
-              className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-300 text-white"
+              className="px-6 py-2 bg-linear-to-r from-green-500 to-emerald-500 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-300 text-white"
             >
               Download Sample JSON
             </button>
@@ -3647,7 +3680,7 @@ function MarksModal({
               );
               onClose();
             }}
-            className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-300"
+            className="px-6 py-2 bg-linear-to-r from-yellow-500 to-orange-500 rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-300"
           >
             Apply Changes
           </button>
@@ -3666,7 +3699,7 @@ function QuestionPreview({ question }: { question: Question }) {
         <div>
           <h4 className="text-lg font-semibold mb-2">Options:</h4>
           <div className="space-y-2">
-            {question.options?.map((option, idx) => (
+            {question.options?.map((option) => (
               <label
                 key={option.id}
                 className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer"
@@ -3683,7 +3716,7 @@ function QuestionPreview({ question }: { question: Question }) {
         <div>
           <h4 className="text-lg font-semibold mb-2">Options:</h4>
           <div className="space-y-2">
-            {question.options?.map((option, idx) => (
+            {question.options?.map((option) => (
               <label
                 key={option.id}
                 className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer"
@@ -3711,7 +3744,7 @@ function QuestionPreview({ question }: { question: Question }) {
         <div>
           <h4 className="text-lg font-semibold mb-2">Match the Following:</h4>
           <div className="grid grid-cols-2 gap-2">
-            {question.matchPairs?.map((pair, idx) => (
+            {question.matchPairs?.map((pair) => (
               <div key={pair.id} className="flex gap-2 items-center">
                 <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
                   {pair.premise}
@@ -3760,7 +3793,7 @@ function QuestionPreview({ question }: { question: Question }) {
         <div>
           <h4 className="text-lg font-semibold mb-2">Poll Options:</h4>
           <div className="space-y-2">
-            {question.options?.map((option, idx) => (
+            {question.options?.map((option) => (
               <label
                 key={option.id}
                 className="flex items-center gap-2 p-2 bg-white/5 rounded cursor-pointer"
@@ -3792,15 +3825,16 @@ function QuestionPreview({ question }: { question: Question }) {
             disabled
             placeholder="User will write an essay here..."
           />
-          {question.correctAnswer && (
+          {typeof question.correctAnswer === "number" ||
+          typeof question.correctAnswer === "string" ? (
             <div className="mt-2 text-xs text-gray-400">
-              Word limit: {question.correctAnswer}
+              Word limit: {String(question.correctAnswer)}
             </div>
-          )}
+          ) : null}
         </div>
       );
     case "fill-blanks": {
-      let parts = question.question.split("___");
+      const parts = question.question.split("___");
       return (
         <div className="flex flex-wrap items-center gap-2">
           {parts.map((part, idx) => (
@@ -3830,7 +3864,11 @@ function QuestionPreview({ question }: { question: Question }) {
               Expected Output:
             </label>
             <pre className="bg-gray-900 text-yellow-200 rounded p-2 overflow-x-auto">
-              <code>{question.correctAnswer}</code>
+              <code>
+                {typeof question.correctAnswer === "string"
+                  ? question.correctAnswer
+                  : JSON.stringify(question.correctAnswer)}
+              </code>
             </pre>
           </div>
         </div>
@@ -3945,3 +3983,4 @@ const fixDuplicateQuestionIds = (questions: Question[]): Question[] => {
 };
 
 export default CreateQuizPageComponent;
+

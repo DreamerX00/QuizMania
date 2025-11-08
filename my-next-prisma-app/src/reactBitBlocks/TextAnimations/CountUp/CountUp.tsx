@@ -109,3 +109,4 @@ export default function CountUp({
 
   return <span className={`${className}`} ref={ref} />;
 }
+

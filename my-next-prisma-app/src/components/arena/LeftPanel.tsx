@@ -129,7 +129,7 @@ const LeftPanel: React.FC = () => {
                     ].map((_, i) => (
                       <span
                         key={i}
-                        className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-400 to-cyan-300 dark:from-blue-500 dark:to-cyan-500 animate-pulse"
+                        className="w-2 h-2 rounded-full bg-linear-to-br from-blue-400 to-cyan-300 dark:from-blue-500 dark:to-cyan-500 animate-pulse"
                       />
                     ))}
                   </span>
@@ -184,7 +184,7 @@ const LeftPanel: React.FC = () => {
             </label>
             <div className="flex items-center gap-2">
               {/* Animated Earth Placeholder */}
-              <span className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-300 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center shadow-lg animate-spin-slow">
+              <span className="w-8 h-8 rounded-full bg-linear-to-br from-blue-400 to-cyan-300 dark:from-blue-500 dark:to-cyan-500 flex items-center justify-center shadow-lg animate-spin-slow">
                 🌍
               </span>
               <select
@@ -257,3 +257,4 @@ const LeftPanel: React.FC = () => {
 };
 
 export default LeftPanel;
+

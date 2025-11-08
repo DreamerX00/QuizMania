@@ -83,7 +83,7 @@ export const QuestionTypeSelector: React.FC<QuestionTypeSelectorProps> = ({
                     }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`p-4 rounded-lg border-2 border-transparent bg-gradient-to-br ${type.color} text-white hover:shadow-lg transition-all text-left`}
+                    className={`p-4 rounded-lg border-2 border-transparent bg-linear-to-br ${type.color} text-white hover:shadow-lg transition-all text-left`}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-3xl">{type.icon}</span>
@@ -98,7 +98,7 @@ export const QuestionTypeSelector: React.FC<QuestionTypeSelectorProps> = ({
 
               {filteredTypes.length === 0 && (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                  <p>No question types found matching "{search}"</p>
+                  <p>No question types found matching &quot;{search}&quot;</p>
                 </div>
               )}
             </div>
@@ -108,3 +108,4 @@ export const QuestionTypeSelector: React.FC<QuestionTypeSelectorProps> = ({
     </AnimatePresence>
   );
 };
+

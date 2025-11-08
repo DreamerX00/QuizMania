@@ -4,11 +4,14 @@ import { NextResponse } from "next/server";
 // Public routes that don't require authentication
 const publicRoutes = [
   "/",
+  "/about",
+  "/explore",
+  "/premium",
+  "/leaderboard",
+  "/clear-session",
   "/auth/signin",
   "/auth/error",
-  "/login",
-  "/signup",
-  "/sso-callback",
+  "/api/auth",
 ];
 
 // Error route matcher
@@ -49,7 +52,11 @@ export default withAuth(
         const { pathname } = req.nextUrl;
 
         // Allow public routes and auth routes
-        if (isPublicRoute(pathname) || pathname.startsWith("/api/auth")) {
+        if (
+          isPublicRoute(pathname) ||
+          pathname.startsWith("/api/auth") ||
+          pathname.startsWith("/api/leaderboard")
+        ) {
           return true;
         }
 

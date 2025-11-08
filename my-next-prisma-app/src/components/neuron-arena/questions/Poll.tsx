@@ -8,7 +8,8 @@ interface PollOption {
   id: string;
   votes?: number;
   percent?: number;
-  [key: string]: any;
+  text?: string;
+  label?: string;
 }
 
 interface Question {
@@ -94,7 +95,7 @@ const Poll = ({ question }: { question: Question }) => {
               key={opt.id}
               className={`flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition ${
                 selected === opt.id
-                  ? "bg-[var(--primary-accent)] text-white"
+                  ? "bg-(--primary-accent) text-white"
                   : "bg-white/10 text-white/80"
               }`}
               aria-label={`Vote for ${opt.text}`}
@@ -104,7 +105,7 @@ const Poll = ({ question }: { question: Question }) => {
                 name={`poll-${question.id}`}
                 checked={selected === opt.id}
                 onChange={() => handleSelect(opt.id)}
-                className="accent-[var(--primary-accent)]"
+                className="accent-(--primary-accent)"
                 disabled={submitted}
               />
               {opt.text}
@@ -129,7 +130,7 @@ const Poll = ({ question }: { question: Question }) => {
                 {opt.text}
               </span>
               <motion.div
-                className="h-4 rounded bg-[var(--primary-accent)]"
+                className="h-4 rounded bg-(--primary-accent)"
                 style={{ width: `${opt.percent}%`, minWidth: 8 }}
                 initial={{ width: 0 }}
                 animate={{ width: `${opt.percent}%` }}
@@ -147,3 +148,4 @@ const Poll = ({ question }: { question: Question }) => {
 };
 
 export default Poll;
+

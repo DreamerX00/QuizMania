@@ -69,11 +69,36 @@ export default function QuizCard({
   isUnlocked = false,
   isPremiumUser = false,
 }: QuizCardProps) {
+  type DifficultyLevel =
+    | "SUPER_EASY"
+    | "EASY"
+    | "NORMAL"
+    | "MEDIUM"
+    | "HARD"
+    | "IMPOSSIBLE"
+    | "INSANE"
+    | "JEE_ADVANCED"
+    | "JEE_MAIN"
+    | "NEET_UG"
+    | "UPSC_CSE"
+    | "GATE"
+    | "CAT"
+    | "CLAT"
+    | "CA"
+    | "GAOKAO"
+    | "GRE"
+    | "GMAT"
+    | "USMLE"
+    | "LNAT"
+    | "MCAT"
+    | "CFA"
+    | "GOD_LEVEL";
+
   const isPremium =
     quiz.difficultyLevel &&
-    getPricingConfig(quiz.difficultyLevel as any).requiresPremium;
+    getPricingConfig(quiz.difficultyLevel as DifficultyLevel).requiresPremium;
   const pricingConfig = quiz.difficultyLevel
-    ? getPricingConfig(quiz.difficultyLevel as any)
+    ? getPricingConfig(quiz.difficultyLevel as DifficultyLevel)
     : null;
   const isPaidQuiz = pricingConfig && pricingConfig.pricePerAttempt > 0;
 
@@ -85,7 +110,7 @@ export default function QuizCard({
       {/* Image */}
       <div className="relative mb-4">
         {/* Thumbnail */}
-        <div className="aspect-video overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 dark:from-gray-700 dark:to-gray-800">
+        <div className="aspect-video overflow-hidden bg-linear-to-br from-purple-100 to-pink-100 dark:from-gray-700 dark:to-gray-800">
           {quiz.imageUrl ? (
             <div className="relative w-full h-full">
               <Image
@@ -105,7 +130,7 @@ export default function QuizCard({
 
         {/* Premium Badge */}
         {isPremium && (
-          <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+          <div className="absolute top-2 right-2 bg-linear-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
             <FiAward className="w-3 h-3" />
             Premium
           </div>
@@ -232,7 +257,7 @@ export default function QuizCard({
         {/* Creator */}
         {quiz.creator && (
           <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-slate-700">
-            <div className="relative w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-semibold overflow-hidden">
+            <div className="relative w-6 h-6 rounded-full bg-linear-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-semibold overflow-hidden">
               {quiz.creator.avatarUrl ? (
                 <Image
                   src={quiz.creator.avatarUrl}
@@ -260,3 +285,4 @@ export default function QuizCard({
     </div>
   );
 }
+

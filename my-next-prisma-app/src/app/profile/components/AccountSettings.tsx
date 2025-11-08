@@ -94,11 +94,11 @@ export function AccountSettings({ onClose, onSave }: { onClose?: () => void; onS
   };
 
   if (isLoading || !data) {
-    return <div className="bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[220px] border-2 border-purple-500/40 animate-glow" id="account-settings-section" />;
+    return <div className="bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[220px] border-2 border-purple-500/40 animate-glow" id="account-settings-section" />;
   }
 
   return (
-    <form className="bg-white dark:bg-gradient-to-br dark:from-[#181a2a] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl w-full max-w-lg mx-auto flex flex-col gap-6 relative text-base max-h-[90vh] overflow-y-auto border-2 border-purple-500/40 animate-glow text-gray-900 dark:text-white" onSubmit={handleSave} style={{ fontSize: '1rem' }}>
+    <form className="bg-white dark:bg-linear-to-br dark:from-[#181a2a] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl w-full max-w-lg mx-auto flex flex-col gap-6 relative text-base max-h-[90vh] overflow-y-auto border-2 border-purple-500/40 animate-glow text-gray-900 dark:text-white" onSubmit={handleSave} style={{ fontSize: '1rem' }}>
       {/* Close Icon */}
       {onClose && (
         <button type="button" aria-label="Close" onClick={onClose} className="absolute top-3 right-3 text-gray-900 dark:text-white text-2xl hover:text-pink-400 z-50 transition-all duration-200">
@@ -108,14 +108,14 @@ export function AccountSettings({ onClose, onSave }: { onClose?: () => void; onS
       {/* Header */}
       <div className="flex items-center gap-3 px-2 pt-2 pb-2">
         <span className="text-3xl text-purple-400 drop-shadow-glow"><FiUser /></span>
-        <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent animate-gradient-move futuristic-title drop-shadow-glow">Account Settings</h3>
+        <h3 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent animate-gradient-move futuristic-title drop-shadow-glow">Account Settings</h3>
         {!editMode && (
           <button className="ml-auto futuristic-button px-5 py-2 text-base font-semibold flex items-center gap-2 shadow-lg hover:scale-105 transition-all duration-200" onClick={() => setEditMode(true)}>
             <FiEdit2 /> Edit Profile
           </button>
         )}
       </div>
-      <div className="h-1 w-full bg-gradient-to-r from-purple-500/40 via-blue-500/40 to-pink-500/40 rounded-full mb-2 animate-glow" />
+      <div className="h-1 w-full bg-linear-to-r from-purple-500/40 via-blue-500/40 to-pink-500/40 rounded-full mb-2 animate-glow" />
       {/* Content */}
       <div className="px-2 pb-2">
         {editMode ? (
@@ -160,8 +160,8 @@ export function AccountSettings({ onClose, onSave }: { onClose?: () => void; onS
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-4">
-              <button type="button" className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow-lg hover:scale-105 transition text-base border-2 border-purple-500/40" onClick={onClose}>Cancel</button>
-              <button type="submit" className="px-4 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold shadow-lg hover:scale-105 transition text-base border-2 border-pink-500/40" disabled={saving}>{saving ? <FiLoader className="animate-spin inline-block mr-2" /> : null}Save</button>
+              <button type="button" className="px-4 py-2 rounded-lg bg-linear-to-r from-purple-500 to-blue-500 text-white font-semibold shadow-lg hover:scale-105 transition text-base border-2 border-purple-500/40" onClick={onClose}>Cancel</button>
+              <button type="submit" className="px-4 py-2 rounded-lg bg-linear-to-r from-pink-500 to-purple-500 text-white font-bold shadow-lg hover:scale-105 transition text-base border-2 border-pink-500/40" disabled={saving}>{saving ? <FiLoader className="animate-spin inline-block mr-2" /> : null}Save</button>
             </div>
             {feedback && <div className={`mt-2 text-center text-base ${feedback.includes('error') ? 'text-red-400' : 'text-green-400'} drop-shadow-glow`}>{feedback}</div>}
           </div>

@@ -375,3 +375,4 @@ function CheckIcon(props: CheckIconProps) {
     </svg>
   );
 }
+

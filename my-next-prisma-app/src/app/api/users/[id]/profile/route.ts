@@ -3,14 +3,17 @@ import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
+import { JsonValue } from "@prisma/client/runtime/library";
 
 interface User {
   id: string;
   email: string;
   name?: string | null;
   avatarUrl?: string | null;
+  bannerUrl?: string | null;
   bio?: string | null;
-  socials?: string | null;
+  alias?: string | null;
+  socials?: JsonValue;
   region?: string | null;
   [key: string]: unknown;
 }
@@ -23,7 +26,8 @@ function withNotSetFields(user: User) {
     bannerUrl: user.bannerUrl || "Not set",
     bio: user.bio || "Not set",
     alias: user.alias || "Not set",
-    socials: user.socials || "Not set",
+    socials:
+      (typeof user.socials === "string" ? user.socials : null) || "Not set",
     region: user.region || "Not set",
   };
 }

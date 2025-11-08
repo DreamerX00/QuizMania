@@ -70,6 +70,8 @@ export default function RoomAvatarGrid({
   // Mock team state for demo
   const [teamA, setTeamA] = useState(players.filter((_, i) => i % 2 === 0));
   const [teamB, setTeamB] = useState(players.filter((_, i) => i % 2 !== 0));
+  // Tooltip state
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   const handleMove = (player: Player, toTeam: "A" | "B") => {
     if (toTeam === "A") {
@@ -135,6 +137,7 @@ export default function RoomAvatarGrid({
           />
         )}
         {/* Avatar image */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={avatarUrl}
           alt={player.name}
@@ -303,9 +306,6 @@ export default function RoomAvatarGrid({
       ? "flex flex-col items-center justify-center h-full w-full"
       : "flex flex-col items-center w-full pt-4";
 
-  // Tooltip state
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-
   // Avatar actions
   const handleMute = async (player: Player) => {
     try {
@@ -419,6 +419,7 @@ export default function RoomAvatarGrid({
           >
             {/* Avatar image with status dot */}
             <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={player.avatar}
                 alt={player.name}
@@ -459,10 +460,11 @@ export default function RoomAvatarGrid({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 20, scale: 0.8 }}
                 transition={{ type: "spring", stiffness: 260, damping: 18 }}
-                className="absolute z-50 -top-24 left-1/2 -translate-x-1/2 flex flex-col items-center rounded-xl px-4 py-3 min-w-[180px] shadow-2xl border border-blue-400/40 bg-gradient-to-br from-[#23234d]/90 to-[#0f1021]/90 backdrop-blur-lg"
+                className="absolute z-50 -top-24 left-1/2 -translate-x-1/2 flex flex-col items-center rounded-xl px-4 py-3 min-w-[180px] shadow-2xl border border-blue-400/40 bg-linear-to-br from-[#23234d]/90 to-[#0f1021]/90 backdrop-blur-lg"
                 style={{ pointerEvents: "none" }}
               >
                 <div className="flex items-center gap-2 mb-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={player.avatar}
                     alt={player.name}
@@ -539,3 +541,4 @@ export default function RoomAvatarGrid({
   );
 }
 // TODO: Add QR code to RoomInfoPanel for invite (use qrcode.react or similar)
+

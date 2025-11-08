@@ -19,43 +19,50 @@ export function LeaderboardPanel() {
     ([url, token]) => fetcher(url, token)
   );
   // Fetch local leaderboard (by region)
-  const { data: localData, isLoading: loadingLocal } = useSWR(
-    user && token && (user as any).region
-      ? [`/api/leaderboard?region=${(user as any).region}`, token]
+  const { data: localData } = useSWR(
+    user && token && (user as { region?: string }).region
+      ? [
+          `/api/leaderboard?region=${(user as { region?: string }).region}`,
+          token,
+        ]
       : null,
     ([url, token]) => fetcher(url, token)
   );
 
   if (loadingGlobal || !globalData) {
     return (
-      <div className="bg-gradient-to-br from-[#1a1a2e]/80 to-[#23234d]/80 rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px]" />
+      <div className="bg-linear-to-br from-[#1a1a2e]/80 to-[#23234d]/80 rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px]" />
     );
   }
 
   const global = Array.isArray(globalData) ? globalData : [];
   const local = Array.isArray(localData) ? localData : [];
   // Find current user in leaderboard
-  const globalRank = global.findIndex((u: any) => u.id === user?.id) + 1;
-  const localRank = local.findIndex((u: any) => u.id === user?.id) + 1;
+  const globalRank =
+    global.findIndex((u: { id?: string }) => u.id === user?.id) + 1;
+  const localRank =
+    local.findIndex((u: { id?: string }) => u.id === user?.id) + 1;
 
   // For the chart, use XP as the metric
-  const rankData = global.map((u: any, i: number) => ({
-    name: u.name || `User ${i + 1}`,
-    xp: u.xp || 0,
-  }));
+  const rankData = global.map(
+    (u: { name?: string; xp?: number }, i: number) => ({
+      name: u.name || `User ${i + 1}`,
+      xp: u.xp || 0,
+    })
+  );
 
   return (
     <motion.div
-      className="relative bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl flex flex-col md:flex-row gap-4 md:gap-8 items-center border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
+      className="relative bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl flex flex-col md:flex-row gap-4 md:gap-8 items-center border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.7 }}
     >
       {/* Floating Orbs */}
-      <div className="absolute -top-8 right-1/2 translate-x-1/2 w-16 h-16 bg-gradient-to-br from-green-400/10 to-blue-400/10 dark:from-green-400/20 dark:to-blue-400/20 rounded-full blur-2xl animate-float z-0" />
+      <div className="absolute -top-8 right-1/2 translate-x-1/2 w-16 h-16 bg-linear-to-br from-green-400/10 to-blue-400/10 dark:from-green-400/20 dark:to-blue-400/20 rounded-full blur-2xl animate-float z-0" />
       <div
-        className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0"
+        className="absolute bottom-0 left-0 w-12 h-12 bg-linear-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0"
         style={{ animationDelay: "2s" }}
       />
       <div className="flex-1 z-10 min-w-0">
@@ -113,3 +120,4 @@ export function LeaderboardPanel() {
     </motion.div>
   );
 }
+

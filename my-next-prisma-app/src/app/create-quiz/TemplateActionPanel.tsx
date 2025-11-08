@@ -4,15 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Quiz } from "@prisma/client";
 import { motion } from "framer-motion";
-import {
-  X,
-  Edit,
-  Trash2,
-  Globe,
-  Bookmark,
-  Loader2,
-  AlertTriangle,
-} from "lucide-react";
+import { X, Edit, Bookmark, Loader2, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -20,11 +12,18 @@ import { KeyedMutator } from "swr";
 import Modal from "@/components/ui/Modal";
 import Image from "next/image";
 
+interface ExtendedQuiz
+  extends Omit<Quiz, "durationInSeconds" | "difficultyLevel" | "isLocked"> {
+  durationInSeconds?: number;
+  isLocked?: boolean;
+  difficultyLevel?: string | null;
+}
+
 interface TemplateActionPanelProps {
-  quiz: Quiz | null;
+  quiz: ExtendedQuiz | null;
   onClose: () => void;
   onDialogClose: () => void;
-  mutate: KeyedMutator<Quiz[]>;
+  mutate: KeyedMutator<ExtendedQuiz[]>;
 }
 
 const DIFFICULTY_LEVELS = [
@@ -88,7 +87,7 @@ export default function TemplateActionPanel({
         false
       );
       onClose();
-    } catch (error) {
+    } catch {
       toast.error("Failed to publish quiz.");
     } finally {
       setIsPublishing(false);
@@ -105,7 +104,7 @@ export default function TemplateActionPanel({
         false
       );
       onClose();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete quiz.");
     } finally {
       setIsDeleting(false);
@@ -125,7 +124,7 @@ export default function TemplateActionPanel({
         false
       );
       toast.success(updatedQuiz.isPinned ? "Quiz pinned!" : "Quiz unpinned!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to update pin status.");
     } finally {
       setIsPinning(false);
@@ -141,7 +140,7 @@ export default function TemplateActionPanel({
     try {
       const content = JSON.parse(quiz.jsonContent as string);
       return content.questions?.length || 0;
-    } catch (error) {
+    } catch {
       return 0;
     }
   };
@@ -197,33 +196,28 @@ export default function TemplateActionPanel({
           <div className="flex flex-wrap gap-2 mt-2">
             <div className="bg-white/10 text-xs px-2 py-1 rounded-full">
               <span className="font-semibold">Time Limit:</span>{" "}
-              {((quiz as any).durationInSeconds ?? 0) === 0
+              {(quiz.durationInSeconds ?? 0) === 0
                 ? "Unlimited"
-                : `${Math.floor(
-                    ((quiz as any).durationInSeconds ?? 0) / 60
-                  )} min${
-                    ((quiz as any).durationInSeconds ?? 0) % 60
-                      ? " " +
-                        (((quiz as any).durationInSeconds ?? 0) % 60) +
-                        " sec"
+                : `${Math.floor((quiz.durationInSeconds ?? 0) / 60)} min${
+                    (quiz.durationInSeconds ?? 0) % 60
+                      ? " " + ((quiz.durationInSeconds ?? 0) % 60) + " sec"
                       : ""
                   }`}
             </div>
             <div className="bg-white/10 text-xs px-2 py-1 rounded-full">
               <span className="font-semibold">Locked:</span>{" "}
-              {(quiz as any).isLocked ? "Yes" : "No"}
+              {quiz.isLocked ? "Yes" : "No"}
             </div>
-            {(quiz as any).difficultyLevel && (
+            {quiz.difficultyLevel && (
               <span
                 className={`inline-flex items-center gap-2 px-2 py-1 rounded text-xs font-semibold ${
                   DIFFICULTY_LEVELS.find(
-                    (d) => d.value === (quiz as any).difficultyLevel
+                    (d) => d.value === quiz.difficultyLevel
                   )?.color || "bg-slate-700"
                 } text-white`}
               >
-                {DIFFICULTY_LEVELS.find(
-                  (d) => d.value === (quiz as any).difficultyLevel
-                )?.label || (quiz as any).difficultyLevel}
+                {DIFFICULTY_LEVELS.find((d) => d.value === quiz.difficultyLevel)
+                  ?.label || quiz.difficultyLevel}
               </span>
             )}
           </div>
@@ -260,7 +254,7 @@ export default function TemplateActionPanel({
           <button
             onClick={handlePublish}
             disabled={isPublishing}
-            className="futuristic-button w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-teal-500 disabled:opacity-50"
+            className="futuristic-button w-full flex items-center justify-center gap-2 bg-linear-to-r from-green-500 to-teal-500 disabled:opacity-50"
           >
             {isPublishing ? (
               <Loader2 className="animate-spin" size={16} />
@@ -332,3 +326,4 @@ export default function TemplateActionPanel({
     </>
   );
 }
+

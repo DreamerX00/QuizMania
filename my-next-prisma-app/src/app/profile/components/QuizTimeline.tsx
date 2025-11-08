@@ -21,27 +21,27 @@ export function QuizTimeline() {
   const [scoreModal, setScoreModal] = React.useState<{quizId: string, attemptId: string} | null>(null);
 
   if (isLoading || !data) {
-    return <div className="bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />;
+    return <div className="bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />;
   }
 
   const quizzes = data.recentQuizzes || [];
 
   return (
     <motion.div
-      className="relative bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
+      className="relative bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.7 }}
     >
       {/* Floating Orbs */}
-      <div className="absolute -top-8 -left-8 w-16 h-16 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0" />
-      <div className="absolute bottom-0 right-0 w-12 h-12 bg-gradient-to-br from-pink-400/10 to-blue-400/10 dark:from-pink-400/20 dark:to-blue-400/20 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '2s' }} />
+      <div className="absolute -top-8 -left-8 w-16 h-16 bg-linear-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0" />
+      <div className="absolute bottom-0 right-0 w-12 h-12 bg-linear-to-br from-pink-400/10 to-blue-400/10 dark:from-pink-400/20 dark:to-blue-400/20 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '2s' }} />
       <div className="flex gap-2 mb-4 z-10 relative flex-wrap">
         {tabs.map((tab) => (
           <button
             key={tab}
-            className={`px-3 py-1 rounded-full text-xs font-semibold shadow-md backdrop-blur-sm border border-gray-200 dark:border-white/10 transition-all duration-200 ${activeTab === tab ? "bg-gradient-to-r from-blue-600 to-pink-600 text-white animate-glow" : "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/20"}`}
+            className={`px-3 py-1 rounded-full text-xs font-semibold shadow-md backdrop-blur-sm border border-gray-200 dark:border-white/10 transition-all duration-200 ${activeTab === tab ? "bg-linear-to-r from-blue-600 to-pink-600 text-white animate-glow" : "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/20"}`}
             onClick={() => setActiveTab(tab)}
           >
             {tab}
@@ -55,7 +55,7 @@ export function QuizTimeline() {
           quizzes.map((quiz: any, i: number) => (
             <motion.div
               key={quiz.attemptId || quiz.id || i}
-              className="bg-gradient-to-br from-blue-900/60 to-pink-900/40 rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-center gap-3 md:gap-4 hover:scale-[1.02] transition shadow border border-white/10 backdrop-blur-md"
+              className="bg-linear-to-br from-blue-900/60 to-pink-900/40 rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-center gap-3 md:gap-4 hover:scale-[1.02] transition shadow border border-white/10 backdrop-blur-md"
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}

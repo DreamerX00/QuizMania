@@ -4,18 +4,22 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/context/AuthContext";
 import useSWR from "swr";
 
+interface PerformanceEntry {
+  score: number;
+}
+
 const COLORS = ["#34d399", "#60a5fa", "#fbbf24", "#f472b6"];
 
 export const PerformancePanel = memo(function PerformancePanel() {
   const { user } = useAuth();
   const { data, isLoading } = useSWR(
-    user ? `/api/users/${user?.id}/profile` : null,
+    user ? `/api/users/${user?.id}/stats` : null,
     (url) => fetch(url).then((res) => res.json())
   );
 
   if (isLoading || !data) {
     return (
-      <div className="bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />
+      <div className="bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />
     );
   }
 
@@ -24,16 +28,16 @@ export const PerformancePanel = memo(function PerformancePanel() {
 
   return (
     <motion.div
-      className="relative bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl flex flex-col md:flex-row gap-4 md:gap-8 items-center border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
+      className="relative bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl flex flex-col md:flex-row gap-4 md:gap-8 items-center border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.7 }}
     >
       {/* Floating Orbs */}
-      <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-16 h-16 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0" />
+      <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-16 h-16 bg-linear-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0" />
       <div
-        className="absolute bottom-0 right-0 w-12 h-12 bg-gradient-to-br from-green-400/10 to-blue-400/10 dark:from-green-400/20 dark:to-blue-400/20 rounded-full blur-2xl animate-float z-0"
+        className="absolute bottom-0 right-0 w-12 h-12 bg-linear-to-br from-green-400/10 to-blue-400/10 dark:from-green-400/20 dark:to-blue-400/20 rounded-full blur-2xl animate-float z-0"
         style={{ animationDelay: "2s" }}
       />
       <div className="flex-1 z-10 min-w-0">
@@ -87,7 +91,7 @@ export const PerformancePanel = memo(function PerformancePanel() {
                 dataKey="score"
                 label
               >
-                {performance.map((entry: any, index: number) => (
+                {performance.map((entry: PerformanceEntry, index: number) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}
@@ -108,3 +112,4 @@ export const PerformancePanel = memo(function PerformancePanel() {
     </motion.div>
   );
 });
+

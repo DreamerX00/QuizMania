@@ -131,7 +131,7 @@ const VideoInput = ({ question }: { question: Question }) => {
         accept="video/*"
         onChange={handleFile}
         aria-label="Upload video response"
-        className="focus:ring-2 focus:ring-[var(--primary-accent)] rounded"
+        className="focus:ring-2 focus:ring-(--primary-accent) rounded"
       />
       {file && (
         <motion.div
@@ -140,6 +140,7 @@ const VideoInput = ({ question }: { question: Question }) => {
           className="mt-2 flex flex-col gap-2"
         >
           {thumbnail && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={thumbnail}
               alt="Video thumbnail"
@@ -200,3 +201,4 @@ const VideoInput = ({ question }: { question: Question }) => {
 };
 
 export default VideoInput;
+

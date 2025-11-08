@@ -118,7 +118,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({ pkg, quizzes,
       </div>
       {/* Stats Overview */}
       {statsError && statsError.status === 404 ? (
-        <div className="flex items-center justify-between gap-2 mb-6 p-3 rounded-xl bg-gradient-to-r from-purple-900/40 to-blue-900/30 border border-white/10 shadow text-white/60 text-center w-full">No stats available</div>
+        <div className="flex items-center justify-between gap-2 mb-6 p-3 rounded-xl bg-linear-to-r from-purple-900/40 to-blue-900/30 border border-white/10 shadow text-white/60 text-center w-full">No stats available</div>
       ) : stats && (
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
@@ -290,7 +290,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({ pkg, quizzes,
           {!pkg.isPublished && addableQuizzes.length > 0 && (
             <div className="mt-4">
               <button
-                className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold hover:from-blue-600 hover:to-purple-600"
+                className="w-full px-4 py-2 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 text-white font-bold hover:from-blue-600 hover:to-purple-600"
                 onClick={() => setShowAddModal(true)}
               >
                 Add Quiz to Package
@@ -335,7 +335,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({ pkg, quizzes,
                         Cancel
                       </button>
                       <button
-                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold hover:from-blue-600 hover:to-purple-600 disabled:opacity-50"
+                        className="px-4 py-2 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 text-white font-bold hover:from-blue-600 hover:to-purple-600 disabled:opacity-50"
                         disabled={selectedToAdd.length === 0}
                         onClick={() => {
                           selectedToAdd.forEach(id => handleAddQuiz(id));
@@ -358,7 +358,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({ pkg, quizzes,
         {isEditing ? (
           <>
             <button onClick={() => setIsEditing(false)} className="px-4 py-2 rounded-lg bg-white/10 text-gray-900 dark:text-white hover:bg-white/20">Cancel</button>
-            <button onClick={handleSave} className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold hover:from-blue-600 hover:to-purple-600">Save</button>
+            <button onClick={handleSave} className="px-4 py-2 rounded-lg bg-linear-to-r from-blue-500 to-purple-500 text-white font-bold hover:from-blue-600 hover:to-purple-600">Save</button>
           </>
         ) : (
           <>
@@ -377,7 +377,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({ pkg, quizzes,
                 <button onClick={onDelete} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 flex items-center gap-2"><Trash2 size={16}/> Delete</button>
                 <button
                   onClick={onPublish}
-                  className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600`}
+                  className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 bg-linear-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600`}
                   disabled={publishLoading}
                 >
                   <Upload size={16} /> Publish
@@ -392,3 +392,4 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({ pkg, quizzes,
 };
 
 export default PackageDetailsPanel; 
+

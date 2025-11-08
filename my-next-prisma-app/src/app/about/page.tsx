@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  lazy,
+  Suspense,
+  useCallback,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -25,16 +32,8 @@ import {
   FiAward,
   FiTrendingUp,
 } from "react-icons/fi";
-import {
-  FaShopify,
-  FaWhatsapp,
-  FaRocket,
-  FaLaptopCode,
-  FaPalette,
-} from "react-icons/fa";
+import { FaShopify, FaWhatsapp } from "react-icons/fa";
 import { FaXmark, FaTerminal, FaCopy } from "react-icons/fa6";
-import { GiCrystalBall } from "react-icons/gi";
-import { LuAtom } from "react-icons/lu";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -115,7 +114,7 @@ function HeroSection() {
           className="space-y-8"
         >
           <motion.h1
-            className="text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent leading-tight"
+            className="text-5xl md:text-7xl lg:text-8xl font-bold bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent leading-tight"
             animate={{
               textShadow: [
                 "0 0 20px rgba(34, 211, 238, 0.5)",
@@ -218,7 +217,7 @@ function FloatingQuotes() {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.8, delay: 2 }}
     >
-      <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20">
+      <Card className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20">
         <CardContent className="p-4">
           <motion.p
             key={currentQuote}
@@ -238,9 +237,9 @@ function FloatingQuotes() {
 // Profile Card Component
 function ProfileCardSection() {
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-900 to-slate-800 flex justify-center">
+    <section className="py-24 bg-linear-to-b from-slate-900 to-slate-800 flex justify-center">
       <ProfileCard
-        avatarUrl="https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvdXBsb2FkZWQvaW1nXzJ5eTBkWjY5eFBzcFdRcjFwcEgxenFCQjQ1MCJ9"
+        avatarUrl="/default_avatar.png"
         name="Akash Singh"
         handle="Akash08"
         title="Full-Stack Developer & Content Creator"
@@ -347,7 +346,7 @@ function SocialMediaGrid() {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-800 to-slate-900">
+    <section className="py-24 bg-linear-to-b from-slate-800 to-slate-900">
       <div className="max-w-6xl mx-auto px-4">
         <motion.h2
           className="text-4xl md:text-5xl font-bold text-center text-white mb-16"
@@ -371,7 +370,7 @@ function SocialMediaGrid() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ scale: 1.05 }}
             >
-              <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 hover:border-cyan-400/50 transition-all duration-300 h-full">
+              <Card className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 hover:border-cyan-400/50 transition-all duration-300 h-full">
                 <div className="flex flex-col items-center justify-center h-full w-full">
                   <div className="text-4xl mb-4 text-white group-hover:scale-110 transition-transform duration-300">
                     <platform.icon
@@ -433,7 +432,7 @@ function ProjectsShowcase() {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-900 to-slate-800">
+    <section className="py-24 bg-linear-to-b from-slate-900 to-slate-800">
       <div className="max-w-6xl mx-auto px-4">
         <motion.h2
           className="text-4xl md:text-5xl font-bold text-center text-white mb-16"
@@ -454,7 +453,7 @@ function ProjectsShowcase() {
               whileHover={{ y: -10 }}
               className="h-full"
             >
-              <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 hover:border-cyan-400/50 transition-all duration-300 h-full">
+              <Card className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 hover:border-cyan-400/50 transition-all duration-300 h-full">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-white text-xl md:text-2xl">
                     {project.title}
@@ -495,7 +494,7 @@ function ProjectsShowcase() {
                       </Button>
                       <Button
                         size="sm"
-                        className="bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600"
+                        className="bg-linear-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600"
                       >
                         <FiPlay className="w-4 h-4 mr-1" />
                         Demo
@@ -556,7 +555,7 @@ function YouTubeGallery() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-6">
             Video Content
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -581,6 +580,7 @@ function YouTubeGallery() {
               >
                 <div className="w-72 h-64 flex flex-col justify-between">
                   <div className="relative mb-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`https://img.youtube.com/vi/${video.id}/maxresdefault.jpg`}
                       alt={video.title}
@@ -626,7 +626,7 @@ function TechStack() {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-900 to-slate-800">
+    <section className="py-24 bg-linear-to-b from-slate-900 to-slate-800">
       <div className="max-w-6xl mx-auto px-4">
         <motion.h2
           className="text-4xl md:text-5xl font-bold text-center text-white mb-16"
@@ -681,7 +681,7 @@ function Stats() {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-800 to-slate-900">
+    <section className="py-24 bg-linear-to-b from-slate-800 to-slate-900">
       <div className="max-w-6xl mx-auto px-4">
         <motion.h2
           className="text-4xl md:text-5xl font-bold text-center text-white mb-16"
@@ -701,7 +701,7 @@ function Stats() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ scale: 1.05 }}
             >
-              <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 text-center h-full">
+              <Card className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 text-center h-full">
                 <CardContent className="p-6 md:p-8">
                   <motion.div
                     className="text-4xl text-cyan-400 mb-4"
@@ -734,7 +734,7 @@ function Stats() {
 // Mission & Vision Component
 function MissionVision() {
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-900 to-slate-800">
+    <section className="py-24 bg-linear-to-b from-slate-900 to-slate-800">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-6xl mx-auto">
           {/* Mission */}
@@ -1158,12 +1158,29 @@ function EasterEgg() {
     }
   }, [isVisible, currentStage, timer]);
 
+  // Game functions
+  const startGame = useCallback(() => {
+    setGameActive(true);
+    setGameTime(120);
+    setGameScore(0);
+    setGameSpeed(1);
+    setSpawnRate(0.3);
+    setFallingPrompts([]);
+  }, []);
+
+  const endGame = useCallback(() => {
+    setGameActive(false);
+    if (gameScore > highScore) {
+      setHighScore(gameScore);
+    }
+  }, [gameScore, highScore]);
+
   // Game logic
   useEffect(() => {
     if (currentStage === "game" && !gameActive) {
       startGame();
     }
-  }, [currentStage]);
+  }, [currentStage, gameActive, startGame]);
 
   useEffect(() => {
     if (gameActive && gameTime > 0) {
@@ -1178,7 +1195,7 @@ function EasterEgg() {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [gameActive, gameTime]);
+  }, [gameActive, gameTime, endGame]);
 
   useEffect(() => {
     if (gameActive) {
@@ -1227,23 +1244,7 @@ function EasterEgg() {
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [gameActive, gameSpeed, spawnRate]);
-
-  const startGame = () => {
-    setGameActive(true);
-    setGameTime(120);
-    setGameScore(0);
-    setGameSpeed(1);
-    setSpawnRate(0.3);
-    setFallingPrompts([]);
-  };
-
-  const endGame = () => {
-    setGameActive(false);
-    if (gameScore > highScore) {
-      setHighScore(gameScore);
-    }
-  };
+  }, [gameActive, gameSpeed, spawnRate, endGame]);
 
   const handlePromptClick = (promptId: number) => {
     setFallingPrompts((prev) => prev.filter((p) => p.id !== promptId));
@@ -1382,7 +1383,7 @@ function EasterEgg() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-black/95 to-slate-900/95 backdrop-blur-md"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-linear-to-br from-black/95 to-slate-900/95 backdrop-blur-md"
           onClick={() => setIsVisible(false)}
         >
           <motion.div
@@ -1390,10 +1391,10 @@ function EasterEgg() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className={`relative w-[95%] md:w-[800px] max-w-screen-xl border rounded-xl shadow-2xl overflow-hidden p-6 md:p-10 ${
+            className={`relative w-[95%] md:w-[800px] max-w-7xl border rounded-xl shadow-2xl overflow-hidden p-6 md:p-10 ${
               showGlitch
-                ? "border-red-500/60 bg-gradient-to-br from-red-900/20 to-black animate-pulse"
-                : "border-cyan-500/40 bg-gradient-to-br from-black to-slate-800"
+                ? "border-red-500/60 bg-linear-to-br from-red-900/20 to-black animate-pulse"
+                : "border-cyan-500/40 bg-linear-to-br from-black to-slate-800"
             }`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1553,7 +1554,7 @@ function EasterEgg() {
                       </div>
                       <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-green-400 to-red-500 transition-all duration-300"
+                          className="h-full bg-linear-to-r from-green-400 to-red-500 transition-all duration-300"
                           style={{ width: `${(gameSpeed / 4) * 100}%` }}
                         />
                       </div>
@@ -1729,7 +1730,7 @@ function EasterEgg() {
 
             {/* Vibe FX */}
             <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent blur-3xl" />
+              <div className="absolute w-full h-full bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent blur-3xl" />
             </div>
 
             <style jsx>{`
@@ -1773,10 +1774,10 @@ function EasterEgg() {
 // Futuristic Footer Component
 function FuturisticFooter() {
   return (
-    <footer className="relative py-24 bg-gradient-to-b from-slate-900 to-black overflow-hidden">
+    <footer className="relative py-24 bg-linear-to-b from-slate-900 to-black overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10"></div>
         <div className="absolute top-0 left-0 w-full h-full">
           <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
           <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-blue-400 rounded-full animate-ping"></div>
@@ -1853,7 +1854,7 @@ function FuturisticFooter() {
             <h3 className="text-2xl md:text-3xl font-bold text-white mb-6">
               AI Assistant
             </h3>
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-lg p-6">
+            <div className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-lg p-6">
               <div className="flex items-center space-x-2 mb-3">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-green-400 text-sm md:text-base">
@@ -1865,7 +1866,7 @@ function FuturisticFooter() {
               </p>
               <Button
                 size="sm"
-                className="bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600"
+                className="bg-linear-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600"
               >
                 Start Chat
               </Button>
@@ -1908,7 +1909,7 @@ function ResumeDownload() {
   };
 
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-900 to-slate-800">
+    <section className="py-24 bg-linear-to-b from-slate-900 to-slate-800">
       <div className="max-w-4xl mx-auto px-4 text-center">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -1929,7 +1930,7 @@ function ResumeDownload() {
                 <Button
                   onClick={handleDownload}
                   size="lg"
-                  className="bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 text-white font-semibold px-8 py-6 text-lg md:text-xl shadow-lg hover:shadow-cyan-400/25 transition-all duration-300"
+                  className="bg-linear-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 text-white font-semibold px-8 py-6 text-lg md:text-xl shadow-lg hover:shadow-cyan-400/25 transition-all duration-300"
                 >
                   <FiDownload className="w-6 h-6 mr-3" />
                   Download Resume
@@ -1960,7 +1961,7 @@ export default function AboutPage() {
       <Stats />
       <Suspense
         fallback={
-          <div className="py-24 bg-gradient-to-b from-slate-800 to-slate-900 flex items-center justify-center">
+          <div className="py-24 bg-linear-to-b from-slate-800 to-slate-900 flex items-center justify-center">
             <div className="text-white text-xl">Loading timeline...</div>
           </div>
         }
@@ -1974,3 +1975,4 @@ export default function AboutPage() {
     </>
   );
 }
+

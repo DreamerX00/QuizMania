@@ -4,15 +4,16 @@ import { motion } from "framer-motion";
 import { Tab, TabList, TabPanel, Tabs } from "react-aria-components";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Send,
-  Users,
-  PartyPopper,
-  MessageCircle,
-  Sparkles,
-} from "lucide-react";
+import { Send, Users, PartyPopper, MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import useSWR from "swr";
+
+type ChatMessage = {
+  id: string;
+  senderId: string;
+  message: string;
+  timestamp: string;
+};
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -85,10 +86,10 @@ const SocialChat = ({
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="h-full bg-gradient-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex flex-col text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
+      className="h-full bg-linear-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex flex-col text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
     >
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
 
       {/* Header */}
       <div className="relative z-10 flex items-center gap-3 mb-4">
@@ -96,7 +97,7 @@ const SocialChat = ({
           <MessageCircle className="w-6 h-6 text-purple-600 dark:text-purple-400" />
           <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
         </div>
-        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+        <h2 className="text-xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
           Communication Hub
         </h2>
       </div>
@@ -112,7 +113,7 @@ const SocialChat = ({
             className={({ isSelected }) =>
               `flex items-center gap-2 py-2 px-4 cursor-pointer transition-all duration-300 rounded-lg ${
                 isSelected
-                  ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                  ? "bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-lg"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
               }`
             }
@@ -125,7 +126,7 @@ const SocialChat = ({
             className={({ isSelected }) =>
               `flex items-center gap-2 py-2 px-4 cursor-pointer transition-all duration-300 rounded-lg ${
                 isSelected
-                  ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                  ? "bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-lg"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
               }`
             }
@@ -160,14 +161,14 @@ const SocialChat = ({
             </div>
           ) : (
             <div className="space-y-3">
-              {chatMessages?.map((msg: any) => (
+              {chatMessages?.map((msg: ChatMessage) => (
                 <motion.div
                   key={msg.id}
                   className="flex items-start gap-3 p-3 bg-white/80 dark:bg-slate-700/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-8 h-8 bg-linear-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     {msg.senderId === friendId ? "F" : "Y"}
                   </div>
                   <div className="flex-1">
@@ -214,14 +215,14 @@ const SocialChat = ({
             </div>
           ) : (
             <div className="space-y-3">
-              {chatMessages?.map((msg: any) => (
+              {chatMessages?.map((msg: ChatMessage) => (
                 <motion.div
                   key={msg.id}
                   className="flex items-start gap-3 p-3 bg-white/80 dark:bg-slate-700/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     {msg.senderId === roomId ? "S" : "Y"}
                   </div>
                   <div className="flex-1">
@@ -253,7 +254,7 @@ const SocialChat = ({
             className="flex-1 bg-white/80 dark:bg-slate-800/80 border-slate-300/50 dark:border-slate-600/50 focus:border-purple-500 dark:focus:border-purple-400 rounded-xl backdrop-blur-sm shadow-sm"
           />
           <Button
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl aspect-square shadow-lg"
+            className="bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl aspect-square shadow-lg"
             onClick={handleSend}
             disabled={loading || !input.trim()}
           >
@@ -266,3 +267,4 @@ const SocialChat = ({
 };
 
 export default SocialChat;
+

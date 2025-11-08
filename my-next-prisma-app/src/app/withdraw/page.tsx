@@ -3,9 +3,9 @@ import React from 'react';
 
 export default function WithdrawPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#1a1a2e] to-[#16213e] text-white p-4 md:p-8">
+    <main className="min-h-screen bg-linear-to-br from-[#0a0a0f] via-[#1a1a2e] to-[#16213e] text-white p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl sm:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-4xl font-bold mb-8 text-center bg-linear-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
           Withdraw Earnings
         </h1>
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-8 border border-white/20">
@@ -67,7 +67,7 @@ export default function WithdrawPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg font-bold hover:opacity-90 transition-opacity"
+                  className="w-full py-3 bg-linear-to-r from-green-500 to-teal-500 rounded-lg font-bold hover:opacity-90 transition-opacity"
                 >
                   Submit Request
                 </button>

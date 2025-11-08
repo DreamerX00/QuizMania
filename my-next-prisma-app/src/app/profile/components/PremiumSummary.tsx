@@ -13,7 +13,7 @@ export function PremiumSummary() {
   );
 
   if (isLoading || !data) {
-    return <div className="bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />;
+    return <div className="bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />;
   }
 
   const isPremium = data.accountType === 'PREMIUM' || data.accountType === 'LIFETIME';
@@ -22,15 +22,15 @@ export function PremiumSummary() {
 
   return (
     <motion.div
-      className="relative bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
+      className="relative bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.7 }}
     >
       {/* Floating Orbs */}
-      <div className="absolute -top-8 -right-8 w-16 h-16 bg-gradient-to-br from-yellow-400/10 to-pink-400/10 dark:from-yellow-400/30 dark:to-pink-400/20 rounded-full blur-2xl animate-float z-0" />
-      <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-yellow-400/10 to-pink-400/10 dark:from-yellow-400/20 dark:to-pink-400/20 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '2s' }} />
+      <div className="absolute -top-8 -right-8 w-16 h-16 bg-linear-to-br from-yellow-400/10 to-pink-400/10 dark:from-yellow-400/30 dark:to-pink-400/20 rounded-full blur-2xl animate-float z-0" />
+      <div className="absolute bottom-0 left-0 w-12 h-12 bg-linear-to-br from-yellow-400/10 to-pink-400/10 dark:from-yellow-400/20 dark:to-pink-400/20 rounded-full blur-2xl animate-float z-0" style={{ animationDelay: '2s' }} />
       
       {/* Header */}
       <div className="flex items-center justify-between mb-4 z-10 relative">
@@ -41,7 +41,7 @@ export function PremiumSummary() {
         {!isPremiumActive && (
           <Link 
             href="/premium"
-            className="text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full font-semibold hover:from-yellow-500 hover:to-orange-600 transition-all"
+            className="text-xs bg-linear-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full font-semibold hover:from-yellow-500 hover:to-orange-600 transition-all"
           >
             Upgrade
           </Link>
@@ -101,7 +101,7 @@ export function PremiumSummary() {
 
       {/* Premium Expiry Info */}
       {isPremiumActive && data.premiumUntil && (
-        <div className="mt-4 p-3 bg-gradient-to-r from-yellow-400/10 to-orange-500/10 rounded-lg border border-yellow-400/20">
+        <div className="mt-4 p-3 bg-linear-to-r from-yellow-400/10 to-orange-500/10 rounded-lg border border-yellow-400/20">
           <div className="flex items-center justify-center gap-2 text-sm">
             <Calendar className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
             <span className="text-yellow-700 dark:text-yellow-300 font-medium">
@@ -113,14 +113,14 @@ export function PremiumSummary() {
 
       {/* Upgrade CTA for non-premium users */}
       {!isPremiumActive && (
-        <div className="mt-4 p-3 bg-gradient-to-r from-blue-400/10 to-purple-500/10 rounded-lg border border-blue-400/20">
+        <div className="mt-4 p-3 bg-linear-to-r from-blue-400/10 to-purple-500/10 rounded-lg border border-blue-400/20">
           <div className="text-center">
             <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
               Unlock premium features and earn more points!
             </p>
             <Link 
               href="/premium"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-yellow-500 hover:to-orange-600 transition-all"
+              className="inline-flex items-center gap-2 bg-linear-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-yellow-500 hover:to-orange-600 transition-all"
             >
               <TrendingUp className="w-4 h-4" />
               Upgrade to Premium

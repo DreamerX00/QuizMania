@@ -1,11 +1,46 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpayResponse) => void;
+  prefill: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  notes: {
+    userId?: string;
+    type: string;
+  };
+  theme: {
+    color: string;
+  };
+  modal: {
+    ondismiss: () => void;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+}
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
   }
 }
 
@@ -25,10 +60,10 @@ export default function RazorpayPayment({
   onFailure,
   onClose,
   amount,
-  currency = 'INR',
-  description = 'Quiz Mania Premium Subscription',
+  currency = "INR",
+  description = "Quiz Mania Premium Subscription",
   orderId,
-  keyId
+  keyId,
 }: RazorpayPaymentProps) {
   const { data: session } = useSession();
   const user = session?.user;
@@ -37,14 +72,14 @@ export default function RazorpayPayment({
 
   useEffect(() => {
     // Load Razorpay script
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
     script.onload = () => {
-      console.log('Razorpay script loaded');
+      console.log("Razorpay script loaded");
     };
     script.onerror = () => {
-      setError('Failed to load payment gateway');
+      setError("Failed to load payment gateway");
     };
     document.body.appendChild(script);
 
@@ -55,7 +90,7 @@ export default function RazorpayPayment({
 
   const handlePayment = async () => {
     if (!window.Razorpay) {
-      setError('Payment gateway not loaded');
+      setError("Payment gateway not loaded");
       return;
     }
 
@@ -66,19 +101,19 @@ export default function RazorpayPayment({
       key: keyId,
       amount: amount,
       currency: currency,
-      name: 'Quiz Mania',
+      name: "Quiz Mania",
       description: description,
       order_id: orderId,
-      handler: async function (response: any) {
+      handler: async function (response: RazorpayResponse) {
         try {
           // Verify payment on backend
-          const verifyResponse = await fetch('/api/premium/subscribe', {
-            method: 'POST',
+          const verifyResponse = await fetch("/api/premium/subscribe", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              action: 'verify_payment',
+              action: "verify_payment",
               paymentData: {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
@@ -92,24 +127,24 @@ export default function RazorpayPayment({
           if (result.success) {
             onSuccess(response.razorpay_payment_id);
           } else {
-            onFailure(result.error || 'Payment verification failed');
+            onFailure(result.error || "Payment verification failed");
           }
         } catch (error) {
-          console.error('Payment verification error:', error);
-          onFailure('Payment verification failed');
+          console.error("Payment verification error:", error);
+          onFailure("Payment verification failed");
         }
       },
       prefill: {
-        name: user?.fullName || '',
-        email: user?.primaryEmailAddress?.emailAddress || '',
-        contact: '',
+        name: user?.name || "",
+        email: user?.email || "",
+        contact: "",
       },
       notes: {
         userId: user?.id,
-        type: 'premium_subscription',
+        type: "premium_subscription",
       },
       theme: {
-        color: '#6366f1',
+        color: "#6366f1",
       },
       modal: {
         ondismiss: () => {
@@ -122,8 +157,8 @@ export default function RazorpayPayment({
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      console.error('Razorpay initialization error:', error);
-      setError('Failed to initialize payment');
+      console.error("Razorpay initialization error:", error);
+      setError("Failed to initialize payment");
     } finally {
       setIsLoading(false);
     }
@@ -133,13 +168,16 @@ export default function RazorpayPayment({
     if (window.Razorpay && orderId && keyId) {
       handlePayment();
     }
-  }, [window.Razorpay, orderId, keyId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, keyId]);
 
   if (error) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-          <h3 className="text-lg font-semibold text-red-600 mb-4">Payment Error</h3>
+          <h3 className="text-lg font-semibold text-red-600 mb-4">
+            Payment Error
+          </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
           <div className="flex gap-3">
             <button
@@ -168,11 +206,14 @@ export default function RazorpayPayment({
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Initializing payment...</p>
+          <p className="text-gray-600 dark:text-gray-300">
+            Initializing payment...
+          </p>
         </div>
       </div>
     );
   }
 
   return null;
-} 
+}
+

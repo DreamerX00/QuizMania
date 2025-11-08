@@ -25,7 +25,6 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
   ease = "back.inOut(2)",
   scrollStart = "center bottom+=50%",
   scrollEnd = "bottom bottom-=40%",
-  stagger = 0.03,
 }) => {
   const containerRef = useRef<HTMLHeadingElement>(null);
 
@@ -81,7 +80,7 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
       className={`my-5 overflow-hidden ${containerClassName}`}
     >
       <span
-        className={`inline-block bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent text-[clamp(1.6rem,4vw,3rem)] leading-[1.5] ${textClassName}`}
+        className={`inline-block bg-linear-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent text-[clamp(1.6rem,4vw,3rem)] leading-normal ${textClassName}`}
       >
         {children}
       </span>
@@ -91,3 +90,4 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
 
 // Memoize to prevent unnecessary re-renders
 export default memo(ScrollFloat);
+

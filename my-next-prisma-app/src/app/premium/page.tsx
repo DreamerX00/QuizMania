@@ -182,7 +182,7 @@ export default function PremiumPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 dark:from-slate-900 dark:via-indigo-900 dark:to-purple-900">
+    <div className="min-h-screen bg-linear-to-br from-indigo-100 via-purple-100 to-pink-100 dark:from-slate-900 dark:via-indigo-900 dark:to-purple-900">
       <div className="container mx-auto px-4 py-8 pt-24 md:pt-32">
         {/* Header */}
         <div className="text-center mb-12">
@@ -191,7 +191,7 @@ export default function PremiumPage() {
               <Crown className="h-12 w-12 text-white drop-shadow-lg" />
             </span>
           </div>
-          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-fuchsia-500 to-pink-500 mb-4">
+          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-indigo-600 via-fuchsia-500 to-pink-500 mb-4">
             Quiz Mania Premium
           </h1>
           <p className="text-xl text-gray-700 dark:text-gray-200 max-w-2xl mx-auto">
@@ -245,7 +245,7 @@ export default function PremiumPage() {
         {/* Free vs Premium Comparison Tables */}
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
           {/* Free Plan Table */}
-          <div className="rounded-2xl shadow-xl bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 border-2 border-green-300 dark:border-green-700">
+          <div className="rounded-2xl shadow-xl bg-linear-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 border-2 border-green-300 dark:border-green-700">
             <div className="p-6 text-center">
               <h2 className="text-2xl font-bold text-green-700 dark:text-green-200 mb-2 flex items-center justify-center gap-2">
                 🆓 Free Plan
@@ -263,7 +263,7 @@ export default function PremiumPage() {
             </div>
           </div>
           {/* Premium Plan Table */}
-          <div className="rounded-2xl shadow-xl bg-gradient-to-br from-yellow-100 to-pink-100 dark:from-yellow-900 dark:to-pink-900 border-2 border-yellow-300 dark:border-yellow-700">
+          <div className="rounded-2xl shadow-xl bg-linear-to-br from-yellow-100 to-pink-100 dark:from-yellow-900 dark:to-pink-900 border-2 border-yellow-300 dark:border-yellow-700">
             <div className="p-6 text-center">
               <h2 className="text-2xl font-bold text-yellow-700 dark:text-yellow-200 mb-2 flex items-center justify-center gap-2">
                 👑 Premium
@@ -280,7 +280,7 @@ export default function PremiumPage() {
                 ))}
               </ul>
               <Button 
-                className="w-full text-lg py-3 bg-gradient-to-r from-yellow-400 via-pink-400 to-fuchsia-500 text-white font-bold shadow-lg hover:scale-105 transition-transform"
+                className="w-full text-lg py-3 bg-linear-to-r from-yellow-400 via-pink-400 to-fuchsia-500 text-white font-bold shadow-lg hover:scale-105 transition-transform"
                 onClick={handleSubscribe}
                 disabled={loading}
               >
@@ -296,7 +296,7 @@ export default function PremiumPage() {
           <div className="overflow-x-auto">
             <table className="min-w-full border rounded-lg overflow-hidden bg-white dark:bg-slate-800">
               <thead>
-                <tr className="bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 dark:from-indigo-800 dark:via-purple-800 dark:to-pink-800">
+                <tr className="bg-linear-to-r from-indigo-200 via-purple-200 to-pink-200 dark:from-indigo-800 dark:via-purple-800 dark:to-pink-800">
                   <th className="px-4 py-2 text-left">Difficulty</th>
                   <th className="px-4 py-2 text-left">Price</th>
                   <th className="px-4 py-2 text-left">Points</th>
@@ -312,7 +312,7 @@ export default function PremiumPage() {
                     <td className="px-4 py-2 font-semibold text-indigo-700 dark:text-indigo-300">{row.price}</td>
                     <td className="px-4 py-2 font-semibold text-pink-700 dark:text-pink-300">{row.points}</td>
                     <td className="px-4 py-2">
-                      {row.premium ? <Badge className="bg-gradient-to-r from-yellow-400 via-pink-400 to-fuchsia-500 text-white">Premium</Badge> : <span className="text-green-600 font-bold">Free</span>}
+                      {row.premium ? <Badge className="bg-linear-to-r from-yellow-400 via-pink-400 to-fuchsia-500 text-white">Premium</Badge> : <span className="text-green-600 font-bold">Free</span>}
                     </td>
                   </tr>
                 ))}
@@ -327,15 +327,15 @@ export default function PremiumPage() {
             ❓ Frequently Asked Questions
           </h2>
           <div className="space-y-6">
-            <div className="border rounded-lg p-6 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900">
+            <div className="border rounded-lg p-6 bg-linear-to-r from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900">
               <h3 className="text-lg font-semibold mb-2">Can I cancel my subscription anytime?</h3>
               <p className="text-gray-700 dark:text-gray-200">Yes, you can cancel your subscription at any time. Your premium access will continue until the end of your current billing period.</p>
             </div>
-            <div className="border rounded-lg p-6 bg-gradient-to-r from-yellow-100 to-pink-100 dark:from-yellow-900 dark:to-pink-900">
+            <div className="border rounded-lg p-6 bg-linear-to-r from-yellow-100 to-pink-100 dark:from-yellow-900 dark:to-pink-900">
               <h3 className="text-lg font-semibold mb-2">What payment methods are accepted?</h3>
               <p className="text-gray-700 dark:text-gray-200">We accept all major credit cards, debit cards, UPI, net banking, and digital wallets through our secure payment partner Razorpay.</p>
             </div>
-            <div className="border rounded-lg p-6 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-900">
+            <div className="border rounded-lg p-6 bg-linear-to-r from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-900">
               <h3 className="text-lg font-semibold mb-2">Is my payment information secure?</h3>
               <p className="text-gray-700 dark:text-gray-200">Absolutely! We use industry-standard encryption and our payment partner Razorpay is PCI DSS compliant to ensure your data is always secure.</p>
             </div>

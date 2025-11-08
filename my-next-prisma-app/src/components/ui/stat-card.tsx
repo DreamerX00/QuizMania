@@ -163,7 +163,7 @@ export const StatCard = memo(function StatCard({
     >
       {/* Gradient Overlay */}
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-5 pointer-events-none`}
+        className={`absolute inset-0 bg-linear-to-br ${colors.gradient} opacity-5 pointer-events-none`}
       />
 
       <div className="relative z-10 flex flex-col items-center justify-center gap-2">
@@ -239,7 +239,7 @@ export const StatCardHorizontal = memo(function StatCardHorizontal({
       <div className="relative z-10 flex items-center gap-4">
         {/* Icon */}
         {icon && (
-          <div className={`${colors.text} flex-shrink-0`}>
+          <div className={`${colors.text} shrink-0`}>
             {typeof icon === "function" ? <Icon className="w-8 h-8" /> : icon}
           </div>
         )}
@@ -268,3 +268,4 @@ export const StatCardHorizontal = memo(function StatCardHorizontal({
     </motion.div>
   );
 });
+

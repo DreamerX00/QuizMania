@@ -2,13 +2,7 @@ import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Shield,
-  Users,
-  MapPin,
-  Search,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 import useSWR from "swr";
 import ClanModal from "../components/ClanModal";
 import toast from "react-hot-toast";
@@ -18,8 +12,31 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const regions = ["US-East", "US-West", "EU", "Asia", "India"];
 
+interface Clan {
+  id: string;
+  name: string;
+  memberCount?: number;
+  region?: string;
+  description?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
 // Simple ClanCard component
-const ClanCard = ({ clan, onClick, onJoin, joining, isMember }: any) => (
+const ClanCard = ({
+  clan,
+  onClick,
+  onJoin,
+  joining,
+  isMember,
+  hasRequested,
+}: {
+  clan: Clan;
+  onClick: () => void;
+  onJoin: () => void;
+  joining: boolean;
+  isMember: boolean;
+  hasRequested?: boolean;
+}) => (
   <div
     className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 cursor-pointer"
     onClick={onClick}
@@ -37,9 +54,9 @@ const ClanCard = ({ clan, onClick, onJoin, joining, isMember }: any) => (
             e.stopPropagation();
             onJoin();
           }}
-          disabled={joining}
+          disabled={joining || hasRequested}
         >
-          {joining ? "Joining..." : "Join"}
+          {hasRequested ? "Requested" : joining ? "Joining..." : "Join"}
         </Button>
       )}
     </div>
@@ -47,10 +64,9 @@ const ClanCard = ({ clan, onClick, onJoin, joining, isMember }: any) => (
 );
 
 const DiscoverClansTab = () => {
-  const [search, setSearch] = useState("");
-  const [region, setRegion] = useState("All");
-  const [page, setPage] = useState(1);
-  const [selectedClan, setSelectedClan] = useState<any>(null);
+  const [search] = useState("");
+  const [region] = useState("All");
+  const [page] = useState(1);
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const { data: userClanData } = useSWR("/api/clans?my=1", fetcher);
   const myClanId = userClanData?.clans?.[0]?.id || null;
@@ -58,7 +74,8 @@ const DiscoverClansTab = () => {
     "/api/clans/join-requests?my=1",
     fetcher
   );
-  const myRequests = myRequestsData?.requests?.map((r: any) => r.clanId) || [];
+  const myRequests =
+    myRequestsData?.requests?.map((r: { clanId: string }) => r.clanId) || [];
   const { data, error, isLoading, mutate } = useSWR(
     `/api/clans?search=${encodeURIComponent(
       search
@@ -66,10 +83,8 @@ const DiscoverClansTab = () => {
     fetcher
   );
   const clans = data?.clans || [];
-  const total = data?.total || 0;
-  const pageSize = 10;
 
-  const handleJoin = async (clan: any) => {
+  const handleJoin = async (clan: Clan) => {
     setJoiningId(clan.id);
     await fetch("/api/clans/join-requests", {
       method: "POST",
@@ -93,11 +108,13 @@ const DiscoverClansTab = () => {
         <div className="text-center text-slate-400 py-12">No clans found.</div>
       ) : (
         <div className="space-y-4">
-          {clans.map((clan: any) => (
+          {clans.map((clan: Clan) => (
             <ClanCard
               key={clan.id}
               clan={clan}
-              onClick={() => setSelectedClan(clan)}
+              onClick={() => {
+                /* setSelectedClan(clan) */
+              }}
               onJoin={() => handleJoin(clan)}
               joining={joiningId === clan.id}
               isMember={myClanId === clan.id}
@@ -111,7 +128,7 @@ const DiscoverClansTab = () => {
   );
 };
 
-const CreateClanTab = ({ onCreated }: { onCreated: (clan: any) => void }) => {
+const CreateClanTab = ({ onCreated }: { onCreated: (clan: Clan) => void }) => {
   const [name, setName] = useState("");
   const [motto, setMotto] = useState("");
   const [region, setRegion] = useState(regions[0]);
@@ -179,7 +196,7 @@ const CreateClanTab = ({ onCreated }: { onCreated: (clan: any) => void }) => {
       <div>
         <label className="block text-sm font-medium mb-1">Emblem/Logo</label>
         <div className="flex items-center gap-3">
-          <div className="relative w-16 h-16 rounded-full border-2 border-slate-300 dark:border-slate-700 overflow-hidden flex-shrink-0">
+          <div className="relative w-16 h-16 rounded-full border-2 border-slate-300 dark:border-slate-700 overflow-hidden shrink-0">
             <Image
               src={emblemUrl}
               alt="emblem"
@@ -218,7 +235,7 @@ const CreateClanTab = ({ onCreated }: { onCreated: (clan: any) => void }) => {
 
 const ClanPanelTabs = () => {
   const [tab, setTab] = useState("my");
-  const [myClan, setMyClan] = useState<any>(null);
+  const [myClan, setMyClan] = useState<Clan | null>(null);
   return (
     <div className="w-full max-w-3xl mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 mt-8">
       <Tabs value={tab} onValueChange={setTab}>
@@ -257,3 +274,4 @@ const ClanPanelTabs = () => {
 };
 
 export default ClanPanelTabs;
+

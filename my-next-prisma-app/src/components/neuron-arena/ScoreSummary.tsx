@@ -24,27 +24,29 @@ const ScoreSummary = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [showReview, setShowReview] = useState(false);
+  const [progress, setProgress] = useState(0);
   const router = useRouter();
-  if (!quiz) return null;
 
   // Evaluate all questions
-  const questionResults = quiz.questions.map((q) => {
-    const resp = responses.find((r) => r.questionId === q.id);
-    return { ...evaluateResponse(q, resp!), question: q, userResponse: resp };
-  });
+  const questionResults =
+    quiz?.questions.map((q) => {
+      const resp = responses.find((r) => r.questionId === q.id);
+      return { ...evaluateResponse(q, resp!), question: q, userResponse: resp };
+    }) || [];
   const correct = questionResults.filter((r) => r.status === "correct").length;
   const incorrect = questionResults.filter(
     (r) => r.status === "incorrect"
   ).length;
   const manual = questionResults.filter((r) => r.status === "manual").length;
   const poll = questionResults.filter((r) => r.status === "poll").length;
-  const total = quiz.questions.length;
+  const total = quiz?.questions.length || 0;
   const percent = Math.round((correct / (total - poll - manual)) * 100) || 0;
   const perfect =
     correct === total - poll - manual && incorrect === 0 && manual === 0;
 
   // Animate score
   useEffect(() => {
+    if (!quiz) return;
     setShowConfetti(true);
     let n = 0;
     const target = correct;
@@ -54,7 +56,7 @@ const ScoreSummary = () => {
       if (n >= target) clearInterval(interval);
     }, 40);
     return () => clearInterval(interval);
-  }, [correct]);
+  }, [correct, quiz]);
 
   // Auto-scroll to top on mount
   useEffect(() => {
@@ -62,14 +64,15 @@ const ScoreSummary = () => {
   }, []);
 
   // Animated progress bar
-  const [progress, setProgress] = useState(0);
   useEffect(() => {
     setProgress(0);
     setTimeout(() => setProgress(percent), 200);
   }, [percent]);
 
+  if (!quiz) return null;
+
   return (
-    <div className="relative rounded-3xl bg-gradient-to-br from-[#232946] via-[#3b3b5b] to-[#1a1a2e] p-8 shadow-2xl backdrop-blur-2xl flex flex-col items-center border border-blue-400/20">
+    <div className="relative rounded-3xl bg-linear-to-br from-[#232946] via-[#3b3b5b] to-[#1a1a2e] p-8 shadow-2xl backdrop-blur-2xl flex flex-col items-center border border-blue-400/20">
       {showConfetti && <Confetti />}
       <div className="font-heading text-4xl mb-2 text-white flex items-center gap-4">
         Score Summary
@@ -90,7 +93,7 @@ const ScoreSummary = () => {
         </div>
         <div className="w-full h-4 bg-white/10 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-green-400 via-blue-400 to-purple-500 transition-all duration-700"
+            className="h-full bg-linear-to-r from-green-400 via-blue-400 to-purple-500 transition-all duration-700"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -155,13 +158,13 @@ const ScoreSummary = () => {
       )}
       <div className="flex gap-4 mt-10">
         <button
-          className="rounded-xl px-8 py-3 bg-[var(--primary-accent)] text-white font-bold text-lg shadow-lg hover:scale-105 transition"
+          className="rounded-xl px-8 py-3 bg-(--primary-accent) text-white font-bold text-lg shadow-lg hover:scale-105 transition"
           onClick={() => router.push("/")}
         >
           Back to Home
         </button>
         <button
-          className="rounded-xl px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg shadow-lg hover:scale-105 transition"
+          className="rounded-xl px-8 py-3 bg-linear-to-r from-blue-500 to-purple-600 text-white font-bold text-lg shadow-lg hover:scale-105 transition"
           onClick={() => setShowReview(true)}
         >
           Review Answers
@@ -234,3 +237,4 @@ const ScoreSummary = () => {
 };
 
 export default ScoreSummary;
+

@@ -107,11 +107,11 @@ const VoteTypesDialog: React.FC<VoteTypesDialogProps> = ({ isOpen, onClose }) =>
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="!w-[90vw] !h-[85vh] !max-w-none !max-h-none p-0 bg-gradient-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 text-gray-900 dark:text-white flex flex-col rounded-3xl shadow-2xl overflow-hidden">
+      <DialogContent className="!w-[90vw] !h-[85vh] !max-w-none !max-h-none p-0 bg-linear-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 text-gray-900 dark:text-white flex flex-col rounded-3xl shadow-2xl overflow-hidden">
         {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
+        <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
         
-        <DialogHeader className="relative z-10 p-6 pb-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
+        <DialogHeader className="relative z-10 p-6 pb-4 bg-linear-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -119,7 +119,7 @@ const VoteTypesDialog: React.FC<VoteTypesDialogProps> = ({ isOpen, onClose }) =>
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               </div>
               <div>
-                <DialogTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                <DialogTitle className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                   Battle Formats
                 </DialogTitle>
                 <DialogDescription className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
@@ -152,8 +152,8 @@ const VoteTypesDialog: React.FC<VoteTypesDialogProps> = ({ isOpen, onClose }) =>
               >
                 <div className={`rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border ${t.borderColor} p-4 sm:p-5 flex flex-col items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 h-32 sm:h-36`}>
                   {/* Icon */}
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${t.bgColor} border ${t.borderColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 mb-3`}>
-                    <div className={`text-white bg-gradient-to-br ${t.color} bg-clip-text text-transparent`}>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-linear-to-br ${t.bgColor} border ${t.borderColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 mb-3`}>
+                    <div className={`text-white bg-linear-to-br ${t.color} bg-clip-text text-transparent`}>
                       {t.icon}
                     </div>
                   </div>
@@ -181,7 +181,7 @@ const VoteTypesDialog: React.FC<VoteTypesDialogProps> = ({ isOpen, onClose }) =>
                 {/* Vote Button */}
                 <Button 
                   size="sm" 
-                  className={`w-full -mt-2 bg-gradient-to-r ${t.color} hover:opacity-90 text-white font-semibold border-none shadow-lg transition-all duration-300 group-hover:shadow-xl rounded-t-none rounded-b-2xl`}
+                  className={`w-full -mt-2 bg-linear-to-r ${t.color} hover:opacity-90 text-white font-semibold border-none shadow-lg transition-all duration-300 group-hover:shadow-xl rounded-t-none rounded-b-2xl`}
                 >
                   <Zap className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                   Vote
@@ -192,7 +192,7 @@ const VoteTypesDialog: React.FC<VoteTypesDialogProps> = ({ isOpen, onClose }) =>
         </div>
         
         {/* Footer */}
-        <div className="relative z-10 p-6 pt-4 bg-gradient-to-r from-slate-50/50 to-blue-50/50 dark:from-slate-800/50 dark:to-slate-700/50 border-t border-slate-200/50 dark:border-slate-700/50">
+        <div className="relative z-10 p-6 pt-4 bg-linear-to-r from-slate-50/50 to-blue-50/50 dark:from-slate-800/50 dark:to-slate-700/50 border-t border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
               <Star className="w-4 h-4 text-yellow-500" />
@@ -200,7 +200,7 @@ const VoteTypesDialog: React.FC<VoteTypesDialogProps> = ({ isOpen, onClose }) =>
             </div>
             <Button 
               onClick={onClose} 
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               Close
             </Button>

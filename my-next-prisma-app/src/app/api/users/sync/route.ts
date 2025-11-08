@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { z } from 'zod';
-import { withValidation } from '@/utils/validation';
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { withValidation } from "@/utils/validation";
 
 const syncUserSchema = z.object({
   id: z.string().min(1),
@@ -11,17 +11,16 @@ const syncUserSchema = z.object({
 });
 
 export const POST = withValidation(syncUserSchema, async (request: any) => {
-  const { clerkId, email, name, avatarUrl } = request.validated;
+  const { id, email, name, avatarUrl } = request.validated;
   try {
     const user = await prisma.user.upsert({
-      where: { clerkId },
+      where: { email },
       update: {
-        email,
         name,
         avatarUrl,
       },
       create: {
-        clerkId,
+        id,
         email,
         name,
         avatarUrl,
@@ -29,7 +28,7 @@ export const POST = withValidation(syncUserSchema, async (request: any) => {
     });
     return NextResponse.json(user);
   } catch (error) {
-    console.error('Failed to sync user:', error);
-    return NextResponse.json({ error: 'Failed to sync user' }, { status: 500 });
+    console.error("Failed to sync user:", error);
+    return NextResponse.json({ error: "Failed to sync user" }, { status: 500 });
   }
-}); 
+});

@@ -46,7 +46,7 @@ export default function RoomInfoPanel({ room, isHost }: { room: any, isHost?: bo
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className="relative bg-gradient-to-br from-[#23234d]/80 to-[#0f1021]/90 rounded-2xl border border-blue-400/30 shadow-lg p-4 sm:p-6 mb-4 flex flex-col gap-4"
+      className="relative bg-linear-to-br from-[#23234d]/80 to-[#0f1021]/90 rounded-2xl border border-blue-400/30 shadow-lg p-4 sm:p-6 mb-4 flex flex-col gap-4"
       style={{ boxShadow: '0 0 32px 4px #3b82f655, 0 0 0 1.5px #a78bfa55' }}
     >
       {/* Sticky Header */}

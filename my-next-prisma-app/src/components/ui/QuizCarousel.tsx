@@ -49,7 +49,7 @@ export default function QuizCarousel({
         {quizzes.map((quiz) => (
           <div
             key={quiz.id}
-            className="min-w-[260px] max-w-[320px] w-[90vw] sm:w-[260px] md:w-[280px] snap-start flex-shrink-0"
+            className="min-w-[260px] max-w-[320px] w-[90vw] sm:w-[260px] md:w-[280px] snap-start shrink-0"
             onClick={() => onQuizClick(quiz)}
           >
             <QuizCard 

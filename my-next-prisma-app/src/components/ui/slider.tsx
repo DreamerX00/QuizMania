@@ -39,13 +39,13 @@ function Slider({
       <SliderPrimitive.Track
         data-slot="slider-track"
         className={cn(
-          "relative grow overflow-hidden rounded-full h-2 w-full bg-gradient-to-r from-[#23243a] via-[#23243a] to-[#23243a]"
+          "relative grow overflow-hidden rounded-full h-2 w-full bg-linear-to-r from-[#23243a] via-[#23243a] to-[#23243a]"
         )}
       >
         <SliderPrimitive.Range
           data-slot="slider-range"
           className={cn(
-            "absolute h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"
+            "absolute h-full bg-linear-to-r from-blue-500 to-purple-600 rounded-full"
           )}
         />
       </SliderPrimitive.Track>
@@ -61,3 +61,4 @@ function Slider({
 }
 
 export { Slider }
+

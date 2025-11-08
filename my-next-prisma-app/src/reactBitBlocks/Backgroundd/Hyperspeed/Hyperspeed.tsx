@@ -1278,3 +1278,4 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = {} }) => {
 };
 
 export default Hyperspeed;
+

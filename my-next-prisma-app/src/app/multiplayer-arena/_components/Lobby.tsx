@@ -2,29 +2,34 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import {
-  Mic,
-  Plus,
-  Crown,
-  Sparkles,
-  Users,
-  Sword,
-  Target,
-  Flame,
-  Zap,
-} from "lucide-react";
+import { Plus, Crown, Users, Sword, Target, Flame, Zap } from "lucide-react";
 import InviteModal from "../components/InviteModal";
 import toast from "react-hot-toast";
 import Image from "next/image";
 
+interface Participant {
+  id: string;
+  username: string;
+  name?: string;
+  avatar?: string;
+  role?: string;
+  isLeader?: boolean;
+}
+
+interface Room {
+  id: string;
+  name?: string;
+  hostId?: string;
+}
+
 const Lobby = ({
   participants,
   currentRoom,
-  gameState,
+  gameState, // eslint-disable-line @typescript-eslint/no-unused-vars
 }: {
-  participants: Map<string, any>;
-  currentRoom: any;
-  gameState: string;
+  participants: Map<string, Participant>;
+  currentRoom: Room | null;
+  gameState?: "waiting" | "playing" | "voting" | "results";
 }) => {
   const [isInviteModalOpen, setInviteModalOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -68,10 +73,10 @@ const Lobby = ({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="h-full bg-gradient-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex flex-col text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
+      className="h-full bg-linear-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex flex-col text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
     >
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
 
       {/* Header */}
       <div className="relative z-10 flex justify-between items-center mb-6">
@@ -80,7 +85,7 @@ const Lobby = ({
             <Sword className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
           </div>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
             Battle Arena
           </h2>
         </div>
@@ -105,7 +110,7 @@ const Lobby = ({
         <div className="grid grid-cols-5 gap-4 w-full max-w-2xl">
           {participantsArray.length === 0 ? (
             <div className="col-span-5 flex flex-col items-center justify-center py-12">
-              <div className="w-16 h-16 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-linear-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 rounded-full flex items-center justify-center mb-4">
                 <Users className="w-8 h-8 text-slate-400 dark:text-slate-500" />
               </div>
               <p className="text-slate-500 dark:text-slate-400 font-medium">
@@ -116,7 +121,7 @@ const Lobby = ({
               </p>
             </div>
           ) : (
-            participantsArray.map((participant: any, index: number) => (
+            participantsArray.map((participant: Participant, index: number) => (
               <motion.div
                 key={participant.id}
                 className="flex flex-col items-center gap-3"
@@ -126,7 +131,7 @@ const Lobby = ({
               >
                 <div className="relative group">
                   <div
-                    className={`relative w-20 h-20 rounded-2xl flex items-center justify-center bg-gradient-to-br from-white to-slate-100 dark:from-slate-700 dark:to-slate-800 border-2 shadow-lg transition-all duration-300 group-hover:scale-105 overflow-hidden ${
+                    className={`relative w-20 h-20 rounded-2xl flex items-center justify-center bg-linear-to-br from-white to-slate-100 dark:from-slate-700 dark:to-slate-800 border-2 shadow-lg transition-all duration-300 group-hover:scale-105 overflow-hidden ${
                       participant.isLeader
                         ? "border-yellow-400 shadow-yellow-400/30"
                         : "border-slate-300 dark:border-slate-600"
@@ -135,7 +140,7 @@ const Lobby = ({
                     <div className="relative w-16 h-16 rounded-xl overflow-hidden">
                       <Image
                         src={participant.avatar || "/default_avatar.png"}
-                        alt={participant.name}
+                        alt={participant.name || participant.username}
                         fill
                         className="object-cover"
                         sizes="64px"
@@ -143,7 +148,7 @@ const Lobby = ({
                     </div>
                     {participant.isLeader && (
                       <motion.div
-                        className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-1.5 rounded-full shadow-lg"
+                        className="absolute -top-2 -right-2 bg-linear-to-r from-yellow-400 to-orange-500 text-white p-1.5 rounded-full shadow-lg"
                         animate={{ rotate: [0, 10, -10, 0] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       >
@@ -155,7 +160,7 @@ const Lobby = ({
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></div>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[80px]">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate max-w-20">
                     {participant.name}
                   </p>
                   <div className="flex items-center justify-center gap-1 mt-1">
@@ -181,7 +186,7 @@ const Lobby = ({
                 transition={{ delay: (participantsArray.length + index) * 0.1 }}
               >
                 <motion.div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-600 cursor-pointer hover:scale-105 transition-all duration-300 group"
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center bg-linear-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-600 cursor-pointer hover:scale-105 transition-all duration-300 group"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleInviteClick}
@@ -211,11 +216,11 @@ const Lobby = ({
         >
           <Button
             size="lg"
-            className="relative px-8 py-4 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 hover:from-purple-700 hover:via-blue-700 hover:to-cyan-700 text-white text-lg font-bold rounded-2xl shadow-2xl shadow-purple-600/30 border-0 overflow-hidden group"
+            className="relative px-8 py-4 bg-linear-to-r from-purple-600 via-blue-600 to-cyan-600 hover:from-purple-700 hover:via-blue-700 hover:to-cyan-700 text-white text-lg font-bold rounded-2xl shadow-2xl shadow-purple-600/30 border-0 overflow-hidden group"
             onClick={handleStartMatch}
           >
             {/* Animated background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-cyan-600/20 animate-pulse"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-purple-600/20 via-blue-600/20 to-cyan-600/20 animate-pulse"></div>
 
             {/* Content */}
             <div className="relative flex items-center gap-3">
@@ -225,7 +230,7 @@ const Lobby = ({
             </div>
 
             {/* Glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-white/20 to-cyan-600/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-purple-600/0 via-white/20 to-cyan-600/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           </Button>
         </motion.div>
       </div>
@@ -240,3 +245,4 @@ const Lobby = ({
 };
 
 export default Lobby;
+

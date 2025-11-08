@@ -14,7 +14,7 @@ export default function Accordion({ title, children, defaultOpen = true }: Accor
   return (
     <div className="mb-4 rounded-2xl bg-white/90 shadow-[0_0_24px_4px_rgba(59,130,246,0.15)] dark:bg-slate-900/50 dark:border dark:border-slate-700 overflow-hidden shadow-lg backdrop-blur-md">
       <button
-        className="w-full flex items-center justify-between px-6 py-4 text-lg font-bold bg-gradient-to-r from-blue-100/80 to-purple-100/80 dark:from-purple-700/10 dark:to-blue-700/10 text-blue-900 dark:text-white focus:outline-none transition-colors hover:bg-blue-200/80 dark:hover:bg-slate-800/40 bg-opacity-20 backdrop-blur"
+        className="w-full flex items-center justify-between px-6 py-4 text-lg font-bold bg-linear-to-r from-blue-100/80 to-purple-100/80 dark:from-purple-700/10 dark:to-blue-700/10 text-blue-900 dark:text-white focus:outline-none transition-colors hover:bg-blue-200/80 dark:hover:bg-slate-800/40 bg-opacity-20 backdrop-blur"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >

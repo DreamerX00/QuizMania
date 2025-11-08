@@ -121,7 +121,7 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
         <button onClick={onClose} className="text-white/70 hover:text-white text-2xl font-bold px-4 py-2 rounded-full bg-black/30" aria-label="Close dialog">×</button>
       </div>
       <div className="w-full flex flex-col md:flex-row gap-8 mb-6">
-        <div className="flex-1 bg-gradient-to-br from-blue-900/60 to-pink-900/40 rounded-2xl p-6 shadow-xl border border-white/10">
+        <div className="flex-1 bg-linear-to-br from-blue-900/60 to-pink-900/40 rounded-2xl p-6 shadow-xl border border-white/10">
           <div className="text-lg text-white/80 font-semibold mb-2">Quiz: <span className="font-bold">{sanitize(attempt.quizTitle)}</span></div>
           <div className="text-white/70 mb-1">Attempt ID: <span className="font-mono">{attempt.id}</span></div>
           <div className="text-white/70 mb-1">Date: {attempt.dateTaken ? new Date(attempt.dateTaken).toLocaleString() : ''}</div>
@@ -131,7 +131,7 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
         </div>
         <div className="flex flex-col gap-2 items-end">
           <button
-            className="rounded-lg px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition"
+            className="rounded-lg px-6 py-2 bg-linear-to-r from-blue-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition"
             onClick={() => handleDownload('md')}
             disabled={downloading}
             aria-label="Download as Markdown"
@@ -140,7 +140,7 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
           </button>
           <div className="relative">
             <button
-              className="rounded-lg px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
+              className="rounded-lg px-6 py-2 bg-linear-to-r from-yellow-500 to-orange-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
               disabled
               aria-label="Download as PDF (Coming Soon)"
               onMouseEnter={() => setPdfTooltip(true)}
@@ -157,13 +157,13 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
             )}
           </div>
           <button
-            className="rounded-lg px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
+            className="rounded-lg px-6 py-2 bg-linear-to-r from-pink-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
             disabled
           >
             Premium: Request Re-evaluation
           </button>
           <button
-            className="rounded-lg px-6 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
+            className="rounded-lg px-6 py-2 bg-linear-to-r from-green-500 to-blue-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
             disabled
           >
             Premium: Chat with Quiz Creator
@@ -176,7 +176,7 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {paginatedReviews.length === 0 && <div className="text-white/60 italic">No manual review data available.</div>}
           {paginatedReviews.map((r: ManualReview, i: number) => (
-            <div key={r.id} className="bg-gradient-to-br from-blue-800/40 to-pink-800/30 rounded-lg p-4 border border-white/10">
+            <div key={r.id} className="bg-linear-to-br from-blue-800/40 to-pink-800/30 rounded-lg p-4 border border-white/10">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-bold text-white">Q{(page - 1) * QUESTIONS_PER_PAGE + i + 1}:</span>
                 <span className="text-white/80">{sanitize(r.type)}</span>

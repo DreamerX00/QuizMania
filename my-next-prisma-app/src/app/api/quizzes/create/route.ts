@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from "@/lib/session";
 import { getPricingConfig } from "@/constants/pricing";
 import slugify from "slugify";
 import { z } from "zod";
@@ -77,7 +77,7 @@ export const POST = withValidation(createQuizSchema, async (req: any) => {
         subject,
         jsonContent: questions,
         isPublished: isPublished,
-        creatorId: auth.userId,
+        creatorId: userId,
         durationInSeconds:
           typeof durationInSeconds === "number" ? durationInSeconds : 0,
         isLocked: !!isLocked,

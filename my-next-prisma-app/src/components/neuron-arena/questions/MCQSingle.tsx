@@ -47,3 +47,4 @@ const MCQSingle = ({ question }: { question: Question }) => {
 };
 
 export default MCQSingle; 
+

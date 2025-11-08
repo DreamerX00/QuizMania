@@ -23,3 +23,4 @@ export function createDynamicImport<T extends React.ComponentType<any>>(
       : () => <LoadingSpinner />,
   });
 }
+

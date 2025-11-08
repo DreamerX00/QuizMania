@@ -13,42 +13,53 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
-      if (session.user && user?.id) {
-        session.user.id = user.id;
+    async session({ session, token }) {
+      if (session.user && token?.sub) {
+        session.user.id = token.sub;
         // Add custom fields from your User model
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            image: true,
-            avatarUrl: true,
-            role: true,
-            xp: true,
-            rank: true,
-            streak: true,
-            accountType: true,
-            points: true,
-            premiumUntil: true,
-          },
-        });
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              image: true,
+              avatarUrl: true,
+              role: true,
+              xp: true,
+              rank: true,
+              streak: true,
+              accountType: true,
+              points: true,
+              premiumUntil: true,
+            },
+          });
 
-        if (dbUser) {
-          session.user = {
-            ...session.user,
-            ...dbUser,
-          };
+          if (dbUser) {
+            session.user = {
+              ...session.user,
+              ...dbUser,
+            };
+          }
+        } catch (error) {
+          console.error("Error fetching user in session callback:", error);
         }
       }
       return session;
     },
     async jwt({ token, user }) {
+      // Initial sign in
       if (user) {
-        token.id = user?.id;
+        token.id = user.id;
       }
       return token;
+    },
+  },
+  events: {
+    async signOut() {
+      // Clear any cached data on sign out
+      console.log("User signed out");
     },
   },
   pages: {
@@ -56,7 +67,7 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { memo } from "react";
 import {
   Brain,
   Zap,
@@ -42,7 +41,7 @@ const Card3DEffect = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-96 animate-pulse bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl" />
+      <div className="h-96 animate-pulse bg-linear-to-br from-gray-800/50 to-gray-900/50 rounded-xl" />
     ),
   }
 );
@@ -55,7 +54,7 @@ const AnimatedTestimonials = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-96 animate-pulse bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl" />
+      <div className="h-96 animate-pulse bg-linear-to-br from-gray-800/50 to-gray-900/50 rounded-xl" />
     ),
   }
 );
@@ -289,7 +288,7 @@ export default function HomePage() {
 
               <HeroHighlight className="mb-6">
                 <div className="w-full flex justify-center items-center">
-                  <h1 className="w-full max-w-5xl bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-center mx-auto">
+                  <h1 className="w-full max-w-5xl bg-linear-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-center mx-auto">
                     <Typewriter
                       words={[
                         "QuizMania",
@@ -318,7 +317,7 @@ export default function HomePage() {
             >
               <GlowingEffect>
                 <Link href="/generate-random-quiz">
-                  <button className="flex items-center space-x-2 w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold focus:outline-none transition-all duration-300 bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:from-cyan-600 hover:to-blue-600">
+                  <button className="flex items-center space-x-2 w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold focus:outline-none transition-all duration-300 bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow-md hover:from-cyan-600 hover:to-blue-600">
                     <Brain className="w-5 h-5" />
                     <span>Generate AI Quiz</span>
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -406,7 +405,7 @@ export default function HomePage() {
             scrollStart="center bottom+=50%"
             scrollEnd="bottom bottom-=40%"
             stagger={0.03}
-            textClassName="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent font-bold"
+            textClassName="bg-linear-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent font-bold"
             containerClassName="text-4xl md:text-5xl mb-6 text-center"
           >
             Features
@@ -416,9 +415,9 @@ export default function HomePage() {
               <Link href="/multiplayer-arena">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-[240px] md:min-h-[260px]"
+                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-60 md:min-h-[260px]"
                 >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-700 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-yellow-400 via-yellow-500 to-yellow-700 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Swords className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-cyan-100 mb-3">
@@ -434,9 +433,9 @@ export default function HomePage() {
               <Link href="/create-quiz/guide">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-[240px] md:min-h-[260px]"
+                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-60 md:min-h-[260px]"
                 >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-emerald-400 to-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Sparkles className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-cyan-100 mb-3">
@@ -452,9 +451,9 @@ export default function HomePage() {
               <Link href="/generate-random-quiz">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-[240px] md:min-h-[260px]"
+                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-60 md:min-h-[260px]"
                 >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-violet-400 to-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Brain className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-cyan-100 mb-3">
@@ -470,9 +469,9 @@ export default function HomePage() {
               <Link href="/leaderboard">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-[240px] md:min-h-[260px]"
+                  className="futuristic-card p-6 text-center group cursor-pointer min-h-[200px] sm:min-h-60 md:min-h-[260px]"
                 >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-pink-400 to-rose-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Zap className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-cyan-100 mb-3">
@@ -497,7 +496,7 @@ export default function HomePage() {
             scrollStart="center bottom+=50%"
             scrollEnd="bottom bottom-=40%"
             stagger={0.03}
-            textClassName="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent font-bold"
+            textClassName="bg-linear-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent font-bold"
             containerClassName="text-4xl md:text-5xl mb-6 text-center"
           >
             Why Choose QuizMania?
@@ -513,11 +512,11 @@ export default function HomePage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                     viewport={{ once: true }}
-                    className="futuristic-card p-6 text-center group cursor-pointer h-full min-h-[240px] sm:min-h-[280px] md:min-h-[300px] flex flex-col justify-center"
+                    className="futuristic-card p-6 text-center group cursor-pointer h-full min-h-60 sm:min-h-[280px] md:min-h-[300px] flex flex-col justify-center"
                   >
                     <div className="flex-1 flex flex-col justify-center">
                       <div
-                        className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
+                        className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br ${feature.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
                       >
                         <IconComponent className="w-8 h-8 text-white" />
                       </div>
@@ -545,7 +544,7 @@ export default function HomePage() {
             scrollStart="center bottom+=50%"
             scrollEnd="bottom bottom-=40%"
             stagger={0.03}
-            textClassName="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent font-bold"
+            textClassName="bg-linear-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent font-bold"
             containerClassName="text-4xl md:text-5xl mb-6 text-center"
           >
             Everything You Need
@@ -562,7 +561,7 @@ export default function HomePage() {
                   viewport={{ once: true }}
                   className="flex items-center space-x-4 p-4 bg-cyan-500/5 backdrop-blur-sm border border-cyan-500/10 rounded-xl"
                 >
-                  <CheckCircle className="w-6 h-6 text-emerald-500 flex-shrink-0" />
+                  <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0" />
                   <span className="text-slate-700 dark:text-cyan-100 text-lg">
                     {benefit}
                   </span>
@@ -583,7 +582,7 @@ export default function HomePage() {
             scrollStart="center bottom+=50%"
             scrollEnd="bottom bottom-=40%"
             stagger={0.03}
-            textClassName="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent font-bold"
+            textClassName="bg-linear-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x bg-clip-text text-transparent font-bold"
             containerClassName="text-4xl md:text-5xl mb-4 text-center"
           >
             What Our Users Say
@@ -608,7 +607,7 @@ export default function HomePage() {
               className="futuristic-card p-12 text-center"
             >
               <SparklesComponent>
-                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-linear-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
                   <Star className="w-10 h-10 text-white" />
                 </div>
               </SparklesComponent>
@@ -621,7 +620,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <GlowingEffect>
-                  <Link href="/signup">
+                  <Link href="/auth/signin">
                     <button className="futuristic-button text-lg px-8 py-4">
                       Get Started Free
                     </button>
@@ -637,7 +636,7 @@ export default function HomePage() {
       <footer className="py-12 border-t border-cyan-500/10">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-linear-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
               <Brain className="w-4 h-4 text-white" />
             </div>
             <span className="text-xl font-bold futuristic-title">
@@ -652,3 +651,4 @@ export default function HomePage() {
     </div>
   );
 }
+

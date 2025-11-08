@@ -1,38 +1,26 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useTransform,
-} from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   UserPlus,
-  Star,
   MessageSquare,
   UserMinus,
   Users,
   Search,
-  CheckCircle2,
-  XCircle,
   UserCheck,
   UserX,
   Bell,
   Pin,
   PinOff,
   X,
-  Send,
   Gift,
-  Heart,
-  Shield,
-  Zap,
-  Target,
 } from "lucide-react";
 import useSWR from "swr";
 import toast from "react-hot-toast";
 import Image from "next/image";
+
 // import Lottie from 'lottie-react'; // For real Lottie gifts, if available
 // import giftLottie from '@/assets/lottie/gift.json';
 
@@ -48,9 +36,28 @@ const statusPulse = {
 };
 
 interface Friend {
+  id: string;
+  name: string;
+  avatar: string;
   pinned?: boolean;
   status: "online" | "in-match" | "offline";
-  [key: string]: any;
+  [key: string]: string | boolean | undefined;
+}
+
+interface Request {
+  id: string;
+  sender: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+}
+
+interface User {
+  id: string;
+  name: string;
+  avatar: string;
+  [key: string]: string | boolean | undefined;
 }
 
 const sortFriends = (friends: Friend[]) => {
@@ -73,7 +80,14 @@ const FriendCard = ({
   onMessage,
   onInvite,
   onGift,
-}: any) => {
+}: {
+  friend: Friend;
+  onPin: (friend: Friend) => void;
+  onRemove: () => void;
+  onMessage: () => void;
+  onInvite: () => void;
+  onGift: () => void;
+}) => {
   const [isHover, setIsHover] = useState(false);
   return (
     <motion.div
@@ -136,7 +150,7 @@ const FriendCard = ({
           variant="ghost"
           className="text-blue-500 hover:bg-blue-500/10 p-2"
           title="Message"
-          onClick={() => onMessage(friend)}
+          onClick={() => onMessage()}
         >
           <MessageSquare size={16} />
         </Button>
@@ -145,7 +159,7 @@ const FriendCard = ({
           variant="ghost"
           className="text-green-500 hover:bg-green-500/10 p-2"
           title="Invite"
-          onClick={() => onInvite(friend)}
+          onClick={() => onInvite()}
         >
           <UserPlus size={16} />
         </Button>
@@ -154,7 +168,7 @@ const FriendCard = ({
           variant="ghost"
           className="text-pink-500 hover:bg-pink-500/10 p-2"
           title="Send Gift"
-          onClick={() => onGift(friend)}
+          onClick={() => onGift()}
         >
           <Gift size={16} />
         </Button>
@@ -172,7 +186,7 @@ const FriendCard = ({
           variant="ghost"
           className="text-red-500 hover:bg-red-500/10 p-2"
           title="Remove"
-          onClick={() => onRemove(friend)}
+          onClick={() => onRemove()}
         >
           <UserMinus size={16} />
         </Button>
@@ -230,14 +244,6 @@ const FriendModalOverlay = ({
 }) => {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("friends");
-  const [showInvite, setShowInvite] = useState(false);
-  const [inviteTarget, setInviteTarget] = useState<any>(null);
-  const [showRemove, setShowRemove] = useState(false);
-  const [removeTarget, setRemoveTarget] = useState<any>(null);
-  const [showMessage, setShowMessage] = useState(false);
-  const [messageTarget, setMessageTarget] = useState<any>(null);
-  const [showGift, setShowGift] = useState(false);
-  const [giftTarget, setGiftTarget] = useState<any>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -298,7 +304,7 @@ const FriendModalOverlay = ({
     };
   }, []);
 
-  const handlePin = (friend: any) => {
+  const handlePin = (friend: Friend) => {
     mutateFriends((friends: Friend[]) =>
       friends.map((f: Friend) =>
         f.name === friend.name ? { ...f, pinned: !f.pinned } : f
@@ -307,39 +313,39 @@ const FriendModalOverlay = ({
     playSound("/game_arena/pin.mp3");
     toast.success(friend.pinned ? "Unpinned ally." : "Pinned ally!");
   };
-  const handleRemove = (friend: any) => {
-    setShowRemove(true);
-    setRemoveTarget(friend);
+  const handleRemove = () => {
+    // setShowRemove(true);
+    // setRemoveTarget(friend);
     playSound("/game_arena/remove.mp3");
   };
-  const confirmRemove = async () => {
-    try {
-      await mutateFriends((friends: Friend[]) =>
-        friends.filter((f: Friend) => f.name !== removeTarget.name)
-      );
-      setShowRemove(false);
-      setRemoveTarget(null);
-      playSound("/game_arena/confirm.mp3");
-      toast.success("Ally removed.");
-    } catch (e) {
-      toast.error("Failed to remove ally.");
-    }
-  };
-  const handleMessage = (friend: any) => {
-    setShowMessage(true);
-    setMessageTarget(friend);
+  // const confirmRemove = async () => {
+  //   try {
+  //     await mutateFriends((friends: Friend[]) =>
+  //       friends.filter((f: Friend) => f.name !== removeTarget?.name)
+  //     );
+  //     // setShowRemove(false);
+  //     setRemoveTarget(null);
+  //     playSound("/game_arena/confirm.mp3");
+  //     toast.success("Ally removed.");
+  //   } catch {
+  //     toast.error("Failed to remove ally.");
+  //   }
+  // };
+  const handleMessage = () => {
+    // setShowMessage(true);
+    // setMessageTarget(friend);
     playSound("/game_arena/message.mp3");
     toast("Opening chat...");
   };
-  const handleInvite = (friend: any) => {
-    setShowInvite(true);
-    setInviteTarget(friend);
+  const handleInvite = () => {
+    // setShowInvite(true);
+    // setInviteTarget(friend);
     playSound("/game_arena/invite.mp3");
     toast("Invite sent!");
   };
-  const handleGift = (friend: any) => {
-    setShowGift(true);
-    setGiftTarget(friend);
+  const handleGift = () => {
+    // setShowGift(true);
+    // setGiftTarget(friend);
     playSound("/game_arena/gift.mp3");
     toast("Gift sent!");
   };
@@ -357,25 +363,25 @@ const FriendModalOverlay = ({
       mutateSearch();
       playSound("/game_arena/confirm.mp3");
       toast.success("Ally request sent!");
-    } catch (e) {
+    } catch {
       toast.error("Failed to send ally request.");
     }
   };
-  const handleRemoveFriend = async (userId: string) => {
-    try {
-      await fetch("/api/friends", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otherUserId: userId }),
-      });
-      mutateFriends();
-      mutateRequests();
-      playSound("/game_arena/confirm.mp3");
-      toast.success("Ally removed.");
-    } catch (e) {
-      toast.error("Failed to remove ally.");
-    }
-  };
+  // const handleRemoveFriend = async (userId: string) => {
+  //   try {
+  //     await fetch("/api/friends", {
+  //       method: "DELETE",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ otherUserId: userId }),
+  //     });
+  //     mutateFriends();
+  //     mutateRequests();
+  //     playSound("/game_arena/confirm.mp3");
+  //     toast.success("Ally removed.");
+  //   } catch {
+  //     toast.error("Failed to remove ally.");
+  //   }
+  // };
   const handleAcceptRequest = async (requestId: string) => {
     try {
       await fetch("/api/friends/requests", {
@@ -387,7 +393,7 @@ const FriendModalOverlay = ({
       mutateRequests();
       playSound("/game_arena/confirm.mp3");
       toast.success("Ally request accepted!");
-    } catch (e) {
+    } catch {
       toast.error("Failed to accept ally request.");
     }
   };
@@ -401,7 +407,7 @@ const FriendModalOverlay = ({
       mutateRequests();
       playSound("/game_arena/confirm.mp3");
       toast.success("Ally request declined.");
-    } catch (e) {
+    } catch {
       toast.error("Failed to decline ally request.");
     }
   };
@@ -433,14 +439,14 @@ const FriendModalOverlay = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-4xl max-h-[90vh] bg-gradient-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-4xl max-h-[90vh] bg-linear-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Background Pattern */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
+            <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
 
             {/* Header */}
-            <div className="relative z-10 p-6 pb-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
+            <div className="relative z-10 p-6 pb-4 bg-linear-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -448,7 +454,7 @@ const FriendModalOverlay = ({
                     <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   </div>
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    <h2 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                       Allies Hub
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
@@ -473,21 +479,21 @@ const FriendModalOverlay = ({
                 <TabsList className="grid w-full grid-cols-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-600/50 rounded-xl p-1 mb-6">
                   <TabsTrigger
                     value="friends"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
+                    className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <Users className="w-4 h-4 mr-2" />
                     Allies
                   </TabsTrigger>
                   <TabsTrigger
                     value="requests"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
+                    className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <Bell className="w-4 h-4 mr-2" />
                     Requests
                   </TabsTrigger>
                   <TabsTrigger
                     value="add"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
+                    className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
                     Add Ally
@@ -561,7 +567,7 @@ const FriendModalOverlay = ({
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {requestsData?.requests?.map((request: any) => (
+                      {requestsData?.requests?.map((request: Request) => (
                         <motion.div
                           key={request.id}
                           initial={{ opacity: 0, y: 10 }}
@@ -569,7 +575,7 @@ const FriendModalOverlay = ({
                           className="flex items-center justify-between p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-lg"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="relative w-10 h-10 rounded-full border-2 border-slate-300 dark:border-slate-700 overflow-hidden flex-shrink-0">
+                            <div className="relative w-10 h-10 rounded-full border-2 border-slate-300 dark:border-slate-700 overflow-hidden shrink-0">
                               <Image
                                 src={request.sender.avatar}
                                 alt={request.sender.name}
@@ -591,7 +597,7 @@ const FriendModalOverlay = ({
                             <Button
                               size="sm"
                               onClick={() => handleAcceptRequest(request.id)}
-                              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                              className="bg-linear-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
                             >
                               <UserCheck className="w-4 h-4 mr-1" />
                               Accept
@@ -648,7 +654,7 @@ const FriendModalOverlay = ({
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {searchData?.users?.map((user: any) => (
+                      {searchData?.users?.map((user: User) => (
                         <motion.div
                           key={user?.id}
                           initial={{ opacity: 0, y: 10 }}
@@ -656,7 +662,7 @@ const FriendModalOverlay = ({
                           className="flex items-center justify-between p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-lg"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="relative w-10 h-10 rounded-full border-2 border-slate-300 dark:border-slate-700 overflow-hidden flex-shrink-0">
+                            <div className="relative w-10 h-10 rounded-full border-2 border-slate-300 dark:border-slate-700 overflow-hidden shrink-0">
                               <Image
                                 src={user.avatar}
                                 alt={user.name}
@@ -677,7 +683,7 @@ const FriendModalOverlay = ({
                           <Button
                             size="sm"
                             onClick={() => handleAddFriend(user?.id)}
-                            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                            className="bg-linear-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
                           >
                             <UserPlus className="w-4 h-4 mr-1" />
                             Add Ally
@@ -713,3 +719,4 @@ export default FriendModalOverlay;
 // @keyframes spin { 100% { transform: rotate(360deg); } }
 // .animate-pulse-slow { animation: pulse-slow 2s infinite; } @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 // .animate-pulse-fast { animation: pulse-fast 1s infinite; } @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+

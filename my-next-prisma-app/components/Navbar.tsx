@@ -96,10 +96,10 @@ export default function QuizManiaNavbar() {
           )}
           {status !== "authenticated" && (
             <div className="flex items-center space-x-2">
-              <NavbarButton href="/login" variant="secondary">
+              <NavbarButton href="/auth/signin" variant="secondary">
                 Login
               </NavbarButton>
-              <NavbarButton href="/signup" variant="gradient">
+              <NavbarButton href="/auth/signin" variant="gradient">
                 Sign Up
               </NavbarButton>
             </div>
@@ -168,10 +168,10 @@ export default function QuizManiaNavbar() {
             )}
             {status !== "authenticated" && (
               <div className="flex items-center space-x-2">
-                <NavbarButton href="/login" variant="secondary">
+                <NavbarButton href="/auth/signin" variant="secondary">
                   Login
                 </NavbarButton>
-                <NavbarButton href="/signup" variant="gradient">
+                <NavbarButton href="/auth/signin" variant="gradient">
                   Sign Up
                 </NavbarButton>
               </div>
@@ -204,16 +204,16 @@ export default function QuizManiaNavbar() {
             {status !== "authenticated" && (
               <div className="pt-4 border-t border-gray-200 dark:border-neutral-700 space-y-2">
                 <Link
-                  href="/login"
+                  href="/auth/signin"
                   onClick={() => setIsMenuOpen(false)}
                   className="block px-3 py-2 rounded-lg text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-100 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                 >
                   Login
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/auth/signin"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block px-3 py-2 rounded-lg bg-gradient-to-b from-purple-500 to-blue-600 text-white text-center font-medium"
+                  className="block px-3 py-2 rounded-lg bg-linear-to-b from-purple-500 to-blue-600 text-white text-center font-medium"
                 >
                   Sign Up
                 </Link>

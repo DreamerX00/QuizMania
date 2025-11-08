@@ -135,7 +135,7 @@ const Hyperspeed = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-full w-full bg-gradient-to-b from-black to-gray-900" />
+      <div className="h-full w-full bg-linear-to-b from-black to-gray-900" />
     ),
   }
 );
@@ -593,7 +593,7 @@ import Image from "next/image";
 ```tsx
 // src/app/page.tsx
 // Replace all min-h-[260px] with:
-className = "min-h-[200px] sm:min-h-[240px] md:min-h-[260px]";
+className = "min-h-[200px] sm:min-h-60 md:min-h-[260px]";
 ```
 
 2. **Profile cards** - Fix fixed widths:

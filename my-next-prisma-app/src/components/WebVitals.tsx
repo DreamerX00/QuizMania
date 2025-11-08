@@ -102,3 +102,4 @@ export default function WebVitals() {
 
   return null; // This component doesn't render anything
 }
+

@@ -120,12 +120,12 @@ export default function MultiplayerArenaPage() {
   ];
 
   return (
-    <main className="min-h-screen w-screen overflow-x-hidden pt-16 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-[#0a0a0f] dark:via-[#1a1a2e] dark:to-[#16213e] text-gray-900 dark:text-white relative">
+    <main className="min-h-screen w-screen overflow-x-hidden pt-16 bg-linear-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-[#0a0a0f] dark:via-[#1a1a2e] dark:to-[#16213e] text-gray-900 dark:text-white relative">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-1/2 right-0 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-linear-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/2 right-0 w-96 h-96 bg-linear-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-linear-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
       {/* Overlays */}

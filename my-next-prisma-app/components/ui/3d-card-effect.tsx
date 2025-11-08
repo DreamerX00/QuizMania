@@ -35,7 +35,8 @@ export const Card3DEffect = ({
 
   const handleMouseLeave = () => {
     if (!containerRef.current) return;
-    containerRef.current.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
+    containerRef.current.style.transform =
+      "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
     setIsHovered(false);
   };
 
@@ -62,9 +63,9 @@ export const Card3DEffect = ({
       >
         {children}
         {isHovered && (
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-200" />
+          <div className="absolute inset-0 bg-linear-to-r from-purple-500/10 to-blue-500/10 rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-200" />
         )}
       </motion.div>
     </div>
   );
-}; 
+};

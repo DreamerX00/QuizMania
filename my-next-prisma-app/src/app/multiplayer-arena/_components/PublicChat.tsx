@@ -7,6 +7,16 @@ import { Send, Globe, MessageSquare, Users } from "lucide-react";
 import useSWR from "swr";
 import toast from "react-hot-toast";
 
+interface ChatMessage {
+  id: string;
+  message: string;
+  timestamp: string;
+  sender?: {
+    username?: string;
+  };
+  createdAt: string;
+}
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const PublicChat = memo(function PublicChat() {
@@ -38,10 +48,10 @@ const PublicChat = memo(function PublicChat() {
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="h-full bg-gradient-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex flex-col text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
+      className="h-full bg-linear-to-br from-white/80 via-blue-50/80 to-purple-50/80 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 rounded-3xl p-6 flex flex-col text-gray-900 dark:text-white border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl relative overflow-hidden"
     >
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 rounded-3xl"></div>
 
       {/* Header */}
       <div className="relative z-10 flex items-center justify-between mb-4">
@@ -50,7 +60,7 @@ const PublicChat = memo(function PublicChat() {
             <Globe className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           </div>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             Global Arena
           </h2>
         </div>
@@ -85,14 +95,14 @@ const PublicChat = memo(function PublicChat() {
           </div>
         ) : (
           <div className="space-y-3">
-            {data?.messages?.map((msg: any) => (
+            {data?.messages?.map((msg: ChatMessage) => (
               <motion.div
                 key={msg.id}
                 className="flex items-start gap-3 p-3 bg-white/80 dark:bg-slate-700/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {(msg.sender?.username || "U").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1">
@@ -124,7 +134,7 @@ const PublicChat = memo(function PublicChat() {
           className="flex-1 bg-white/80 dark:bg-slate-800/80 border-slate-300/50 dark:border-slate-600/50 focus:border-blue-500 dark:focus:border-blue-400 rounded-xl backdrop-blur-sm shadow-sm"
         />
         <Button
-          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 rounded-xl aspect-square shadow-lg"
+          className="bg-linear-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 rounded-xl aspect-square shadow-lg"
           onClick={handleSend}
           disabled={isLoading || !input.trim()}
         >
@@ -136,3 +146,4 @@ const PublicChat = memo(function PublicChat() {
 });
 
 export default PublicChat;
+

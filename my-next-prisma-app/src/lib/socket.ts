@@ -1,5 +1,5 @@
 import io from "socket.io-client";
-import { useSession } from 'next-auth/react';
+import { useSession } from "next-auth/react";
 
 // Get socket instance type from the io function's return type
 type SocketInstance = ReturnType<typeof io>;
@@ -8,6 +8,7 @@ type SocketInstance = ReturnType<typeof io>;
 export interface SocketUser {
   id: string;
   name: string;
+  username: string;
   avatar?: string;
   status?: "online" | "offline" | "in-match";
 }
@@ -22,12 +23,47 @@ export interface ChatMessage {
   receiverId?: string;
 }
 
+export interface Vote {
+  questionId?: string;
+  option?: string | number;
+  value?: string | number | boolean;
+  [key: string]: unknown;
+}
+
 export interface VoteData {
   user: SocketUser;
-  vote: any;
+  vote: Vote;
   roomId: string;
   type: string;
   mode: string;
+}
+
+export interface GameState {
+  phase?: string;
+  currentQuestion?: number;
+  scores?: Record<string, number>;
+  players?: SocketUser[];
+  [key: string]: unknown;
+}
+
+export interface GameResult {
+  winner?: string;
+  scores?: Record<string, number>;
+  duration?: number;
+  [key: string]: unknown;
+}
+
+export interface SocketResponse {
+  success?: boolean;
+  error?: string;
+  message?: string;
+  data?: unknown;
+}
+
+export interface VoiceFallbackData {
+  roomId: string;
+  mode: "webrtc-fallback";
+  reason?: string;
 }
 
 export interface RoomEvent {
@@ -55,14 +91,14 @@ export interface SocketCallbacks {
   onUserLeft?: (data: RoomEvent) => void;
   onChatMessage?: (data: ChatMessage) => void;
   onVoteUpdate?: (data: VoteData) => void;
-  onGameStateUpdate?: (data: any) => void;
-  onGameStarted?: (data: any) => void;
-  onGameEnded?: (data: any) => void;
+  onGameStateUpdate?: (data: GameState) => void;
+  onGameStarted?: (data: GameState) => void;
+  onGameEnded?: (data: GameResult) => void;
   onVoiceUserJoined?: (data: VoiceEvent) => void;
   onVoiceUserLeft?: (data: VoiceEvent) => void;
   onVoiceUserMuted?: (data: VoiceEvent) => void;
   onVoiceUserSpeaking?: (data: VoiceEvent) => void;
-  onVoiceFallbackActivated?: (data: any) => void;
+  onVoiceFallbackActivated?: (data: VoiceFallbackData) => void;
   onLiveKitJoin?: (data: { token: string; roomId: string }) => void;
 }
 
@@ -133,15 +169,15 @@ class SocketService {
       this.callbacks.onVoteUpdate?.(data);
     });
 
-    this.socket.on("game:state-update", (data: any) => {
+    this.socket.on("game:state-update", (data: GameState) => {
       this.callbacks.onGameStateUpdate?.(data);
     });
 
-    this.socket.on("game:started", (data: any) => {
+    this.socket.on("game:started", (data: GameState) => {
       this.callbacks.onGameStarted?.(data);
     });
 
-    this.socket.on("game:ended", (data: any) => {
+    this.socket.on("game:ended", (data: GameResult) => {
       this.callbacks.onGameEnded?.(data);
     });
 
@@ -162,7 +198,7 @@ class SocketService {
       this.callbacks.onVoiceUserSpeaking?.(data);
     });
 
-    this.socket.on("voice:fallback-activated", (data: any) => {
+    this.socket.on("voice:fallback-activated", (data: VoiceFallbackData) => {
       this.callbacks.onVoiceFallbackActivated?.(data);
     });
 
@@ -192,7 +228,11 @@ class SocketService {
       });
 
       // Set auth data (optional when auth is disabled)
-      (this.socket as any).auth = { userId, token: userToken };
+      (
+        this.socket as SocketInstance & {
+          auth?: { userId: string; token?: string };
+        }
+      ).auth = { userId, token: userToken };
       this.socket.connect();
     }
   }
@@ -213,17 +253,21 @@ class SocketService {
   joinRoom(roomId: string, roomType: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("room:join", { roomId, roomType }, (response: any) => {
-      if (response?.error) {
-        console.error("Failed to join room:", response.error);
+    this.socket.emit(
+      "room:join",
+      { roomId, roomType },
+      (response: SocketResponse) => {
+        if (response?.error) {
+          console.error("Failed to join room:", response.error);
+        }
       }
-    });
+    );
   }
 
   leaveRoom(roomId: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("room:leave", { roomId }, (response: any) => {
+    this.socket.emit("room:leave", { roomId }, (response: SocketResponse) => {
       if (response?.error) {
         console.error("Failed to leave room:", response.error);
       }
@@ -240,7 +284,7 @@ class SocketService {
   }) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("chat:send", payload, (response: any) => {
+    this.socket.emit("chat:send", payload, (response: SocketResponse) => {
       if (response?.error) {
         console.error("Failed to send chat message:", response.error);
       }
@@ -251,27 +295,35 @@ class SocketService {
   muteUser(userId: string, roomId: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("chat:mute", { userId, roomId }, (response: any) => {
-      if (response?.error) {
-        console.error("Failed to mute user:", response.error);
+    this.socket.emit(
+      "chat:mute",
+      { userId, roomId },
+      (response: SocketResponse) => {
+        if (response?.error) {
+          console.error("Failed to mute user:", response.error);
+        }
       }
-    });
+    );
   }
 
   unmuteUser(userId: string, roomId: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("chat:unmute", { userId, roomId }, (response: any) => {
-      if (response?.error) {
-        console.error("Failed to unmute user:", response.error);
+    this.socket.emit(
+      "chat:unmute",
+      { userId, roomId },
+      (response: SocketResponse) => {
+        if (response?.error) {
+          console.error("Failed to unmute user:", response.error);
+        }
       }
-    });
+    );
   }
 
   blockUser(userId: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("chat:block", { userId }, (response: any) => {
+    this.socket.emit("chat:block", { userId }, (response: SocketResponse) => {
       if (response?.error) {
         console.error("Failed to block user:", response.error);
       }
@@ -281,7 +333,7 @@ class SocketService {
   unblockUser(userId: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("chat:unblock", { userId }, (response: any) => {
+    this.socket.emit("chat:unblock", { userId }, (response: SocketResponse) => {
       if (response?.error) {
         console.error("Failed to unblock user:", response.error);
       }
@@ -291,18 +343,27 @@ class SocketService {
   reportUser(userId: string, message: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("chat:report", { userId, message }, (response: any) => {
-      if (response?.error) {
-        console.error("Failed to report user:", response.error);
+    this.socket.emit(
+      "chat:report",
+      { userId, message },
+      (response: SocketResponse) => {
+        if (response?.error) {
+          console.error("Failed to report user:", response.error);
+        }
       }
-    });
+    );
   }
 
   // Voting
-  castVote(payload: { roomId: string; vote: any; mode: string; type: string }) {
+  castVote(payload: {
+    roomId: string;
+    vote: Vote;
+    mode: string;
+    type: string;
+  }) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("game:vote", payload, (response: any) => {
+    this.socket.emit("game:vote", payload, (response: SocketResponse) => {
       if (response?.error) {
         console.error("Failed to cast vote:", response.error);
       }
@@ -310,41 +371,53 @@ class SocketService {
   }
 
   // Game state
-  updateGameState(roomId: string, state: any) {
+  updateGameState(roomId: string, state: GameState) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("game:state", { roomId, state }, (response: any) => {
-      if (response?.error) {
-        console.error("Failed to update game state:", response.error);
+    this.socket.emit(
+      "game:state",
+      { roomId, state },
+      (response: SocketResponse) => {
+        if (response?.error) {
+          console.error("Failed to update game state:", response.error);
+        }
       }
-    });
+    );
   }
 
   startGame(roomId: string, mode: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("game:start", { roomId, mode }, (response: any) => {
-      if (response?.error) {
-        console.error("Failed to start game:", response.error);
+    this.socket.emit(
+      "game:start",
+      { roomId, mode },
+      (response: SocketResponse) => {
+        if (response?.error) {
+          console.error("Failed to start game:", response.error);
+        }
       }
-    });
+    );
   }
 
-  endGame(roomId: string, result: any) {
+  endGame(roomId: string, result: GameResult) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("game:end", { roomId, result }, (response: any) => {
-      if (response?.error) {
-        console.error("Failed to end game:", response.error);
+    this.socket.emit(
+      "game:end",
+      { roomId, result },
+      (response: SocketResponse) => {
+        if (response?.error) {
+          console.error("Failed to end game:", response.error);
+        }
       }
-    });
+    );
   }
 
   // Voice management
   joinVoiceRoom(roomId: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("voice:join", { roomId }, (response: any) => {
+    this.socket.emit("voice:join", { roomId }, (response: SocketResponse) => {
       if (response?.error) {
         console.error("Failed to join voice room:", response.error);
       }
@@ -354,7 +427,7 @@ class SocketService {
   leaveVoiceRoom(roomId: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("voice:leave", { roomId }, (response: any) => {
+    this.socket.emit("voice:leave", { roomId }, (response: SocketResponse) => {
       if (response?.error) {
         console.error("Failed to leave voice room:", response.error);
       }
@@ -364,11 +437,15 @@ class SocketService {
   muteVoice(roomId: string, muted: boolean) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("voice:mute", { roomId, muted }, (response: any) => {
-      if (response?.error) {
-        console.error("Failed to mute voice:", response.error);
+    this.socket.emit(
+      "voice:mute",
+      { roomId, muted },
+      (response: SocketResponse) => {
+        if (response?.error) {
+          console.error("Failed to mute voice:", response.error);
+        }
       }
-    });
+    );
   }
 
   pushToTalk(roomId: string, speaking: boolean) {
@@ -377,7 +454,7 @@ class SocketService {
     this.socket.emit(
       "voice:push-to-talk",
       { roomId, speaking },
-      (response: any) => {
+      (response: SocketResponse) => {
         if (response?.error) {
           console.error("Failed to update push-to-talk:", response.error);
         }
@@ -388,15 +465,19 @@ class SocketService {
   activateVoiceFallback(roomId: string) {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("voice:fallback", { roomId }, (response: any) => {
-      if (response?.error) {
-        console.error("Failed to activate voice fallback:", response.error);
+    this.socket.emit(
+      "voice:fallback",
+      { roomId },
+      (response: SocketResponse) => {
+        if (response?.error) {
+          console.error("Failed to activate voice fallback:", response.error);
+        }
       }
-    });
+    );
   }
 
   // WebRTC fallback signaling
-  sendWebRTCSignaling(data: any) {
+  sendWebRTCSignaling(data: Record<string, unknown>) {
     if (!this.socket?.connected) return;
 
     this.socket.emit("webrtc:signaling", data);
@@ -406,7 +487,7 @@ class SocketService {
   checkVoiceHealth() {
     if (!this.socket?.connected) return;
 
-    this.socket.emit("voice:health-check", (response: any) => {
+    this.socket.emit("voice:health-check", (response: SocketResponse) => {
       if (response?.error) {
         console.error("Voice health check failed:", response.error);
       } else {
@@ -449,12 +530,11 @@ export const socketService = new SocketService();
 
 // React hook for using socket service
 export const useSocket = () => {
-  const { userId, getToken } = useAuth();
+  const { data: session } = useSession();
 
   const connect = async () => {
-    if (userId) {
-      const token = await getToken();
-      socketService.connect(userId, token || undefined);
+    if (session?.user?.id) {
+      socketService.connect(session.user.id);
     }
   };
 

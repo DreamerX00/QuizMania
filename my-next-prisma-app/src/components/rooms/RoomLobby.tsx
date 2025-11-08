@@ -109,7 +109,7 @@ export default function RoomLobby({ room, members, currentUser }: { room: any, m
   return (
     <div className="flex flex-col md:flex-row w-full h-full min-h-screen relative">
       {/* Left: Player Grid */}
-      <section className="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-[#181a2a]/80 to-[#23234d]/90 p-0 md:p-8 relative">
+      <section className="flex-1 flex flex-col items-center justify-center bg-linear-to-br from-[#181a2a]/80 to-[#23234d]/90 p-0 md:p-8 relative">
         <div className="w-full h-full flex flex-col items-center justify-center">
           <h2 className="text-2xl md:text-3xl font-extrabold text-blue-400 flex items-center gap-2 mb-6 tracking-widest uppercase drop-shadow-glow">
             Lobby
@@ -128,7 +128,7 @@ export default function RoomLobby({ room, members, currentUser }: { room: any, m
         </div>
       </section>
       {/* Right: Info/Controls/Chat */}
-      <aside className="flex flex-col gap-6 max-w-[420px] w-full min-w-[320px] bg-gradient-to-br from-[#23234d]/90 to-[#181a2a]/80 p-0 md:p-8 border-l-2 border-blue-500/20 shadow-xl relative overflow-y-auto">
+      <aside className="flex flex-col gap-6 max-w-[420px] w-full min-w-[320px] bg-linear-to-br from-[#23234d]/90 to-[#181a2a]/80 p-0 md:p-8 border-l-2 border-blue-500/20 shadow-xl relative overflow-y-auto">
         {/* Sticky Header */}
         <div className="sticky top-0 z-20 bg-gradient-to-b from-[#23234d]/95 to-transparent rounded-t-2xl pb-2 mb-2 flex flex-col gap-2 border-b border-blue-500/10">
           <div className="flex items-center gap-3 mb-2">
@@ -196,7 +196,7 @@ export default function RoomLobby({ room, members, currentUser }: { room: any, m
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 400, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-            className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-[#23234d]/95 to-[#0f1021]/95 backdrop-blur-lg p-0 md:hidden"
+            className="fixed inset-0 z-50 flex flex-col bg-linear-to-br from-[#23234d]/95 to-[#0f1021]/95 backdrop-blur-lg p-0 md:hidden"
           >
             <div className="flex items-center justify-between p-4 border-b border-blue-500/20 bg-[#16192a]/80">
               <span className="font-bold text-lg text-white">Room Chat</span>

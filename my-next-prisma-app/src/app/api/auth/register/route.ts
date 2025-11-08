@@ -1,12 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { Role } from "@/types/auth";
-import { Role as PrismaRole } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { NextResponse } from "next/server";
 
 export async function POST() {
   return NextResponse.json(
-    { error: "Registration is handled by Clerk. Use Clerk sign up." },
+    { error: "Registration is handled by NextAuth. Use /auth/signin." },
     { status: 404 }
   );
 }

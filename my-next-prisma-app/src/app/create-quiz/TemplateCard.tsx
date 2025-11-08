@@ -31,13 +31,13 @@ export default function TemplateCard({
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.3 }}
       onClick={() => onSelect(quiz)}
-      className={`rounded-2xl bg-gradient-to-br from-purple-900/40 to-blue-900/30 border border-white/10 shadow-xl p-4 ${
+      className={`rounded-2xl bg-linear-to-br from-purple-900/40 to-blue-900/30 border border-white/10 shadow-xl p-4 ${
         hideImage ? "flex-row items-center gap-6" : "flex-col gap-3"
       } hover:scale-105 hover:border-purple-400/80 transition-all duration-300 cursor-pointer group`}
     >
       {/* Image/Cover (hide in list view) */}
       {!hideImage && (
-        <div className="relative aspect-[4/3] bg-white/10 rounded-xl mb-1 overflow-hidden">
+        <div className="relative aspect-4/3 bg-white/10 rounded-xl mb-1 overflow-hidden">
           {quiz.imageUrl ? (
             <Image
               src={quiz.imageUrl}
@@ -116,3 +116,4 @@ export default function TemplateCard({
     </motion.div>
   );
 }
+

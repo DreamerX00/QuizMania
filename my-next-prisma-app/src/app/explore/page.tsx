@@ -1,6 +1,5 @@
 "use client";
 import TopTagsBar from "./components/TopTagsBar";
-import QuizGrid from "./components/QuizGrid";
 import { useState, useMemo } from "react";
 import { FiFilter, FiSearch } from "react-icons/fi";
 import QuizDetailModal from "./components/QuizDetailModal";
@@ -12,7 +11,32 @@ import FilterModalContent, {
 import Accordion from "@/components/ui/Accordion";
 import QuizCarousel from "@/components/ui/QuizCarousel";
 import ExploreSectionDialog from "./components/ExploreSectionDialog";
-import { useSession } from 'next-auth/react';
+import { useSession } from "next-auth/react";
+
+type Quiz = {
+  id: string;
+  title: string;
+  description: string | null;
+  tags: string[];
+  imageUrl: string | null;
+  rating: number;
+  likeCount: number;
+  usersTaken: number;
+  createdAt: string;
+  creator: {
+    name: string | null;
+    avatarUrl: string | null;
+  } | null;
+  durationInSeconds?: number;
+  isLocked?: boolean;
+  difficultyLevel?: string;
+  pricePerAttempt?: number;
+  pointPerAttempt?: number;
+  slug?: string;
+  price: number;
+  field: string | null;
+  subject: string | null;
+};
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -20,7 +44,7 @@ export default function ExplorePage() {
   const { data: session } = useSession();
   const user = session?.user;
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
 
   // Filter States
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,11 +93,13 @@ export default function ExplorePage() {
     return params.toString();
   }, [debouncedSearchTerm, filters]);
 
-  const {
-    data: quizzes,
-    error,
-    isLoading,
-  } = useSWR(`/api/quizzes?${queryString}`, fetcher);
+  const { data: quizzesResponse } = useSWR(
+    `/api/quizzes?${queryString}`,
+    fetcher
+  );
+
+  // Extract the quizzes array from the API response
+  const quizzes = quizzesResponse?.data || [];
 
   // Fetch user profile and unlocked quizzes
   const { data: userProfile } = useSWR(
@@ -90,14 +116,16 @@ export default function ExplorePage() {
   const unlockedQuizIds = useMemo(() => {
     if (!unlockedQuizzesData?.unlockedQuizzes) return new Set<string>();
     return new Set<string>(
-      unlockedQuizzesData.unlockedQuizzes.map((uq: any) => uq.quizId)
+      unlockedQuizzesData.unlockedQuizzes.map(
+        (uq: { quizId: string }) => uq.quizId
+      )
     );
   }, [unlockedQuizzesData]);
 
   // Check if user is premium
   const isPremiumUser = useMemo(() => {
-    if (!userProfile?.user) return false;
-    const { accountType, premiumUntil } = userProfile.user;
+    if (!userProfile) return false;
+    const { accountType, premiumUntil } = userProfile;
     if (accountType === "PREMIUM" || accountType === "LIFETIME") {
       if (accountType === "LIFETIME") return true;
       if (premiumUntil && new Date(premiumUntil) > new Date()) return true;
@@ -106,14 +134,14 @@ export default function ExplorePage() {
   }, [userProfile]);
 
   // Client-side filtering for new fields
-  const filteredQuizzes = (quizzes || []).filter((q: any) => {
+  const filteredQuizzes = quizzes.filter((q: Quiz) => {
     // Difficulty (assuming q.difficultyLevel is a string like 'EASY', 'MEDIUM', etc.)
     if (
       filters.difficulty.length > 0 &&
       (!q.difficultyLevel ||
         !filters.difficulty.some((d) =>
-          q.difficultyLevel
-            .toLowerCase()
+          q
+            .difficultyLevel!.toLowerCase()
             .includes(d.toLowerCase().replace(/ /g, "_"))
         ))
     ) {
@@ -149,19 +177,19 @@ export default function ExplorePage() {
   });
 
   // Filtering logic for each section
-  const heatingQuizzes = filteredQuizzes.filter((q: any) =>
+  const heatingQuizzes = filteredQuizzes.filter((q: Quiz) =>
     q.tags?.some((t: string) => ["#trending", "#hot"].includes(t.toLowerCase()))
   );
 
   const popularQuizzes = filteredQuizzes
     .slice()
     .sort(
-      (a: any, b: any) =>
+      (a: Quiz, b: Quiz) =>
         b.likeCount + b.usersTaken - (a.likeCount + a.usersTaken)
     )
     .slice(0, 8);
 
-  const packageQuizzes = filteredQuizzes.filter((q: any) =>
+  const packageQuizzes = filteredQuizzes.filter((q: Quiz) =>
     q.tags?.some((t: string) =>
       ["#package", "#bundle"].includes(t.toLowerCase())
     )
@@ -170,7 +198,7 @@ export default function ExplorePage() {
   const recentQuizzes = filteredQuizzes
     .slice()
     .sort(
-      (a: any, b: any) =>
+      (a: Quiz, b: Quiz) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
     .slice(0, 8);
@@ -178,7 +206,7 @@ export default function ExplorePage() {
   // Dialog state for each section
   const [openDialog, setOpenDialog] = useState<null | string>(null);
 
-  const handleOpenQuizDetail = (quiz: any) => {
+  const handleOpenQuizDetail = (quiz: Quiz) => {
     setSelectedQuiz(quiz);
   };
 
@@ -187,20 +215,20 @@ export default function ExplorePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background to-white dark:from-[#0a0a0f] dark:via-[#1a1a2e] dark:to-[#16213e] text-foreground relative overflow-x-hidden">
+    <main className="min-h-screen bg-linear-to-br from-background to-white dark:from-[#0a0a0f] dark:via-[#1a1a2e] dark:to-[#16213e] text-foreground relative overflow-x-hidden">
       {/* Animated Floating Orbs/Lines */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-purple-500/30 to-blue-600/30 rounded-full blur-3xl animate-float z-0" />
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-linear-to-br from-purple-500/30 to-blue-600/30 rounded-full blur-3xl animate-float z-0" />
       <div
-        className="absolute top-1/2 right-0 w-60 h-60 bg-gradient-to-br from-blue-500/30 to-purple-600/30 rounded-full blur-2xl animate-float z-0"
+        className="absolute top-1/2 right-0 w-60 h-60 bg-linear-to-br from-blue-500/30 to-purple-600/30 rounded-full blur-2xl animate-float z-0"
         style={{ animationDelay: "2s" }}
       />
       <div
-        className="absolute bottom-0 left-1/3 w-40 h-40 bg-gradient-to-br from-yellow-500/20 to-orange-600/20 rounded-full blur-2xl animate-float z-0"
+        className="absolute bottom-0 left-1/3 w-40 h-40 bg-linear-to-br from-yellow-500/20 to-orange-600/20 rounded-full blur-2xl animate-float z-0"
         style={{ animationDelay: "4s" }}
       />
       {/* Hero Section */}
       <section className="relative z-20 max-w-7xl mx-auto pt-16 pb-6 px-2 md:px-8 text-center flex flex-col items-center">
-        <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold futuristic-title bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent animate-gradient-move mb-4 drop-shadow-xl tracking-tight">
+        <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold futuristic-title bg-linear-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent animate-gradient-move mb-4 drop-shadow-xl tracking-tight">
           Explore Quizzes
         </h1>
         <p className="text-base sm:text-xl md:text-2xl text-white/80 max-w-2xl mx-auto mb-8 font-medium futuristic-subtitle animate-fade-in-up">
@@ -247,7 +275,7 @@ export default function ExplorePage() {
               />
               <div className="flex justify-end mt-2">
                 <button
-                  className="px-5 py-2 rounded-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md"
+                  className="px-5 py-2 rounded-full bg-linear-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md"
                   onClick={() => setOpenDialog("heating")}
                 >
                   View All
@@ -265,7 +293,7 @@ export default function ExplorePage() {
               />
               <div className="flex justify-end mt-2">
                 <button
-                  className="px-5 py-2 rounded-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md"
+                  className="px-5 py-2 rounded-full bg-linear-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md"
                   onClick={() => setOpenDialog("popular")}
                 >
                   View All
@@ -283,7 +311,7 @@ export default function ExplorePage() {
               />
               <div className="flex justify-end mt-2">
                 <button
-                  className="px-5 py-2 rounded-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md"
+                  className="px-5 py-2 rounded-full bg-linear-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md"
                   onClick={() => setOpenDialog("packages")}
                 >
                   View All
@@ -301,7 +329,7 @@ export default function ExplorePage() {
               />
               <div className="flex justify-end mt-2">
                 <button
-                  className="px-5 py-2 rounded-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md"
+                  className="px-5 py-2 rounded-full bg-linear-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md"
                   onClick={() => setOpenDialog("recent")}
                 >
                   View All
@@ -382,3 +410,4 @@ export default function ExplorePage() {
     </main>
   );
 }
+

@@ -77,7 +77,7 @@ export default function TopTagsBar() {
   return (
     <div className="relative w-full flex justify-center">
       {/* Edge fade for scroll hint */}
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-10 z-10 hidden dark:block bg-gradient-to-r from-[#181a2a] via-[#181a2a]/60 to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-10 z-10 hidden dark:block bg-linear-to-r from-[#181a2a] via-[#181a2a]/60 to-transparent" />
       <div className="pointer-events-none absolute right-0 top-0 h-full w-10 z-10 hidden dark:block bg-gradient-to-l from-[#181a2a] via-[#181a2a]/60 to-transparent" />
       <div
         ref={scrollRef}
@@ -97,7 +97,7 @@ export default function TopTagsBar() {
                 {group.tags.map((tag, i) => (
                   <span
                     key={tag}
-                    className="futuristic-badge px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer bg-gradient-to-r from-purple-700/30 to-blue-700/30 text-white shadow-glow hover:scale-110 hover:from-purple-500/60 hover:to-blue-500/60 transition-all duration-200 relative whitespace-nowrap border border-white/20 backdrop-blur-md hover:ring-2 hover:ring-blue-400/40"
+                    className="futuristic-badge px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer bg-linear-to-r from-purple-700/30 to-blue-700/30 text-white shadow-glow hover:scale-110 hover:from-purple-500/60 hover:to-blue-500/60 transition-all duration-200 relative whitespace-nowrap border border-white/20 backdrop-blur-md hover:ring-2 hover:ring-blue-400/40"
                   >
                     {tag}
                   </span>
@@ -110,7 +110,7 @@ export default function TopTagsBar() {
             </div>
           ))}
           {/* View All Button */}
-          <button className="ml-4 px-5 py-2 rounded-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md">
+          <button className="ml-4 px-5 py-2 rounded-full bg-linear-to-r from-blue-500/30 to-purple-500/30 text-white font-bold shadow-glow border border-white/20 hover:scale-105 hover:from-blue-600/40 hover:to-purple-600/40 transition-all duration-200 backdrop-blur-md">
             View All
           </button>
         </div>

@@ -64,3 +64,4 @@ const ImageBased = ({ question }: { question: Question }) => {
 };
 
 export default ImageBased; 
+

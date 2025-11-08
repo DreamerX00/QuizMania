@@ -3,8 +3,8 @@ import { FaUserEdit } from 'react-icons/fa';
 
 export function BioCard({ bio }: { bio: string }) {
   return (
-    <div className="w-full max-w-xl mx-auto mt-4 rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#23234d] dark:to-[#1a1a2e] shadow-xl border border-gray-200 dark:border-white/10 backdrop-blur-xl p-6 flex items-start gap-4 animate-fade-in">
-      <div className="flex-shrink-0 mt-1">
+    <div className="w-full max-w-xl mx-auto mt-4 rounded-2xl bg-white dark:bg-linear-to-br dark:from-[#23234d] dark:to-[#1a1a2e] shadow-xl border border-gray-200 dark:border-white/10 backdrop-blur-xl p-6 flex items-start gap-4 animate-fade-in">
+      <div className="shrink-0 mt-1">
         <FaUserEdit className="text-blue-600 dark:text-blue-400 text-2xl" />
       </div>
       <div>

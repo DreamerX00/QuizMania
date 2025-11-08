@@ -87,7 +87,7 @@ const DIFFICULTY_LEVELS = [
 
 // Skeleton loader for quiz cards
 const SkeletonCard = () => (
-  <div className="rounded-2xl bg-gradient-to-br from-gray-200/40 dark:from-purple-900/40 to-gray-300/30 dark:to-blue-900/30 border border-gray-300/50 dark:border-white/10 shadow-xl p-5 flex flex-col gap-3 animate-pulse">
+  <div className="rounded-2xl bg-linear-to-br from-gray-200/40 dark:from-purple-900/40 to-gray-300/30 dark:to-blue-900/30 border border-gray-300/50 dark:border-white/10 shadow-xl p-5 flex flex-col gap-3 animate-pulse">
     <div className="aspect-video w-full bg-gray-300 dark:bg-white/10 rounded-xl mb-2" />
     <div className="h-6 w-2/3 bg-gray-400 dark:bg-white/20 rounded mb-1" />
     <div className="h-4 w-full bg-gray-300 dark:bg-white/10 rounded mb-1" />
@@ -112,7 +112,7 @@ const FactoryQuizCard = ({
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -20 }}
-    className={`rounded-2xl bg-gradient-to-br from-gray-100/40 dark:from-purple-900/40 to-gray-200/30 dark:to-blue-900/30 border border-gray-300/50 dark:border-white/10 shadow-xl p-5 ${
+    className={`rounded-2xl bg-linear-to-br from-gray-100/40 dark:from-purple-900/40 to-gray-200/30 dark:to-blue-900/30 border border-gray-300/50 dark:border-white/10 shadow-xl p-5 ${
       hideImage ? "flex-row items-center gap-6" : "flex-col gap-2"
     } cursor-pointer hover:scale-[1.02] transition-all duration-300`}
     onClick={() => onSelect(quiz)}
@@ -130,7 +130,7 @@ const FactoryQuizCard = ({
           />
         </div>
       ) : (
-        <div className="aspect-video w-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-xl mb-2 flex items-center justify-center">
+        <div className="aspect-video w-full bg-linear-to-br from-purple-500/20 to-blue-500/20 rounded-xl mb-2 flex items-center justify-center">
           <span className="text-4xl">🎯</span>
         </div>
       ))}
@@ -228,7 +228,7 @@ const CommentsDialog = ({
         exit={{ opacity: 0, scale: 0.95 }}
         className="bg-white/90 dark:bg-[#1a1a2e]/90 backdrop-blur-lg rounded-2xl p-2 sm:p-4 w-full h-full border border-gray-200/50 dark:border-white/10 text-gray-900 dark:text-white flex flex-col"
       >
-        <div className="flex items-center justify-between mb-6 flex-shrink-0">
+        <div className="flex items-center justify-between mb-6 shrink-0">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white">
             Comments for &ldquo;{quiz.title}&rdquo;
           </h3>
@@ -256,7 +256,7 @@ const CommentsDialog = ({
               key={comment.id}
               className="bg-gray-50 dark:bg-white/5 p-4 rounded-lg flex gap-4"
             >
-              <div className="relative w-10 h-10 flex-shrink-0">
+              <div className="relative w-10 h-10 shrink-0">
                 <Image
                   src={comment.user.avatarUrl || "/default_avatar.png"}
                   alt={comment.user.name}
@@ -281,7 +281,7 @@ const CommentsDialog = ({
             </div>
           ))}
         </div>
-        <div className="mt-6 text-center flex-shrink-0">
+        <div className="mt-6 text-center shrink-0">
           {!isReachingEnd && (
             <button
               onClick={() => setSize(size + 1)}
@@ -669,19 +669,19 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ duration: 0.4, ease: "easeInOut" }}
-        className="w-full h-full flex flex-col bg-gradient-to-br from-gray-50/90 dark:from-[#181a20]/90 to-gray-100/90 dark:to-[#23243a]/90"
+        className="w-full h-full flex flex-col bg-linear-to-br from-gray-50/90 dark:from-[#181a20]/90 to-gray-100/90 dark:to-[#23243a]/90"
       >
         {/* Header with Filters */}
         <div className="w-full bg-white/80 dark:bg-black/50 border-b border-gray-200 dark:border-white/10 shadow-lg z-10">
           <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-4 md:gap-0 md:flex-row md:items-start md:justify-between">
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               {/* Search Input */}
-              <div className="flex flex-col gap-1 min-w-[220px] w-full md:w-[240px]">
+              <div className="flex flex-col gap-1 min-w-[220px] w-full md:w-60">
                 <label className="text-xs text-gray-700 dark:text-white/80 font-semibold pl-1">
                   Search
                 </label>
                 <input
-                  className="px-4 py-2 rounded-xl bg-white dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm backdrop-blur-md w-full h-[40px]"
+                  className="px-4 py-2 rounded-xl bg-white dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm backdrop-blur-md w-full h-10"
                   placeholder="Search your quizzes..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -689,7 +689,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
               </div>
 
               {/* Price Range Slider */}
-              <div className="flex flex-col gap-1 min-w-[220px] w-full md:w-[240px]">
+              <div className="flex flex-col gap-1 min-w-[220px] w-full md:w-60">
                 <label className="text-xs text-gray-700 dark:text-white/80 font-semibold pl-1">
                   Price Range
                 </label>
@@ -713,13 +713,13 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
               </div>
 
               {/* Date Range Picker */}
-              <div className="flex flex-col gap-1 min-w-[220px] w-full md:w-[240px] relative">
+              <div className="flex flex-col gap-1 min-w-[220px] w-full md:w-60 relative">
                 <label className="text-xs text-gray-700 dark:text-white/80 font-semibold pl-1">
                   Date Range
                 </label>
                 <button
                   ref={calendarBtnRef}
-                  className="px-4 py-2 rounded-xl bg-white dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-white/20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm w-full text-left backdrop-blur-md relative h-[40px]"
+                  className="px-4 py-2 rounded-xl bg-white dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-white/20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm w-full text-left backdrop-blur-md relative h-10"
                   onClick={() => setShowCalendar((v) => !v)}
                   type="button"
                 >
@@ -757,12 +757,12 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
               </div>
 
               {/* Sort Dropdown */}
-              <div className="flex flex-col gap-1 min-w-[220px] w-full md:w-[240px]">
+              <div className="flex flex-col gap-1 min-w-[220px] w-full md:w-60">
                 <label className="text-xs text-gray-700 dark:text-white/80 font-semibold pl-1">
                   Sort By
                 </label>
                 <select
-                  className="px-4 py-2 rounded-xl bg-white dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm backdrop-blur-md w-full h-[40px]"
+                  className="px-4 py-2 rounded-xl bg-white dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm backdrop-blur-md w-full h-10"
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
                 >
@@ -782,7 +782,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
             {/* Action Buttons */}
             <div className="flex gap-4 mt-2 md:mt-0 md:ml-6 self-end md:self-center md:translate-y-[7.2px]">
               <button
-                className="px-8 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold shadow hover:from-pink-600 hover:to-blue-600 transition-all border-0 focus:ring-2 focus:ring-pink-400 w-full md:w-[120px] h-[40px]"
+                className="px-8 py-2 rounded-xl bg-linear-to-r from-pink-500 to-blue-500 text-white font-bold shadow hover:from-pink-600 hover:to-blue-600 transition-all border-0 focus:ring-2 focus:ring-pink-400 w-full md:w-[120px] h-10"
                 onClick={resetFilters}
                 type="button"
               >
@@ -790,7 +790,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
               </button>
               <button
                 onClick={onClose}
-                className="px-8 py-2 rounded-xl bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-all shadow focus:ring-2 focus:ring-blue-400 w-full md:w-[120px] h-[40px]"
+                className="px-8 py-2 rounded-xl bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-all shadow focus:ring-2 focus:ring-blue-400 w-full md:w-[120px] h-10"
                 type="button"
               >
                 Close
@@ -809,7 +809,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                 <button
                   className={`px-4 py-2 flex items-center gap-2 transition-all ${
                     viewType === "quiz"
-                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                      ? "bg-linear-to-r from-purple-500 to-blue-500 text-white"
                       : "text-gray-600 dark:text-white/60 hover:bg-gray-200 dark:hover:bg-white/10"
                   }`}
                   onClick={() => setViewType("quiz")}
@@ -824,7 +824,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                 <button
                   className={`px-4 py-2 flex items-center gap-2 transition-all ${
                     viewType === "package"
-                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                      ? "bg-linear-to-r from-purple-500 to-blue-500 text-white"
                       : "text-gray-600 dark:text-white/60 hover:bg-gray-200 dark:hover:bg-white/10"
                   }`}
                   onClick={() => setViewType("package")}
@@ -841,7 +841,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                 <button
                   className={`px-4 py-2 flex items-center gap-2 transition-all ${
                     viewMode === "grid"
-                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                      ? "bg-linear-to-r from-purple-500 to-blue-500 text-white"
                       : "text-gray-600 dark:text-white/60 hover:bg-gray-200 dark:hover:bg-white/10"
                   }`}
                   onClick={() => setViewMode("grid")}
@@ -853,7 +853,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                 <button
                   className={`px-4 py-2 flex items-center gap-2 transition-all ${
                     viewMode === "list"
-                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                      ? "bg-linear-to-r from-purple-500 to-blue-500 text-white"
                       : "text-gray-600 dark:text-white/60 hover:bg-gray-200 dark:hover:bg-white/10"
                   }`}
                   onClick={() => setViewMode("list")}
@@ -867,7 +867,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                 <Button
                   variant="default"
                   size="lg"
-                  className="font-bold ml-2 bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 text-white shadow-lg hover:from-purple-600 hover:to-pink-600 focus:ring-2 focus:ring-pink-400 border-0 transition-all duration-300 flex items-center gap-2"
+                  className="font-bold ml-2 bg-linear-to-r from-purple-500 via-blue-500 to-pink-500 text-white shadow-lg hover:from-purple-600 hover:to-pink-600 focus:ring-2 focus:ring-pink-400 border-0 transition-all duration-300 flex items-center gap-2"
                   onClick={() => setShowCreateDialog(true)}
                   style={{
                     boxShadow:
@@ -1028,7 +1028,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
           onClose={() => setShowCreateDialog(false)}
           wide={true}
         >
-          <div className="bg-white/90 dark:bg-gradient-to-br from-[#181a20]/90 to-[#23243a]/90 border border-gray-200/50 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl p-8 relative">
+          <div className="bg-white/90 dark:bg-linear-to-br from-[#181a20]/90 to-[#23243a]/90 border border-gray-200/50 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl p-8 relative">
             <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white text-center">
               Create a Quiz Package
             </h2>
@@ -1083,7 +1083,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                         </div>
                         <label
                           htmlFor={`quiz-${q.id}`}
-                          className="text-gray-700 dark:text-white/80 cursor-pointer truncate max-w-[160px]"
+                          className="text-gray-700 dark:text-white/80 cursor-pointer truncate max-w-40"
                         >
                           {q.title}
                         </label>
@@ -1255,3 +1255,4 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
     </Modal>
   );
 }
+

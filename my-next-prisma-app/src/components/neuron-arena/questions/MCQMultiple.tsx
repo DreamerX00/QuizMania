@@ -54,3 +54,4 @@ const MCQMultiple = ({ question }: { question: Question }) => {
 };
 
 export default MCQMultiple; 
+

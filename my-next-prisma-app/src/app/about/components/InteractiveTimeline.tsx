@@ -43,7 +43,7 @@ export default function InteractiveTimeline() {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-800 to-slate-900">
+    <section className="py-24 bg-linear-to-b from-slate-800 to-slate-900">
       <div className="max-w-6xl mx-auto px-4">
         <motion.h2
           className="text-4xl md:text-5xl font-bold text-center text-white mb-16"
@@ -56,7 +56,7 @@ export default function InteractiveTimeline() {
 
         <div className="max-w-5xl mx-auto relative">
           {/* Timeline Line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-cyan-400 to-blue-500"></div>
+          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-linear-to-b from-cyan-400 to-blue-500"></div>
 
           {timelineData.map((item, index) => (
             <motion.div
@@ -73,7 +73,7 @@ export default function InteractiveTimeline() {
                   index % 2 === 0 ? "pr-8 text-right" : "pl-8 text-left"
                 }`}
               >
-                <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 hover:border-cyan-400/50 transition-all duration-300 h-full">
+                <Card className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 hover:border-cyan-400/50 transition-all duration-300 h-full">
                   <CardContent className="p-6 md:p-8">
                     <div className="text-3xl mb-4">{item.icon}</div>
                     <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
@@ -98,3 +98,4 @@ export default function InteractiveTimeline() {
     </section>
   );
 }
+

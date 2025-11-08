@@ -19,24 +19,43 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 // Define a type for the Razorpay options and the window object
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
 interface RazorpayOptions {
   key: string;
-  order_id: string;
+  amount: number;
+  currency: string;
   name: string;
   description: string;
-  handler: (response: {
-    razorpay_payment_id: string;
-    razorpay_signature: string;
-  }) => void;
+  order_id: string;
+  handler: (response: RazorpayResponse) => void;
+  prefill: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  notes: {
+    userId?: string;
+    type: string;
+  };
   theme: {
     color: string;
   };
+  modal: {
+    ondismiss: () => void;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
 }
 
 interface RazorpayWindow extends Window {
-  Razorpay: new (options: RazorpayOptions) => {
-    open: () => void;
-  };
+  Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
 }
 
 const sampleQuiz = {
@@ -165,12 +184,28 @@ export default function QuizDetailModal({
 
       // 2. Load Razorpay and open checkout
       await loadRazorpayScript();
-      const options = {
+      const options: RazorpayOptions = {
         key: purchaseData.key,
+        amount: purchaseData.amount || 0,
+        currency: purchaseData.currency || "INR",
         order_id: purchaseData.orderId,
         name: "Quiz Mania",
         description: purchaseData.description,
-        handler: async function (response: Record<string, string>) {
+        prefill: {
+          name: "",
+          email: "",
+          contact: "",
+        },
+        notes: {
+          type: "quiz_purchase",
+        },
+        modal: {
+          ondismiss: () => {
+            setIsBuying(false);
+          },
+        },
+        theme: { color: "#6366f1" },
+        handler: async function (response: RazorpayResponse) {
           try {
             const verifyRes = await fetch("/api/quizzes/verify", {
               method: "POST",
@@ -201,7 +236,6 @@ export default function QuizDetailModal({
             );
           }
         },
-        theme: { color: "#6366f1" },
       };
       const rzp = new (window as RazorpayWindow).Razorpay(options);
       rzp.open();
@@ -239,12 +273,12 @@ export default function QuizDetailModal({
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-4xl font-extrabold futuristic-title bg-gradient-to-r from-blue-500 via-cyan-400 to-purple-400 dark:from-purple-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent animate-gradient-move">
+              <h1 className="text-4xl font-extrabold futuristic-title bg-linear-to-r from-blue-500 via-cyan-400 to-purple-400 dark:from-purple-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent animate-gradient-move">
                 {quiz.title}
               </h1>
               {/* Premium Badge */}
               {isPremium && (
-                <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                <div className="bg-linear-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
                   <FiAward className="w-4 h-4" />
                   Premium
                 </div>
@@ -305,7 +339,7 @@ export default function QuizDetailModal({
                   key={comment.id}
                   className="bg-blue-100 border border-blue-200 text-blue-900 dark:bg-white/5 dark:border-white/10 dark:text-white p-4 rounded-xl flex gap-4"
                 >
-                  <div className="relative w-10 h-10 flex-shrink-0">
+                  <div className="relative w-10 h-10 shrink-0">
                     <Image
                       src={comment.user.avatar}
                       alt={comment.user.name}
@@ -340,7 +374,7 @@ export default function QuizDetailModal({
         <div className="md:w-2/5 w-full bg-white dark:bg-[#181a1f] p-6 md:p-8 flex flex-col gap-6 justify-between">
           {/* Cover Image */}
           {quiz.imageUrl ? (
-            <div className="relative w-full aspect-[16/9] mb-6 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+            <div className="relative w-full aspect-video mb-6 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
               <Image
                 src={quiz.imageUrl}
                 alt={quiz.title}
@@ -350,14 +384,14 @@ export default function QuizDetailModal({
               />
             </div>
           ) : (
-            <div className="w-full aspect-[16/9] bg-gradient-to-br from-[#23234d] to-[#181a2a] rounded-2xl flex items-center justify-center text-5xl font-bold text-gray-300 dark:text-white/50 mb-6 shadow-lg">
+            <div className="w-full aspect-video bg-linear-to-br from-[#23234d] to-[#181a2a] rounded-2xl flex items-center justify-center text-5xl font-bold text-gray-300 dark:text-white/50 mb-6 shadow-lg">
               IMG
             </div>
           )}
           <div>
             <div className="flex items-center gap-3 mb-4">
               {quiz.creator?.avatarUrl ? (
-                <div className="relative w-12 h-12 flex-shrink-0">
+                <div className="relative w-12 h-12 shrink-0">
                   <Image
                     src={quiz.creator.avatarUrl}
                     alt={quiz.creator.name || "Creator"}
@@ -367,7 +401,7 @@ export default function QuizDetailModal({
                   />
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 border-2 border-fuchsia-400" />
+                <div className="w-12 h-12 rounded-full bg-linear-to-br from-purple-500 to-blue-500 border-2 border-fuchsia-400" />
               )}
               <div>
                 <div className="text-gray-600 dark:text-white/70 text-sm">
@@ -460,7 +494,7 @@ export default function QuizDetailModal({
             <button
               onClick={handlePurchase}
               disabled={isBuying}
-              className="w-full futuristic-button bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold py-4 rounded-xl text-xl hover:scale-105 transition-transform duration-300 shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full futuristic-button bg-linear-to-r from-green-500 to-teal-600 text-white font-bold py-4 rounded-xl text-xl hover:scale-105 transition-transform duration-300 shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isBuying ? (
                 <>
@@ -474,7 +508,7 @@ export default function QuizDetailModal({
             </button>
           ) : (
             <button
-              className="w-full futuristic-button bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-4 rounded-xl text-xl hover:scale-105 transition-transform duration-300 shadow-lg"
+              className="w-full futuristic-button bg-linear-to-r from-blue-500 to-purple-600 text-white font-bold py-4 rounded-xl text-xl hover:scale-105 transition-transform duration-300 shadow-lg"
               onClick={() =>
                 router.push(`/quiz/${quiz.slug ? quiz.slug : quiz.id}/take`)
               }
@@ -511,3 +545,4 @@ function loadRazorpayScript() {
     document.body.appendChild(script);
   });
 }
+

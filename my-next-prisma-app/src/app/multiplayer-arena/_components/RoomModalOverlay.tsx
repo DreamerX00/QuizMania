@@ -1,23 +1,22 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  DoorOpen,
-  Sparkles,
-  X,
-  Target,
-  Zap,
-  Star,
-  Users,
-  Plus,
-  ArrowLeft,
-} from "lucide-react";
+import { DoorOpen, Sparkles, X, Users, Plus, ArrowLeft } from "lucide-react";
 import JoinRoomFlow from "@/components/rooms/JoinRoomFlow";
 import CreateRoomForm from "@/components/rooms/CreateRoomForm";
 import RoomLobby from "@/components/rooms/RoomLobby";
 import { Button } from "@/components/ui/button";
 import useSWR from "swr";
 import toast from "react-hot-toast";
-import { useSession } from 'next-auth/react';
+import { useSession } from "next-auth/react";
+
+type Room = {
+  id: string;
+  name: string;
+  maxPlayers: number;
+  currentPlayers?: number;
+  isPrivate?: boolean;
+  createdBy?: string;
+};
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -33,29 +32,25 @@ const RoomModalOverlay = ({
   const [step, setStep] = useState<"choose" | "join" | "create" | "lobby">(
     "choose"
   );
-  const [roomData, setRoomData] = useState<any>(null);
+  const [roomData, setRoomData] = useState<Room | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
-  const {
-    data: myRoomsData,
-    error: myRoomsError,
-    isLoading: myRoomsLoading,
-    mutate: mutateMyRooms,
-  } = useSWR(open ? "/api/rooms?my=1" : null, fetcher);
-  const {
-    data: roomMembersData,
-    error: roomMembersError,
-    isLoading: roomMembersLoading,
-    mutate: mutateRoomMembers,
-  } = useSWR(roomId ? `/api/rooms/members?roomId=${roomId}` : null, fetcher);
+  const { error: myRoomsError, isLoading: myRoomsLoading } = useSWR(
+    open ? "/api/rooms?my=1" : null,
+    fetcher
+  );
+  const { data: roomMembersData } = useSWR(
+    roomId ? `/api/rooms/members?roomId=${roomId}` : null,
+    fetcher
+  );
 
   // Handlers for join/create
-  const handleJoin = async (room: any) => {
+  const handleJoin = async (room: Room) => {
     setRoomData(room);
     setRoomId(room.id);
     setStep("lobby");
     toast.success("Joined battle room!");
   };
-  const handleCreate = async (room: any) => {
+  const handleCreate = async (room: Room) => {
     setRoomData(room);
     setRoomId(room.id);
     setStep("lobby");
@@ -121,14 +116,14 @@ const RoomModalOverlay = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-6xl max-h-[90vh] bg-gradient-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-6xl max-h-[90vh] bg-linear-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Background Pattern */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
+            <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
 
             {/* Header */}
-            <div className="relative z-10 p-6 pb-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
+            <div className="relative z-10 p-6 pb-4 bg-linear-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -136,7 +131,7 @@ const RoomModalOverlay = ({
                     <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   </div>
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    <h2 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                       Battle Rooms
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
@@ -168,7 +163,7 @@ const RoomModalOverlay = ({
                     className="flex flex-col items-center gap-8 w-full p-6"
                   >
                     <div className="text-center mb-8">
-                      <h3 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+                      <h3 className="text-3xl sm:text-4xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
                         Choose Your Battle
                       </h3>
                       <p className="text-slate-600 dark:text-slate-400 text-lg">
@@ -180,7 +175,7 @@ const RoomModalOverlay = ({
                       <motion.button
                         whileHover={{ scale: 1.05, y: -4 }}
                         whileTap={{ scale: 0.98 }}
-                        className="flex items-center justify-center gap-3 px-8 py-6 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                        className="flex items-center justify-center gap-3 px-8 py-6 rounded-2xl bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-300"
                         onClick={() => setStep("join")}
                       >
                         <Users className="w-6 h-6" />
@@ -189,7 +184,7 @@ const RoomModalOverlay = ({
                       <motion.button
                         whileHover={{ scale: 1.05, y: -4 }}
                         whileTap={{ scale: 0.98 }}
-                        className="flex items-center justify-center gap-3 px-8 py-6 rounded-2xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                        className="flex items-center justify-center gap-3 px-8 py-6 rounded-2xl bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-300"
                         onClick={() => setStep("create")}
                       >
                         <Plus className="w-6 h-6" />
@@ -285,3 +280,4 @@ const RoomModalOverlay = ({
 };
 
 export default RoomModalOverlay;
+
