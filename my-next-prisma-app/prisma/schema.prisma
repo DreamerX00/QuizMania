@@ -167,8 +167,7 @@ model User {
   email         String      @unique
   emailVerified DateTime?
   name          String?
-  image         String? // NextAuth uses 'image' instead of 'avatarUrl'
-  avatarUrl     String? // Keep for backward compatibility
+  image         String? // Unified avatar field (NextAuth compatible)
   bannerUrl     String?
   createdAt     DateTime    @default(now())
   role          Role        @default(STUDENT)
@@ -281,11 +280,16 @@ model QuizRecord {
   user                  User             @relation(fields: [userId], references: [id])
   likeCount             Int              @default(0)
   questionRecords       QuestionRecord[]
-  isFlagged             Boolean          @default(false) // <-- NEW FIELD
-  violations            QuizViolation[] // <-- NEW RELATION
-  // --- New fields ---
-  responses             Json? // All per-question responses
+  isFlagged             Boolean          @default(false)
+  violations            QuizViolation[]
+  responses             Json?
   isManualReviewPending Boolean          @default(false)
+
+  @@index([userId])
+  @@index([quizId])
+  @@index([dateTaken])
+  @@index([status])
+  @@index([isFlagged])
 }
 
 model QuizViolation {
@@ -331,31 +335,36 @@ model PaymentTransaction {
   user              User          @relation(fields: [userId], references: [id])
   razorpayOrderId   String        @unique
   razorpayPaymentId String?       @unique
-  amount            Int // Amount in paise
+  amount            Int
   currency          String        @default("INR")
   status            PaymentStatus @default(PENDING)
   type              PaymentType
   description       String?
-  metadata          Json? // Store additional data like quizId, packageId, etc.
+  metadata          Json?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([type])
 }
 
 model Quiz {
   id              String   @id @default(cuid())
-  slug            String   @unique // URL-friendly unique slug
+  slug            String   @unique
   title           String   @default("Untitled Quiz")
   description     String?
   tags            String[]
-  field           String? // New: For top-level category e.g., "Science"
-  subject         String? // New: For sub-category e.g., "Physics"
+  field           String?
+  subject         String?
   imageUrl        String?
   isTemplate      Boolean  @default(true)
   isPublished     Boolean  @default(false)
   isPinned        Boolean  @default(false)
   price           Int      @default(0)
-  pricePerAttempt Int      @default(0) // Price per attempt in ₹
-  pointPerAttempt Int      @default(0) // Points awarded per attempt
+  pricePerAttempt Int      @default(0)
+  pointPerAttempt Int      @default(0)
   jsonContent     Json     @default("{}")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt
@@ -367,12 +376,12 @@ model Quiz {
   likes            QuizLike[]
   comments         QuizComment[]
   ratings          QuizRating[]
-  attempts         Attempt[] // Daily attempt tracking
-  unlocks          QuizUnlock[] // Premium quiz unlocks
+  attempts         Attempt[]
+  unlocks          QuizUnlock[]
   quizLinkSessions QuizLinkSession[]
-  questions        Question[] // Add this line for the relation
-  quizViolations   QuizViolation[] // <-- Add this line for relation
-  template         Template? // Template relation
+  questions        Question[]
+  quizViolations   QuizViolation[]
+  template         Template?
 
   // Aggregated fields
   usersTaken        Int              @default(0)
@@ -383,6 +392,13 @@ model Quiz {
   isLocked          Boolean          @default(false)
   lockPassword      String?
   difficultyLevel   DifficultyLevel?
+
+  @@index([creatorId])
+  @@index([isPublished])
+  @@index([isPinned])
+  @@index([createdAt])
+  @@index([field, subject])
+  @@index([difficultyLevel])
 }
 
 model QuizLike {
@@ -742,24 +758,18 @@ model Question {
 }
 
 model UserBlock {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  userId        String // User being blocked
-  blockedUserId String // User who is blocked
-  blockedBy     String // Admin/user who created the block
-  blockerId     String
-  blockedId     String
-  reason        String?
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  blockerId String // User who initiated the block
+  blockedId String // User who is blocked
+  reason    String?
 
   blocker User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
   blocked User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
-  @@unique([userId, blockedUserId])
   @@index([blockerId])
   @@index([blockedId])
-  @@index([userId])
-  @@index([blockedUserId])
 }
 
 model UserReport {

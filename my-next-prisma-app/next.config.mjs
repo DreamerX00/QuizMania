@@ -6,14 +6,13 @@ const nextConfig = {
   // Output configuration for Docker
   output: process.env.NODE_ENV === "production" ? "standalone" : undefined,
 
-  // Disable ESLint during build for production
+  // Only ignore ESLint/TypeScript in CI environments, not general production
   eslint: {
-    ignoreDuringBuilds: process.env.NODE_ENV === "production",
+    ignoreDuringBuilds: process.env.CI === "true",
   },
 
-  // Disable TypeScript errors during build for production
   typescript: {
-    ignoreBuildErrors: process.env.NODE_ENV === "production",
+    ignoreBuildErrors: process.env.CI === "true",
   },
 
   images: {

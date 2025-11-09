@@ -7,9 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest",
+    "test:ci": "vitest --run",
+    "ensure-index": "node scripts/ensure_inprogress_unique_index.js",
+    "simulate-starts": "node scripts/simulate_concurrent_starts.js http://localhost:3000 test-quiz-id 5",
     "seed": "ts-node -P tsconfig-seed.json src/lib/seed.ts",
     "analyze": "ANALYZE=true npm run build"
   },
+  "type": "module",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
     "@auth/prisma-adapter": "^2.11.1",
@@ -134,6 +139,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "vitest": "^1.0.0",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",

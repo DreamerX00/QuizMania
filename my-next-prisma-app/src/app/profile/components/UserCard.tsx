@@ -103,84 +103,83 @@ export function UserCard({
   }
 
   return (
-    <div className="relative w-full max-w-xl mx-auto rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-linear-to-br dark:from-[#181a2a] dark:to-[#23234d] border border-gray-200 dark:border-white/10 backdrop-blur-2xl flex flex-col items-center px-0 pt-0 pb-8 animate-fade-in">
+    <div className="relative w-full max-w-xl mx-auto rounded-2xl shadow-2xl bg-white dark:bg-linear-to-br dark:from-[#181a2a] dark:to-[#23234d] border border-gray-200 dark:border-white/10 backdrop-blur-2xl flex flex-col items-center px-0 pt-0 pb-7 animate-fade-in hover:shadow-purple-500/20 transition-all duration-300">
       {/* Banner */}
-      <div className="relative w-full h-32 md:h-40 flex items-center justify-center bg-linear-to-r from-purple-700/60 to-blue-700/60">
+      <div className="relative w-full h-28 md:h-36 flex items-center justify-center overflow-hidden rounded-t-2xl">
         {data.bannerUrl && data.bannerUrl !== "Not set" ? (
           <Image
             src={data.bannerUrl}
             alt="Banner"
             fill
-            className="object-cover object-center opacity-90"
+            className="object-cover object-center"
             sizes="(max-width: 768px) 100vw, 672px"
             priority={false}
           />
         ) : (
-          <Image
-            src="https://landing.moqups.com/img/blog/1.-Hero-Image.png"
-            alt=""
-            fill
-            className="object-cover object-center opacity-80"
-            sizes="(max-width: 768px) 100vw, 672px"
-            priority={false}
-          />
+          <div className="absolute inset-0 bg-linear-to-br from-purple-600 via-blue-600 to-indigo-700">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
+          </div>
         )}
         {/* Upload Banner Button - always top right */}
         <button
-          className="absolute top-3 right-3 bg-white/10 text-white text-xs px-3 py-1 rounded-full shadow hover:bg-white/20 flex items-center gap-1 z-30"
+          className="absolute top-2 right-2 bg-white/10 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full shadow hover:bg-white/20 hover:scale-105 flex items-center gap-1 z-30 transition-all duration-200"
           onClick={openEdit}
         >
-          <FiPlus /> Edit Banner URL
+          <FiPlus size={10} /> Edit Banner
         </button>
 
         {/* Premium Badge */}
         {isPremiumActive && (
-          <div className="absolute top-3 left-3 bg-linear-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full shadow-lg flex items-center gap-1 z-30">
+          <div className="absolute top-2 left-2 bg-linear-to-r from-yellow-400 to-orange-500 text-white px-2.5 py-0.5 rounded-full shadow-lg flex items-center gap-1 z-30 animate-pulse">
             <Crown className="w-3 h-3" />
-            <span className="text-xs font-semibold">Premium</span>
+            <span className="text-[10px] font-semibold">Premium</span>
           </div>
         )}
 
         {/* Animated orbs/particles */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute left-8 top-6 w-8 h-8 bg-blue-400/30 rounded-full blur-2xl animate-pulse" />
-          <div className="absolute right-12 bottom-4 w-6 h-6 bg-purple-400/30 rounded-full blur-2xl animate-pulse delay-200" />
+          <div className="absolute left-8 top-6 w-6 h-6 bg-blue-400/30 rounded-full blur-2xl animate-pulse" />
+          <div className="absolute right-12 bottom-4 w-5 h-5 bg-purple-400/30 rounded-full blur-2xl animate-pulse delay-200" />
+          <div className="absolute left-1/2 top-1/2 w-8 h-8 bg-pink-400/20 rounded-full blur-2xl animate-pulse delay-500" />
         </div>
-        {/* Avatar */}
-        <div className="absolute left-1/2 -bottom-14 transform -translate-x-1/2 z-20">
-          <div className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-linear-to-br from-purple-500 to-blue-600 p-1 shadow-2xl animate-glow relative flex items-center justify-center">
-            <div className="relative w-full h-full rounded-full overflow-hidden">
+      </div>
+
+      {/* Avatar - moved outside banner container */}
+      <div className="absolute left-1/2 top-[84px] md:top-[108px] transform -translate-x-1/2 z-50">
+        <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-linear-to-br from-purple-500 to-blue-600 p-1 shadow-2xl relative flex items-center justify-center hover:scale-105 transition-transform duration-300">
+          <div className="relative w-full h-full rounded-full overflow-hidden bg-linear-to-br from-purple-400 to-blue-500">
+            {data.avatarUrl !== "Not set" ? (
               <Image
-                src={
-                  data.avatarUrl !== "Not set"
-                    ? data.avatarUrl
-                    : "https://icon2.cleanpng.com/20180529/bxp/avpqkaq1b.webp"
-                }
+                src={data.avatarUrl}
                 alt="Avatar"
                 fill
-                className="object-cover border-4 border-white/20 shadow-lg rounded-full"
-                sizes="(max-width: 768px) 112px, 144px"
+                className="object-cover border-3 border-white/20 shadow-lg rounded-full"
+                sizes="(max-width: 768px) 112px, 128px"
                 priority
               />
-            </div>
-            <button
-              className="absolute bottom-2 right-2 bg-linear-to-br from-blue-600 to-purple-600 rounded-full p-2 shadow-lg hover:scale-110 transition z-20 border-2 border-white/30"
-              onClick={handleAvatarUpload}
-            >
-              <FiEdit2 size={16} className="text-white" />
-            </button>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white text-2xl md:text-3xl font-bold bg-linear-to-br from-purple-500 to-blue-600">
+                {data.name?.charAt(0).toUpperCase() || "?"}
+              </div>
+            )}
           </div>
+          <button
+            className="absolute bottom-1 right-1 bg-linear-to-br from-blue-600 to-purple-600 rounded-full p-1.5 shadow-lg hover:scale-110 transition z-50 border-2 border-white/30"
+            onClick={handleAvatarUpload}
+          >
+            <FiEdit2 size={12} className="text-white" />
+          </button>
         </div>
       </div>
       {/* Badges */}
-      <div className="flex gap-2 mt-20 mb-2 justify-center">
-        <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-700 dark:text-blue-200 font-bold text-xs shadow-glow uppercase tracking-wide animate-glow">
+      <div className="relative flex gap-2 mt-24 md:mt-25 mb-1.5 justify-center z-10">
+        <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-700 dark:text-blue-200 font-bold text-[10px] shadow-glow uppercase tracking-wide">
           {data.role}
         </span>
         <span
-          className={`px-3 py-1 rounded-full font-bold text-xs shadow-glow uppercase tracking-wide animate-glow ${
+          className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] shadow-glow uppercase tracking-wide ${
             isPremiumActive
-              ? "bg-linear-to-r from-yellow-400/20 to-orange-500/20 text-yellow-700 dark:text-yellow-200"
+              ? "bg-linear-to-r from-yellow-400/20 to-orange-500/20 text-yellow-700 dark:text-yellow-200 animate-pulse"
               : "bg-purple-500/20 text-purple-700 dark:text-purple-200"
           }`}
         >
@@ -188,55 +187,55 @@ export function UserCard({
         </span>
       </div>
       {/* Name & Email */}
-      <h2 className="text-3xl md:text-4xl font-extrabold text-center bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent animate-gradient-move mb-1">
+      <h2 className="text-2xl md:text-3xl font-extrabold text-center bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-1">
         {data.name}
       </h2>
       <div className="flex items-center justify-center gap-2 mb-2">
-        <span className="text-base text-gray-600 dark:text-white/70 font-medium">
+        <span className="text-sm text-gray-600 dark:text-white/70 font-medium">
           {data.email}
         </span>
         <button
-          className="text-gray-400 dark:text-white/40 hover:text-gray-600 dark:hover:text-white/80"
+          className="text-gray-400 dark:text-white/40 hover:text-gray-600 dark:hover:text-white/80 transition-colors"
           onClick={() => navigator.clipboard.writeText(data.email)}
           title="Copy email"
         >
-          <FiCopy size={16} />
+          <FiCopy size={14} />
         </button>
       </div>
       {/* Stats */}
-      <div className="flex gap-4 mb-4 justify-center">
-        <div className="flex flex-col items-center bg-gray-100 dark:bg-white/10 rounded-2xl px-4 py-2 shadow-inner backdrop-blur-sm min-w-16 sm:min-w-20">
-          <span className="text-lg font-bold text-blue-600 dark:text-blue-400 drop-shadow-glow">
+      <div className="flex gap-3 mb-3 justify-center">
+        <div className="flex flex-col items-center bg-gray-100 dark:bg-white/10 rounded-xl px-3 py-1.5 shadow-inner backdrop-blur-sm min-w-14 sm:min-w-18 hover:scale-105 transition-transform duration-200">
+          <span className="text-base font-bold text-blue-600 dark:text-blue-400">
             {data.xp}
           </span>
-          <span className="text-xs text-gray-600 dark:text-white/60 flex items-center gap-1">
-            <span className="inline-block w-3 h-3 bg-blue-400 rounded-full" />
+          <span className="text-[10px] text-gray-600 dark:text-white/60 flex items-center gap-0.5">
+            <span className="inline-block w-2 h-2 bg-blue-400 rounded-full" />
             XP
           </span>
         </div>
-        <div className="flex flex-col items-center bg-gray-100 dark:bg-white/10 rounded-2xl px-4 py-2 shadow-inner backdrop-blur-sm min-w-16 sm:min-w-20">
-          <span className="text-lg font-bold text-yellow-600 dark:text-yellow-400 drop-shadow-glow flex items-center gap-1">
-            <Zap className="w-4 h-4" />
+        <div className="flex flex-col items-center bg-gray-100 dark:bg-white/10 rounded-xl px-3 py-1.5 shadow-inner backdrop-blur-sm min-w-14 sm:min-w-18 hover:scale-105 transition-transform duration-200">
+          <span className="text-base font-bold text-yellow-600 dark:text-yellow-400 flex items-center gap-0.5">
+            <Zap className="w-3 h-3" />
             {data.points || 0}
           </span>
-          <span className="text-xs text-gray-600 dark:text-white/60">
+          <span className="text-[10px] text-gray-600 dark:text-white/60">
             Points
           </span>
         </div>
-        <div className="flex flex-col items-center bg-gray-100 dark:bg-white/10 rounded-2xl px-4 py-2 shadow-inner backdrop-blur-sm min-w-16 sm:min-w-20">
-          <span className="text-lg font-bold text-purple-600 dark:text-purple-400 drop-shadow-glow">
+        <div className="flex flex-col items-center bg-gray-100 dark:bg-white/10 rounded-xl px-3 py-1.5 shadow-inner backdrop-blur-sm min-w-14 sm:min-w-18 hover:scale-105 transition-transform duration-200">
+          <span className="text-base font-bold text-purple-600 dark:text-purple-400">
             #{data.rank}
           </span>
-          <span className="text-xs text-gray-600 dark:text-white/60 flex items-center gap-1">
-            <span className="inline-block w-3 h-3 bg-purple-400 rounded-full" />
+          <span className="text-[10px] text-gray-600 dark:text-white/60 flex items-center gap-0.5">
+            <span className="inline-block w-2 h-2 bg-purple-400 rounded-full" />
             Rank
           </span>
         </div>
-        <div className="flex flex-col items-center bg-gray-100 dark:bg-white/10 rounded-2xl px-4 py-2 shadow-inner backdrop-blur-sm min-w-16 sm:min-w-20">
-          <span className="text-lg font-bold text-pink-600 dark:text-pink-400 drop-shadow-glow">
+        <div className="flex flex-col items-center bg-gray-100 dark:bg-white/10 rounded-xl px-3 py-1.5 shadow-inner backdrop-blur-sm min-w-14 sm:min-w-18 hover:scale-105 transition-transform duration-200">
+          <span className="text-base font-bold text-pink-600 dark:text-pink-400">
             🔥 {data.streak}
           </span>
-          <span className="text-xs text-gray-600 dark:text-white/60">
+          <span className="text-[10px] text-gray-600 dark:text-white/60">
             Streak
           </span>
         </div>
@@ -412,4 +411,3 @@ export function UserCard({
 // .drop-shadow-glow { filter: drop-shadow(0 0 8px #7f5af0aa); }
 // .animate-float { animation: float 6s ease-in-out infinite; }
 // @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
-

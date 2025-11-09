@@ -95,15 +95,22 @@ export default function QuizInitModal({
           body: JSON.stringify({ quizId }),
         });
       }
-      const res = await fetch(`/api/quiz/${quizId}/start`, {
+      const res = await fetch(`/api/quizzes/${quizId}/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fingerprint, deviceInfo }),
       });
       const data = await res.json();
-      if (!res.ok || !data.quizLink)
+      if (!res.ok || !data.success) {
         throw new Error(data.error || "Failed to generate link");
-      setLink(data.quizLink);
+      }
+      // Build a shareable link using returned quizRecordId (if available)
+      const recordId = data.quizRecordId as string | undefined;
+      const base = typeof window !== "undefined" ? window.location.origin : "";
+      const linkUrl = recordId
+        ? `${base}/quiz/${quizId}/take?qr=${recordId}`
+        : `${base}/quiz/${quizId}/take`;
+      setLink(linkUrl);
       setLinkLoading(false);
     } catch (e: unknown) {
       const errorMessage =
@@ -365,4 +372,3 @@ export default function QuizInitModal({
     </Modal>
   );
 }
-

@@ -9,6 +9,7 @@ interface User {
   id: string;
   email: string;
   name?: string | null;
+  image?: string | null;
   avatarUrl?: string | null;
   bannerUrl?: string | null;
   bio?: string | null;
@@ -22,7 +23,8 @@ function withNotSetFields(user: User) {
   return {
     ...user,
     name: user.name || "Not set",
-    avatarUrl: user.avatarUrl || "Not set",
+    // Prioritize Google's image (from NextAuth) over custom avatarUrl
+    avatarUrl: user.image || user.avatarUrl || "Not set",
     bannerUrl: user.bannerUrl || "Not set",
     bio: user.bio || "Not set",
     alias: user.alias || "Not set",
@@ -51,6 +53,7 @@ export async function GET(request: Request, context: RouteContext) {
       id: true,
       email: true,
       name: true,
+      image: true, // Google profile picture from NextAuth
       avatarUrl: true,
       bannerUrl: true,
       bio: true,
@@ -120,6 +123,7 @@ export const PATCH = withValidation(
           id: true,
           email: true,
           name: true,
+          image: true, // Include Google profile picture
           avatarUrl: true,
           bannerUrl: true,
           createdAt: true,

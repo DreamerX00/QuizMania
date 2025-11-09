@@ -1,9 +1,0 @@
--- AlterTable
-ALTER TABLE "Room" ADD COLUMN     "isLocked" BOOLEAN NOT NULL DEFAULT false,
-ADD COLUMN     "maxParticipants" INTEGER NOT NULL DEFAULT 8,
-ADD COLUMN     "password" TEXT,
-ADD COLUMN     "quizType" TEXT,
-ADD COLUMN     "quizTypes" TEXT[] DEFAULT ARRAY[]::TEXT[],
-ADD COLUMN     "startedAt" TIMESTAMP(3),
-ADD COLUMN     "status" TEXT NOT NULL DEFAULT 'WAITING',
-ADD COLUMN     "type" TEXT NOT NULL DEFAULT 'Public';

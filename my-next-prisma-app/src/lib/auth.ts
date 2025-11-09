@@ -40,6 +40,8 @@ export const authOptions: NextAuthOptions = {
             session.user = {
               ...session.user,
               ...dbUser,
+              // Prioritize Google's image over custom avatarUrl
+              image: dbUser.image || dbUser.avatarUrl,
             };
           }
         } catch (error) {
@@ -48,10 +50,14 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
       // Initial sign in
       if (user) {
         token.id = user.id;
+      }
+      // Store Google profile picture in token
+      if (account?.provider === "google" && profile) {
+        token.picture = (profile as { picture?: string }).picture;
       }
       return token;
     },

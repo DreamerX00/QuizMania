@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { useQuizStore } from '@/components/neuron-arena/state/quizStore';
+import { useState } from "react";
+import { useQuizStore } from "@/components/neuron-arena/state/quizStore";
 
 // Types for the payload
 interface SubmissionResponse {
   success: boolean;
-  summary: any;
+  summary: unknown;
   manualReviewPending: boolean;
 }
 
@@ -26,12 +26,18 @@ export function useQuizSubmission() {
     let obtainedMarks = 0;
     let pendingManualMarks = 0;
     const totalQuestions = quiz.questions.length;
-    const summaryPerQuestion: any[] = [];
+    const summaryPerQuestion: Array<Record<string, unknown>> = [];
     responses.forEach((resp) => {
       const q = quiz.questions.find((q) => q.id === resp.questionId);
       if (!q) return;
       attempted++;
-      let isManual = ['essay','paragraph','audio','video','poll'].includes(q.type);
+      const isManual = [
+        "essay",
+        "paragraph",
+        "audio",
+        "video",
+        "poll",
+      ].includes(q.type);
       let isCorrect = false;
       if (isManual) {
         pendingManualMarks += q.marks || 0;
@@ -62,8 +68,14 @@ export function useQuizSubmission() {
       incorrect,
       obtainedMarks,
       pendingManualMarks,
-      percentage: totalQuestions ? Math.round((obtainedMarks / (obtainedMarks + pendingManualMarks)) * 100) : 0,
-      durationInSeconds: startTime ? Math.floor((Date.now() - startTime) / 1000) : 0,
+      percentage: totalQuestions
+        ? Math.round(
+            (obtainedMarks / (obtainedMarks + pendingManualMarks)) * 100
+          )
+        : 0,
+      durationInSeconds: startTime
+        ? Math.floor((Date.now() - startTime) / 1000)
+        : 0,
       perQuestion: summaryPerQuestion,
     };
   }
@@ -76,8 +88,10 @@ export function useQuizSubmission() {
       return {
         questionId: resp.questionId,
         answer: resp.response,
-        type: q?.type || 'unknown',
-        requiresManualReview: q ? ['essay','paragraph','audio','video','poll'].includes(q.type) : false,
+        type: q?.type || "unknown",
+        requiresManualReview: q
+          ? ["essay", "paragraph", "audio", "video", "poll"].includes(q.type)
+          : false,
       };
     });
   }
@@ -88,32 +102,47 @@ export function useQuizSubmission() {
     setError(null);
     setResult(null);
     try {
-      if (!quiz) throw new Error('Quiz not loaded');
+      if (!quiz) throw new Error("Quiz not loaded");
+      // Ensure an atomic start exists on the server and get quizRecordId
+      const startRes = await fetch(`/api/quizzes/${quiz.id}/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const startData = await startRes.json();
+      if (!startRes.ok || !startData.success) {
+        throw new Error(
+          startData.reason || startData.error || "Could not start quiz"
+        );
+      }
+      const quizRecordId = startData.quizRecordId;
       const summary = evaluateAndBuildSummary();
-      if (!summary) throw new Error('Could not build summary');
+      if (!summary) throw new Error("Could not build summary");
       const payload = {
         quizId: quiz.id,
         submittedAt: new Date().toISOString(),
+        quizRecordId,
         responses: formatResponses(),
         summary,
         violations: {
           count: violations.length,
-          reasons: violations.map(v => `${v.type}: ${v.reason}`),
+          reasons: violations.map((v) => `${v.type}: ${v.reason}`),
         },
       };
-      const res = await fetch(`/api/quiz/${quiz.id}/attempt`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(`/api/quizzes/${quiz.id}/attempt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Submission failed');
+      if (!res.ok) throw new Error(data.error || "Submission failed");
       setResult(data);
       // Optionally update Zustand store: set submitted, score summary, etc.
       useQuizStore.setState({ submitted: true });
       return data;
-    } catch (e: any) {
-      setError(e.message || 'Unknown error');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || "Unknown error");
       throw e;
     } finally {
       setIsSubmitting(false);
@@ -121,4 +150,4 @@ export function useQuizSubmission() {
   }
 
   return { submitQuiz, isSubmitting, error, result };
-} 
+}

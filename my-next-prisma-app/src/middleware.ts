@@ -10,29 +10,42 @@ const publicRoutes = [
   "/leaderboard",
   "/clear-session",
   "/auth/signin",
+  "/auth/signup",
   "/auth/error",
   "/api/auth",
+  "/api/health",
+  "/api/leaderboard",
 ];
 
-// Error route matcher
+// Admin routes requiring elevated permissions
+const adminRoutes = ["/admin"];
+
+// Error route validator
 const errorCodes = ["401", "403", "404", "500"];
-function isErrorRoute(pathname: string) {
+
+function isErrorRoute(pathname: string): boolean {
   return pathname.startsWith("/errors/");
 }
 
-function isPublicRoute(pathname: string) {
+function isPublicRoute(pathname: string): boolean {
   return publicRoutes.some(
     (route) => pathname === route || pathname.startsWith(route + "/")
   );
 }
 
+function isAdminRoute(pathname: string): boolean {
+  return adminRoutes.some((route) => pathname.startsWith(route));
+}
+
 export default withAuth(
   function middleware(req) {
     const { pathname } = req.nextUrl;
+    const token = req.nextauth.token;
 
-    // Allow error routes
+    // Validate error routes
     if (isErrorRoute(pathname)) {
-      if (!errorCodes.includes(pathname.split("/")[2])) {
+      const errorCode = pathname.split("/")[2];
+      if (!errorCode || !errorCodes.includes(errorCode)) {
         return NextResponse.redirect(new URL("/errors/404", req.url));
       }
       return NextResponse.next();
@@ -43,7 +56,14 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    // Protected routes require authentication (handled by withAuth)
+    // Check admin routes
+    if (isAdminRoute(pathname)) {
+      const userRole = token?.role as string;
+      if (!["ADMIN", "OWNER"].includes(userRole)) {
+        return NextResponse.redirect(new URL("/errors/403", req.url));
+      }
+    }
+
     return NextResponse.next();
   },
   {
@@ -51,30 +71,32 @@ export default withAuth(
       authorized: ({ req, token }) => {
         const { pathname } = req.nextUrl;
 
-        // Allow public routes and auth routes
-        if (
-          isPublicRoute(pathname) ||
-          pathname.startsWith("/api/auth") ||
-          pathname.startsWith("/api/leaderboard")
-        ) {
+        // Allow public routes and API health checks
+        if (isPublicRoute(pathname)) {
           return true;
         }
 
-        // Require token for protected routes
+        // Require authentication for protected routes
         return !!token;
       },
     },
     pages: {
       signIn: "/auth/signin",
+      error: "/auth/error",
     },
   }
 );
 
 export const config = {
   matcher: [
-    "/((?!.+\\.[\\w]+$|_next).*)",
-    "/",
-    "/(api|trpc)(.*)",
-    "/errors/:path*",
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization)
+     * - favicon.ico (favicon)
+     * - public assets (images, fonts, etc.)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/api/:path*",
   ],
 };

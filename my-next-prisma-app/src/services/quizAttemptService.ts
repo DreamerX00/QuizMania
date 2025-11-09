@@ -5,7 +5,7 @@ import {
   canAccessPremiumQuiz,
   getPricingConfig,
 } from "@/constants/pricing";
-import { DifficultyLevel } from "@prisma/client";
+import { QuizStatus, Prisma } from "@prisma/client";
 import { calculateArenaXP } from "./xpAlgorithm";
 import { getRankByXP } from "@/utils/rank";
 
@@ -82,12 +82,14 @@ export class QuizAttemptService {
    */
   static async validateAttempt(
     userId: string,
-    quizId: string
+    quizId: string,
+    tx?: Prisma.TransactionClient
   ): Promise<AttemptValidationResult> {
+    const db = tx ?? prisma;
     // Get user and quiz data
     const [user, quiz] = await Promise.all([
-      prisma.user.findUnique({ where: { id: userId } }),
-      prisma.quiz.findUnique({ where: { id: quizId } }),
+      db.user.findUnique({ where: { id: userId } }),
+      db.quiz.findUnique({ where: { id: quizId } }),
     ]);
 
     if (!user || !quiz) {
@@ -117,7 +119,7 @@ export class QuizAttemptService {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const todayAttempts = await prisma.attempt.count({
+    const todayAttempts = await db.attempt.count({
       where: {
         userId,
         quizId,
@@ -178,7 +180,7 @@ export class QuizAttemptService {
     score: number,
     totalMarks: number,
     duration: number,
-    status: string = "COMPLETED"
+    status: QuizStatus = QuizStatus.COMPLETED
   ): Promise<AttemptResult> {
     const existingRecord = await prisma.quizRecord.findUnique({
       where: { id: quizRecordId },
@@ -230,13 +232,13 @@ export class QuizAttemptService {
     const isNewBestScore = !todayBestScore || score > todayBestScore.score;
 
     // Update quiz record
-    const quizRecord = await prisma.quizRecord.update({
+    await prisma.quizRecord.update({
       where: { id: quizRecordId },
       data: {
         score,
         duration,
         dateTaken: new Date(),
-        status: status as any,
+        status,
         earnedPoints: isNewBestScore ? earnedPoints : 0, // Only award points for best score
       },
     });
@@ -412,92 +414,86 @@ export class QuizAttemptService {
     userId: string,
     quizId: string,
     fingerprint?: string,
-    deviceInfo?: any,
+    deviceInfo?: Prisma.JsonValue,
     ip?: string
   ): Promise<StartAttemptResult & { sessionId?: string }> {
-    const existingAttempt = await prisma.quizRecord.findFirst({
-      where: {
-        userId,
-        quizId,
-        status: "IN_PROGRESS",
-      },
-    });
+    // Use an interactive transaction to make the start atomic and avoid races
+    const result = await prisma.$transaction(async (tx) => {
+      // Re-fetch user and quiz inside transaction
+      const [user, quiz] = await Promise.all([
+        tx.user.findUnique({ where: { id: userId } }),
+        tx.quiz.findUnique({ where: { id: quizId } }),
+      ]);
 
-    if (existingAttempt) {
-      return {
-        success: false,
-        reason: "You already have an attempt in progress for this quiz.",
-        quizRecordId: existingAttempt.id,
-      };
-    }
+      if (!user || !quiz) {
+        return {
+          success: false,
+          reason: "User or quiz not found",
+        } as StartAttemptResult & { sessionId?: string };
+      }
 
-    const validation = await this.validateAttempt(userId, quizId);
-    if (!validation.canAttempt) {
-      return {
-        success: false,
-        reason: validation.reason,
-        remainingAttempts: validation.remainingAttempts,
-        dailyLimit: validation.dailyLimit,
-        requiresPayment: validation.requiresPayment,
-        isUnlocked: validation.isUnlocked,
-      };
-    }
+      // Check for existing IN_PROGRESS record (atomic check)
+      const existingAttempt = await tx.quizRecord.findFirst({
+        where: { userId, quizId, status: "IN_PROGRESS" },
+      });
+      if (existingAttempt) {
+        return {
+          success: false,
+          reason: "You already have an attempt in progress for this quiz.",
+          quizRecordId: existingAttempt.id,
+        } as StartAttemptResult & { sessionId?: string };
+      }
 
-    if (validation.requiresPayment) {
-      return {
-        success: false,
-        reason: "Payment is required to attempt this quiz.",
-        requiresPayment: true,
-        isUnlocked: false,
-      };
-    }
+      // Reuse validation logic inside the transaction to avoid duplication
+      const validation = await this.validateAttempt(userId, quizId, tx);
+      if (!validation.canAttempt) {
+        return {
+          success: false,
+          reason: validation.reason,
+          remainingAttempts: validation.remainingAttempts,
+          dailyLimit: validation.dailyLimit,
+          requiresPayment: validation.requiresPayment,
+          isUnlocked: validation.isUnlocked,
+        } as StartAttemptResult & { sessionId?: string };
+      }
 
-    // Record the attempt
-    await prisma.attempt.create({
-      data: {
-        userId,
-        quizId,
-        date: new Date(),
-      },
-    });
+      const { remainingAttempts, dailyLimit } = validation;
 
-    // Create an in-progress quiz record
-    const quizRecord = await prisma.quizRecord.create({
-      data: {
-        userId,
-        quizId,
-        score: 0,
-        duration: 0,
-        dateTaken: new Date(),
-        status: "IN_PROGRESS",
-        earnedPoints: 0,
-      },
-    });
-
-    // Create a QuizLinkSession
-    let sessionId: string | undefined = undefined;
-    if (fingerprint && deviceInfo && ip) {
-      const session = await prisma.quizLinkSession.create({
+      // Create attempt and quizRecord atomically
+      await tx.attempt.create({ data: { userId, quizId, date: new Date() } });
+      const quizRecord = await tx.quizRecord.create({
         data: {
           userId,
           quizId,
-          fingerprint,
-          deviceInfo,
-          ip,
+          score: 0,
+          duration: 0,
+          dateTaken: new Date(),
+          status: "IN_PROGRESS",
+          earnedPoints: 0,
         },
       });
-      sessionId = session.id;
-    }
 
-    return {
-      success: true,
-      quizRecordId: quizRecord.id,
-      remainingAttempts: validation.remainingAttempts
-        ? validation.remainingAttempts - 1
-        : undefined,
-      dailyLimit: validation.dailyLimit,
-      sessionId,
-    };
+      let sessionId: string | undefined = undefined;
+      if (fingerprint && deviceInfo && ip) {
+        const session = await tx.quizLinkSession.create({
+          data: { userId, quizId, fingerprint, deviceInfo, ip },
+        });
+        sessionId = session.id;
+      }
+
+      return {
+        success: true,
+        quizRecordId: quizRecord.id,
+        remainingAttempts:
+          typeof remainingAttempts === "number"
+            ? remainingAttempts - 1
+            : undefined,
+        dailyLimit,
+        sessionId,
+      } as StartAttemptResult & { sessionId?: string };
+    });
+
+    return result;
   }
 
   /**
@@ -511,10 +507,10 @@ export class QuizAttemptService {
       type: string;
       isCorrect: boolean;
       timeTaken: number;
-      answer: any;
+      answer: Prisma.InputJsonValue;
     }>,
     duration: number,
-    status: string = "COMPLETED"
+    status: QuizStatus = QuizStatus.COMPLETED
   ): Promise<AttemptResult> {
     const existingRecord = await prisma.quizRecord.findUnique({
       where: { id: quizRecordId },
@@ -554,13 +550,13 @@ export class QuizAttemptService {
     const oldRank = getRankByXP(oldXp).tierIndex;
 
     // Update quiz record
-    const quizRecord = await prisma.quizRecord.update({
+    await prisma.quizRecord.update({
       where: { id: quizRecordId },
       data: {
         score: answers.filter((a) => a.isCorrect).length,
         duration,
         dateTaken: new Date(),
-        status: status as any,
+        status,
         earnedPoints: earnedXP,
       },
     });
@@ -613,12 +609,12 @@ export class QuizAttemptService {
     submittedAt: Date;
     responses: Array<{
       questionId: string;
-      answer: any;
+      answer: Prisma.JsonValue;
       type: string;
       requiresManualReview: boolean;
     }>;
-    summary: any;
-    violations?: any;
+    summary: Prisma.JsonValue;
+    violations?: Prisma.InputJsonValue;
   }) {
     // Find the in-progress QuizRecord
     const quizRecord = await prisma.quizRecord.findFirst({
@@ -630,20 +626,49 @@ export class QuizAttemptService {
     });
     if (!quizRecord) throw new Error("No in-progress quiz record found");
 
+    if (!summary) throw new Error("Missing summary for structured attempt");
+    const summaryObj = summary as unknown as {
+      obtainedMarks?: number;
+      durationInSeconds?: number;
+    };
+
     // Update QuizRecord
     await prisma.quizRecord.update({
       where: { id: quizRecord.id },
       data: {
-        responses,
-        violations,
-        status: "COMPLETED",
+        responses: responses as Prisma.InputJsonValue,
+        status: QuizStatus.COMPLETED,
         dateTaken: submittedAt ? new Date(submittedAt) : new Date(),
         isManualReviewPending: responses.some((r) => r.requiresManualReview),
-        score: summary.obtainedMarks,
-        duration: summary.durationInSeconds || 0,
+        score: summaryObj.obtainedMarks || 0,
+        duration: summaryObj.durationInSeconds || 0,
       },
     });
 
+    // Persist any structured violations into QuizViolation table if present
+    if (violations) {
+      try {
+        const v = violations as unknown;
+        if (Array.isArray(v)) {
+          const items = v as Array<{ type?: string; reason?: string }>;
+          await prisma.$transaction(
+            items.map((item) =>
+              prisma.quizViolation.create({
+                data: {
+                  quizRecordId: quizRecord.id,
+                  userId,
+                  quizId,
+                  type: item.type || "violation",
+                  reason: item.reason || JSON.stringify(item),
+                },
+              })
+            )
+          );
+        }
+      } catch (err) {
+        console.error("Failed to persist violations:", err);
+      }
+    }
     // Add manual review items
     const manualItems = responses.filter((r) => r.requiresManualReview);
     if (manualItems.length > 0) {
@@ -655,7 +680,7 @@ export class QuizAttemptService {
               questionId: r.questionId,
               userId,
               quizId,
-              answer: r.answer,
+              answer: r.answer as Prisma.InputJsonValue,
               type: r.type,
             },
           })

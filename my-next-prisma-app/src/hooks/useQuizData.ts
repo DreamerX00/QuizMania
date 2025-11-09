@@ -3,7 +3,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import type { Quiz as QuizType } from "@/components/neuron-arena/types/quiz.types";
 
 // Types
 interface Quiz {
@@ -41,7 +40,7 @@ const fetchQuizById = async (id: string): Promise<Quiz> => {
 };
 
 const createQuiz = async (data: CreateQuizData): Promise<Quiz> => {
-  const response = await axios.post("/api/quizzes", data);
+  const response = await axios.post("/api/quizzes/create", data);
   return response.data;
 };
 
@@ -121,7 +120,7 @@ export function useDeleteQuiz() {
 }
 
 export function useStaticQuiz(quizId: string) {
-  const [quiz, setQuiz] = useState<any>(null);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -135,8 +134,9 @@ export function useStaticQuiz(quizId: string) {
         if (!res.ok) throw new Error("Quiz not found");
         const data = await res.json();
         setQuiz(data);
-      } catch (e: any) {
-        setError(e.message || "Unknown error");
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        setError(msg || "Unknown error");
       } finally {
         setLoading(false);
       }
