@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: 50,
     include: {
-      sender: { select: { id: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, image: true } },
     },
   });
   return NextResponse.json({ messages: messages.reverse() });
@@ -28,7 +28,7 @@ export const POST = withValidation(publicChatSchema, async (req: any) => {
   const chat = await prisma.publicChat.create({
     data: { senderId: userId, message },
     include: {
-      sender: { select: { id: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, image: true } },
     },
   });
   return NextResponse.json({ chat });

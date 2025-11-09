@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     where: { roomId },
     orderBy: { createdAt: "asc" },
     include: {
-      sender: { select: { id: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, image: true } },
     },
   });
   return NextResponse.json({ messages });
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const chat = await prisma.roomChat.create({
     data: { roomId, senderId: userId, message },
     include: {
-      sender: { select: { id: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, image: true } },
     },
   });
   return NextResponse.json({ chat });

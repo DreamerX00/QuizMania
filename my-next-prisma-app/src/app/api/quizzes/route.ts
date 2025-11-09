@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
           creator: {
             select: {
               name: true,
-              avatarUrl: true,
+              image: true,
             },
           },
         },

@@ -19,7 +19,7 @@ export async function GET(
     },
     include: {
       creator: {
-        select: { name: true, avatarUrl: true },
+        select: { name: true, image: true },
       },
     },
   });

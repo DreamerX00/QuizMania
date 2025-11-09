@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         name: true,
-        avatarUrl: true,
+        image: true,
         xp: true,
       },
     });

@@ -14,39 +14,34 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ session, token }) {
-      if (session.user && token?.sub) {
-        session.user.id = token.sub;
-        // Add custom fields from your User model
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.sub },
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              image: true,
-              avatarUrl: true,
-              role: true,
-              xp: true,
-              rank: true,
-              streak: true,
-              accountType: true,
-              points: true,
-              premiumUntil: true,
-            },
-          });
+      if (!token?.sub) return session; // ✅ prevent crash if token missing
 
-          if (dbUser) {
-            session.user = {
-              ...session.user,
-              ...dbUser,
-              // Prioritize Google's image over custom avatarUrl
-              image: dbUser.image || dbUser.avatarUrl,
-            };
-          }
-        } catch (error) {
-          console.error("Error fetching user in session callback:", error);
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            role: true,
+            xp: true,
+            rank: true,
+            streak: true,
+            accountType: true,
+            points: true,
+            premiumUntil: true,
+          },
+        });
+
+        if (dbUser && session.user) {
+          session.user = {
+            ...session.user,
+            ...dbUser,
+          };
         }
+      } catch (error) {
+        console.error("Error fetching user in session callback:", error);
       }
       return session;
     },

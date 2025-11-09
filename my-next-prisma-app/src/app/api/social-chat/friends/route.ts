@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
     },
     orderBy: { createdAt: 'asc' },
     include: {
-      sender: { select: { id: true, name: true, avatarUrl: true } },
-      receiver: { select: { id: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, image: true } },
+      receiver: { select: { id: true, name: true, image: true } },
     },
   });
   return NextResponse.json({ messages });

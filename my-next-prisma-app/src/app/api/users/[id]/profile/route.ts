@@ -54,8 +54,6 @@ export async function GET(request: Request, context: RouteContext) {
       email: true,
       name: true,
       image: true, // Google profile picture from NextAuth
-      avatarUrl: true,
-      bannerUrl: true,
       bio: true,
       alias: true,
       socials: true,
@@ -112,8 +110,6 @@ export const PATCH = withValidation(
         where: { id: id },
         data: {
           name: data.name,
-          avatarUrl: data.avatarUrl,
-          bannerUrl: data.bannerUrl,
           bio: data.bio,
           alias: data.alias,
           socials: data.socials,
@@ -124,8 +120,6 @@ export const PATCH = withValidation(
           email: true,
           name: true,
           image: true, // Include Google profile picture
-          avatarUrl: true,
-          bannerUrl: true,
           createdAt: true,
           role: true,
           xp: true,

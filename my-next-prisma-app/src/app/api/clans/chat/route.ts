@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     where: { clanId },
     orderBy: { createdAt: "asc" },
     include: {
-      sender: { select: { id: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, image: true } },
     },
   });
   return NextResponse.json({ messages });
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   const chat = await prisma.clanChat.create({
     data: { clanId, senderId: userId, message },
     include: {
-      sender: { select: { id: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, name: true, image: true } },
     },
   });
   return NextResponse.json({ chat });

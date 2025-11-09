@@ -378,7 +378,7 @@ export class QuizAttemptService {
       select: {
         id: true,
         name: true,
-        avatarUrl: true,
+        image: true,
         points: true,
         accountType: true,
         _count: {

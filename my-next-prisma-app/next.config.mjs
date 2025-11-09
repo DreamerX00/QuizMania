@@ -54,6 +54,17 @@ const nextConfig = {
   experimental: {
     // Enable advanced features if needed
   },
+
+  webpack: (config, { isServer }) => {
+    // Fix for Prisma client module resolution
+    if (isServer) {
+      config.externals.push({
+        "@prisma/client": "commonjs @prisma/client",
+      });
+    }
+
+    return config;
+  },
 };
 
 // Export with bundle analyzer when ANALYZE=true
