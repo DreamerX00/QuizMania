@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
           showExplanations: config.showExplanations,
           shuffleQuestions: config.shuffleQuestions,
           shuffleOptions: config.shuffleOptions,
-          status: "READY",
+          status: "ACTIVE",
           baseXP,
           bonusXPMultiplier: 1.0,
           perfectScoreBonus: Math.round(baseXP * 0.25),

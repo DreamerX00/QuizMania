@@ -3,14 +3,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { getRankByXP } from "@/utils/rank";
 
 // Validation schema
 const SubmitQuizSchema = z.object({
   quizId: z.string().min(1, "Quiz ID is required"),
   userId: z.string().min(1, "User ID is required"),
   answers: z.record(z.string(), z.string()),
-  attemptId: z.string().optional(),
-  timeSpent: z.number().optional(),
+  attemptId: z.string().optional().nullable(),
+  timeSpent: z.number().optional().nullable(),
 });
 
 export async function POST(request: NextRequest) {
@@ -57,12 +58,13 @@ export async function POST(request: NextRequest) {
     // Parse questions to validate answers
     const questions = quiz.questions as Array<{
       id: string;
-      text: string;
+      text?: string;
+      question?: string; // Some AI responses use 'question' instead of 'text'
       options: Array<{
         id: string;
         text: string;
-        isCorrect: boolean;
       }>;
+      correctAnswer: string; // "a", "b", "c", or "d"
       explanation?: string;
       difficulty?: string;
       topic?: string;
@@ -87,8 +89,8 @@ export async function POST(request: NextRequest) {
 
     questions.forEach((question) => {
       const selectedAnswerId = answers[question.id];
-      const correctOption = question.options.find((opt) => opt.isCorrect);
-      const correctAnswerId = correctOption?.id || "";
+      // correctAnswer is "a", "b", "c", or "d" from the AI-generated question
+      const correctAnswerId = question.correctAnswer.toLowerCase();
 
       if (!selectedAnswerId) {
         // Question was skipped
@@ -102,7 +104,7 @@ export async function POST(request: NextRequest) {
           wasSkipped: true,
         };
       } else {
-        const isCorrect = selectedAnswerId === correctAnswerId;
+        const isCorrect = selectedAnswerId.toLowerCase() === correctAnswerId;
         if (isCorrect) {
           correctCount++;
           currentStreak++;
@@ -295,6 +297,62 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Get user's current XP to calculate rank change
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { xp: true, rank: true },
+    });
+
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const oldXp = currentUser.xp;
+    const newXp = oldXp + totalXP;
+    const oldRank = getRankByXP(oldXp).tierIndex;
+    const newRank = getRankByXP(newXp).tierIndex;
+
+    // Update user XP, rank, and streak
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        xp: { set: newXp },
+        rank: { set: newRank },
+        streak: { set: maxStreak }, // Update streak with the max streak from this quiz
+      },
+    });
+
+    // Create RankHistory entry if rank changed
+    if (oldRank !== newRank) {
+      await prisma.rankHistory.create({
+        data: {
+          userId,
+          oldRank,
+          newRank,
+          oldXp,
+          newXp,
+        },
+      });
+    }
+
+    // Update AI Quiz Generation Quota statistics
+    const currentQuota = await prisma.aIQuizGenerationQuota.findUnique({
+      where: { userId },
+      select: { longestStreak: true },
+    });
+
+    await prisma.aIQuizGenerationQuota.update({
+      where: { userId },
+      data: {
+        totalAttempts: { increment: 1 },
+        totalXPEarned: { increment: totalXP },
+        currentStreak: { set: maxStreak },
+        longestStreak: {
+          set: Math.max(currentQuota?.longestStreak || 0, maxStreak),
+        },
+      },
+    });
+
     return NextResponse.json({
       success: true,
       attemptId: attempt.id,
@@ -308,6 +366,10 @@ export async function POST(request: NextRequest) {
       totalXP,
       xpBreakdown,
       maxStreak,
+      rankChanged: oldRank !== newRank,
+      oldRank,
+      newRank,
+      newXp,
     });
   } catch (error) {
     console.error("Error submitting quiz:", error);

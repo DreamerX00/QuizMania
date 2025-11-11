@@ -5,23 +5,22 @@ import { prisma } from "@/lib/prisma";
 import PreviewClient from "./PreviewClient";
 
 interface PreviewPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function PreviewPage({ params }: PreviewPageProps) {
+  const { slug } = await params;
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    redirect(
-      "/signin?callbackUrl=/generate-random-quiz/preview/" + params.slug
-    );
+    redirect("/signin?callbackUrl=/generate-random-quiz/preview/" + slug);
   }
 
   // Fetch quiz from database
   const quiz = await prisma.aIGeneratedQuiz.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       user: {
         select: {
@@ -49,9 +48,10 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
   }
 
   // Parse questions from JSON
-  const questions = quiz.questions as Array<{
+  const questionsData = quiz.questions as Array<{
     id: string;
-    text: string;
+    text?: string;
+    question?: string; // Some AI responses use 'question' instead of 'text'
     options: Array<{
       id: string;
       text: string;
@@ -61,6 +61,12 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
     difficulty?: string;
     topic?: string;
   }>;
+
+  // Normalize question field name
+  const questions = questionsData.map((q) => ({
+    ...q,
+    text: q.text || q.question || "Question text not available",
+  }));
 
   // Calculate estimated minutes (2 minutes per question default)
   const estimatedMinutes = Math.ceil(quiz.questionCount * 2);

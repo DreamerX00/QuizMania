@@ -51,7 +51,6 @@ interface PreviewClientProps {
 
 export default function PreviewClient({ quiz, userName }: PreviewClientProps) {
   const router = useRouter();
-  const [expanded, setExpanded] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const difficultyConfig = DIFFICULTY_LEVELS.find(
@@ -239,21 +238,19 @@ export default function PreviewClient({ quiz, userName }: PreviewClientProps) {
 
         {/* Questions Preview */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Questions Preview
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+              Sample Questions
             </h2>
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-medium"
-            >
-              {expanded ? "Collapse All" : "Expand All"}
-            </button>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Showing 3 of {quiz.questionCount} questions - Start the quiz to
+              see all questions
+            </p>
           </div>
 
           <div className="space-y-4">
             {quiz.questions
-              .slice(0, expanded ? undefined : 3)
+              .slice(0, 3) // Always show only 3 questions in preview
               .map((question, idx) => (
                 <div
                   key={question.id}
@@ -264,50 +261,13 @@ export default function PreviewClient({ quiz, userName }: PreviewClientProps) {
                       {idx + 1}
                     </div>
                     <div className="flex-1">
-                      <p className="text-gray-900 dark:text-white font-medium mb-3">
+                      <p className="text-gray-900 dark:text-white font-medium mb-2">
                         {question.text}
                       </p>
-                      <div className="space-y-2">
-                        {question.options.map((option, optIdx) => (
-                          <div
-                            key={option.id}
-                            className={`p-3 rounded-lg border-2 ${
-                              option.isCorrect
-                                ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                                : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800"
-                            }`}
-                          >
-                            <span className="font-semibold text-gray-700 dark:text-gray-300">
-                              {String.fromCharCode(65 + optIdx)}.
-                            </span>{" "}
-                            <span
-                              className={
-                                option.isCorrect
-                                  ? "text-green-800 dark:text-green-200 font-medium"
-                                  : "text-gray-700 dark:text-gray-300"
-                              }
-                            >
-                              {option.text}
-                            </span>
-                            {option.isCorrect && (
-                              <span className="ml-2 text-green-600 dark:text-green-400">
-                                ✓
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      {question.explanation && (
-                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-                          <p className="text-sm text-blue-800 dark:text-blue-200">
-                            <strong>Explanation:</strong> {question.explanation}
-                          </p>
-                        </div>
-                      )}
                       {question.topic && (
                         <div className="mt-2">
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            Topic: {question.topic}
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200">
+                            📚 {question.topic}
                           </span>
                         </div>
                       )}
@@ -315,16 +275,16 @@ export default function PreviewClient({ quiz, userName }: PreviewClientProps) {
                   </div>
                 </div>
               ))}
-
-            {!expanded && quiz.questions.length > 3 && (
-              <button
-                onClick={() => setExpanded(true)}
-                className="w-full py-3 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
-              >
-                Show {quiz.questions.length - 3} more questions...
-              </button>
-            )}
           </div>
+
+          {quiz.questions.length > 3 && (
+            <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700">
+              <p className="text-sm text-indigo-800 dark:text-indigo-200 text-center">
+                💡 <strong>{quiz.questions.length - 3}</strong> more questions
+                await you in the full quiz!
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -335,7 +295,7 @@ export default function PreviewClient({ quiz, userName }: PreviewClientProps) {
             }
             className="px-8 py-4 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105"
           >
-            🚀 Start Quiz
+            🚀 Take Quiz Now
           </button>
 
           <button
@@ -357,4 +317,3 @@ export default function PreviewClient({ quiz, userName }: PreviewClientProps) {
     </div>
   );
 }
-

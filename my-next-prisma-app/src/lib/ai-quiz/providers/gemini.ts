@@ -40,11 +40,20 @@ export class GeminiProvider extends BaseAIProvider {
         model: this.modelName,
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 4096,
+          maxOutputTokens: 8192, // Increased from 4096 to handle larger quiz responses
+          responseMimeType: "application/json", // Ensure JSON response format
         },
       });
 
-      const systemPrompt = `You are an expert quiz creator. Always return valid JSON without markdown formatting. Return ONLY the JSON object, no explanatory text before or after.
+      const systemPrompt = `You are an expert quiz creator that outputs STRICTLY valid JSON.
+
+CRITICAL: All newlines, tabs, and special characters in string values MUST be properly escaped.
+- Use \\n for newlines (not actual line breaks)
+- Use \\t for tabs
+- Use \\" for quotes within strings
+- For code snippets: "text": "Code example:\\nint x = 5;\\nreturn x;"
+
+Return ONLY a single valid JSON object. No markdown, no commentary, no text outside the JSON.
 
 ${prompt}`;
 

@@ -5,21 +5,22 @@ import { prisma } from "@/lib/prisma";
 import QuizPlayer from "./QuizPlayer";
 
 interface PlayPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function PlayPage({ params }: PlayPageProps) {
+  const { slug } = await params;
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    redirect("/signin?callbackUrl=/generate-random-quiz/play/" + params.slug);
+    redirect("/signin?callbackUrl=/generate-random-quiz/play/" + slug);
   }
 
   // Fetch quiz from database
   const quiz = await prisma.aIGeneratedQuiz.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       user: {
         select: {
@@ -42,7 +43,7 @@ export default async function PlayPage({ params }: PlayPageProps) {
 
   // Check if quiz is playable (COMPLETED or ACTIVE)
   if (quiz.status !== "COMPLETED" && quiz.status !== "ACTIVE") {
-    redirect(`/generate-random-quiz/preview/${params.slug}`);
+    redirect(`/generate-random-quiz/preview/${slug}`);
   }
 
   // Fetch recent attempts separately
@@ -60,7 +61,8 @@ export default async function PlayPage({ params }: PlayPageProps) {
   // Parse questions from JSON (hide correct answers)
   const questionsData = quiz.questions as Array<{
     id: string;
-    text: string;
+    text?: string;
+    question?: string; // Some AI responses use 'question' instead of 'text'
     options: Array<{
       id: string;
       text: string;
@@ -74,7 +76,7 @@ export default async function PlayPage({ params }: PlayPageProps) {
   // Remove correct answer indicators for player
   const questions = questionsData.map((q) => ({
     id: q.id,
-    text: q.text,
+    text: q.text || q.question || "Question text not available", // Handle both field names
     options: q.options.map((opt) => ({
       id: opt.id,
       text: opt.text,

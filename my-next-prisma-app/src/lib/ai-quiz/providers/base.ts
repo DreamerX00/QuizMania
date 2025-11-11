@@ -87,7 +87,7 @@ Return a valid JSON object with this exact structure:
   "questions": [
     {
       "id": "q1",
-      "question": "Question text here?",
+      "text": "Question text here?",
       "options": [
         {"id": "a", "text": "Option A"},
         {"id": "b", "text": "Option B"},
@@ -104,7 +104,15 @@ Return a valid JSON object with this exact structure:
   ]
 }
 
-Generate the quiz now. Return ONLY valid JSON, no markdown formatting.`;
+**CRITICAL JSON FORMATTING RULES**:
+- Use ONLY escaped newlines (\\n) for line breaks within text strings
+- Do NOT include actual newline characters in JSON string values
+- For code snippets, use \\n for new lines and escape all special characters
+- Example: "text": "Code:\\nint x = 5;\\nreturn x;"
+- Do NOT include commentary or notes outside the JSON structure
+- Return ONLY the JSON object, no markdown code blocks or additional text
+
+Generate the quiz now. Return ONLY valid JSON.`;
 
     return prompt;
   }
@@ -121,15 +129,19 @@ Generate the quiz now. Return ONLY valid JSON, no markdown formatting.`;
 
       const question = q as {
         id?: string;
+        text?: string;
         question?: string;
         options?: unknown[];
         correctAnswer?: string;
         explanation?: string;
       };
 
+      // Accept either 'text' or 'question' field for backward compatibility
+      const questionText = question.text || question.question;
+
       if (
         !question.id ||
-        !question.question ||
+        !questionText ||
         !question.options ||
         !question.correctAnswer ||
         !question.explanation
@@ -151,11 +163,17 @@ Generate the quiz now. Return ONLY valid JSON, no markdown formatting.`;
   }
 
   protected cleanJsonResponse(text: string): string {
-    // Remove markdown code blocks
+    // Remove markdown code blocks (triple backticks)
     text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "");
 
     // Remove any leading/trailing whitespace
     text = text.trim();
+
+    // Remove any trailing single backticks that sometimes get added
+    text = text.replace(/`+\s*$/g, "");
+
+    // Remove any leading single backticks
+    text = text.replace(/^`+\s*/g, "");
 
     return text;
   }

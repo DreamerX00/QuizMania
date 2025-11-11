@@ -59,12 +59,12 @@ export function getProvider(providerId: string): BaseAIProvider {
       if (!process.env.GEMINI_API_KEY) {
         throw new Error("Gemini API key not configured");
       }
-      return new GeminiProvider("gemini-pro");
+      return new GeminiProvider("gemini-2.5-pro");
     case "gemini-flash":
       if (!process.env.GEMINI_API_KEY) {
         throw new Error("Gemini API key not configured");
       }
-      return new GeminiProvider("gemini-flash");
+      return new GeminiProvider("gemini-2.5-flash");
     default:
       throw new Error(`Unknown provider: ${sanitizedId}`);
   }

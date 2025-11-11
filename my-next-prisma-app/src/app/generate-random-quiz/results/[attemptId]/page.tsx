@@ -55,12 +55,13 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
   // Parse questions and answers
   const questions = attempt.quiz.questions as Array<{
     id: string;
-    text: string;
+    text?: string;
+    question?: string;
     options: Array<{
       id: string;
       text: string;
-      isCorrect: boolean;
     }>;
+    correctAnswer: string; // "a", "b", "c", or "d"
     explanation?: string;
     difficulty?: string;
     topic?: string;
@@ -71,17 +72,24 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
   // Build question results with correct/incorrect info
   const questionResults = questions.map((question) => {
     const selectedAnswerId = userAnswers[question.id];
-    const correctOption = question.options.find((opt) => opt.isCorrect);
-    const selectedOption = question.options.find(
-      (opt) => opt.id === selectedAnswerId
+    // correctAnswer is "a", "b", "c", or "d"
+    const correctAnswerId = question.correctAnswer.toLowerCase();
+    const correctOption = question.options.find(
+      (opt) => opt.id.toLowerCase() === correctAnswerId
     );
-    const isCorrect = selectedAnswerId === correctOption?.id;
+    const selectedOption = question.options.find(
+      (opt) => opt.id.toLowerCase() === selectedAnswerId?.toLowerCase()
+    );
+    const isCorrect = selectedAnswerId?.toLowerCase() === correctAnswerId;
     const wasSkipped = !selectedAnswerId;
 
     return {
       id: question.id,
-      text: question.text,
-      options: question.options,
+      text: question.text || question.question || "Question text not available",
+      options: question.options.map((opt) => ({
+        ...opt,
+        isCorrect: opt.id.toLowerCase() === correctAnswerId,
+      })),
       selectedAnswer: selectedOption
         ? {
             id: selectedOption.id,
@@ -89,7 +97,7 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
           }
         : null,
       correctAnswer: {
-        id: correctOption?.id || "",
+        id: correctOption?.id || correctAnswerId,
         text: correctOption?.text || "",
       },
       explanation: question.explanation,

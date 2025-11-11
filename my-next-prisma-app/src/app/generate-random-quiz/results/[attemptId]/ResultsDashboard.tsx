@@ -202,7 +202,7 @@ export default function ResultsDashboard({
   ].filter((bonus) => bonus.show);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen pt-20 bg-linear-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -605,4 +605,3 @@ export default function ResultsDashboard({
     </div>
   );
 }
-

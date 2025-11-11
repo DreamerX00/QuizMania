@@ -235,7 +235,9 @@ export default function QuizPlayer({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit quiz");
+        const errorData = await response.json();
+        console.error("Submit failed:", errorData);
+        throw new Error(errorData.error || "Failed to submit quiz");
       }
 
       const data = await response.json();

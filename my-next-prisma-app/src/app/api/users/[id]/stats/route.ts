@@ -20,31 +20,89 @@ export async function GET(
     );
     const skip = (page - 1) * limit;
 
-    // Get total count and paginated submissions
-    const [submissions, totalCount] = await Promise.all([
-      prisma.quizRecord.findMany({
-        where: { userId },
-        orderBy: { dateTaken: "desc" },
-        take: limit,
-        skip,
-        select: {
-          id: true,
-          dateTaken: true,
-          score: true,
-          status: true,
-          duration: true,
-          quiz: {
-            select: {
-              title: true,
-              id: true,
-              tags: true,
-              rating: true,
+    // Get regular quiz submissions and AI quiz attempts
+    const [submissions, aiAttempts, totalRegularCount, totalAICount] =
+      await Promise.all([
+        prisma.quizRecord.findMany({
+          where: { userId },
+          orderBy: { dateTaken: "desc" },
+          take: limit,
+          skip,
+          select: {
+            id: true,
+            dateTaken: true,
+            score: true,
+            status: true,
+            duration: true,
+            quiz: {
+              select: {
+                title: true,
+                id: true,
+                tags: true,
+                rating: true,
+              },
             },
           },
-        },
-      }),
-      prisma.quizRecord.count({ where: { userId } }),
-    ]);
+        }),
+        prisma.aIQuizAttempt.findMany({
+          where: { userId, status: "completed" },
+          orderBy: { completedAt: "desc" },
+          take: limit,
+          skip,
+          select: {
+            id: true,
+            completedAt: true,
+            score: true,
+            status: true,
+            totalTimeSpent: true,
+            quiz: {
+              select: {
+                title: true,
+                id: true,
+                slug: true,
+                topics: true,
+              },
+            },
+          },
+        }),
+        prisma.quizRecord.count({ where: { userId } }),
+        prisma.aIQuizAttempt.count({
+          where: { userId, status: "completed" },
+        }),
+      ]);
+
+    // Combine and sort by date
+    const allAttempts = [
+      ...submissions.map((sub) => ({
+        id: sub.id,
+        date: sub.dateTaken,
+        score: sub.score,
+        status: sub.status,
+        duration: sub.duration,
+        title: sub.quiz.title,
+        quizId: sub.quiz.id,
+        type: "regular" as const,
+      })),
+      ...aiAttempts.map((attempt) => ({
+        id: attempt.id,
+        date: attempt.completedAt || new Date(),
+        score: attempt.score,
+        status: attempt.status,
+        duration: attempt.totalTimeSpent,
+        title: attempt.quiz.title,
+        quizId: attempt.quiz.id,
+        slug: attempt.quiz.slug,
+        type: "ai" as const,
+      })),
+    ].sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    const totalCount = totalRegularCount + totalAICount;
+
+    // Get user's current streak from User table
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { streak: true },
+    });
 
     const achievementRecords = await prisma.userAchievement.findMany({
       where: { userId },
@@ -80,6 +138,7 @@ export async function GET(
           quizzesTaken: 0,
           highestScore: 0,
           averageScore: 0,
+          streak: user?.streak || 0,
           rank: null,
           favoriteSubject: null,
           performance: [],
@@ -98,18 +157,25 @@ export async function GET(
     }
 
     const quizzesTaken = totalCount;
-    const totalScore = submissions.reduce((acc, sub) => acc + sub.score, 0);
-    const averageScore = Math.round(totalScore / submissions.length);
-    const highestScore = Math.max(...submissions.map((sub) => sub.score));
+    const totalScore = allAttempts.reduce(
+      (acc, attempt) => acc + attempt.score,
+      0
+    );
+    const averageScore =
+      allAttempts.length > 0 ? Math.round(totalScore / allAttempts.length) : 0;
+    const highestScore =
+      allAttempts.length > 0
+        ? Math.max(...allAttempts.map((attempt) => attempt.score))
+        : 0;
 
     // Performance over time (last 10 quizzes from current page)
-    const performance = submissions
+    const performance = allAttempts
       .slice(0, 10)
       .reverse()
-      .map((sub, index) => ({
+      .map((attempt, index) => ({
         name: `Quiz ${totalCount - skip - index}`,
-        score: sub.score,
-        title: sub.quiz.title,
+        score: attempt.score,
+        title: attempt.title,
       }));
 
     // Find rank (by average score)
@@ -120,18 +186,16 @@ export async function GET(
     });
     const rank = allUserStats.findIndex((stat) => stat.userId === userId) + 1;
 
-    // Only include recentQuizzes where sub.quiz and sub.quiz.id are present
-    const recentQuizzes = submissions
-      .filter((sub) => sub.quiz && sub.quiz.id)
-      .slice(0, 5)
-      .map((sub) => ({
-        attemptId: sub.id,
-        quizId: sub.quiz.id,
-        // slug: sub.quiz.slug, // Uncomment if slug is available in the schema
-        title: sub.quiz.title,
-        score: sub.score,
-        date: sub.dateTaken,
-      }));
+    // Recent quizzes (combined from both types)
+    const recentQuizzes = allAttempts.slice(0, 5).map((attempt) => ({
+      attemptId: attempt.id,
+      quizId: attempt.quizId,
+      slug: attempt.type === "ai" ? attempt.slug : undefined,
+      title: attempt.title,
+      score: attempt.score,
+      date: attempt.date,
+      type: attempt.type,
+    }));
 
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -140,6 +204,7 @@ export async function GET(
         quizzesTaken,
         highestScore,
         averageScore,
+        streak: user?.streak || 0,
         rank: rank > 0 ? rank : null,
         favoriteSubject: null, // Not available
         performance,
