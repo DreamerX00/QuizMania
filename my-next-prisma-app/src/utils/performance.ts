@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 // Performance monitoring utilities
 export class PerformanceMonitor {
@@ -15,26 +15,26 @@ export class PerformanceMonitor {
   }
 
   startTimer(name: string): void {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       performance.mark(`${name}-start`);
     }
   }
 
   endTimer(name: string): number {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       performance.mark(`${name}-end`);
       performance.measure(name, `${name}-start`, `${name}-end`);
-      
+
       const measure = performance.getEntriesByName(name)[0];
-      const duration = measure.duration;
-      
+      const duration = measure?.duration || 0;
+
       this.metrics.set(name, duration);
-      
+
       // Clean up marks and measures
       performance.clearMarks(`${name}-start`);
       performance.clearMarks(`${name}-end`);
       performance.clearMeasures(name);
-      
+
       return duration;
     }
     return 0;
@@ -55,23 +55,27 @@ export class PerformanceMonitor {
 
 // Web Vitals monitoring
 export function reportWebVitals(metric: any) {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     // Send to analytics service
-    console.log('Web Vital:', metric);
-    
+    console.log("Web Vital:", metric);
+
     // You can send to your analytics service here
     // Example: analytics.track('web_vital', metric);
   }
 }
 
 // Memory usage monitoring
-export function getMemoryUsage(): { used: number; total: number; percentage: number } | null {
-  if (typeof window !== 'undefined' && 'memory' in performance) {
+export function getMemoryUsage(): {
+  used: number;
+  total: number;
+  percentage: number;
+} | null {
+  if (typeof window !== "undefined" && "memory" in performance) {
     const memory = (performance as any).memory;
     return {
       used: memory.usedJSHeapSize,
       total: memory.totalJSHeapSize,
-      percentage: (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100
+      percentage: (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100,
     };
   }
   return null;
@@ -81,8 +85,8 @@ export function getMemoryUsage(): { used: number; total: number; percentage: num
 export function measureNetworkPerformance(url: string): Promise<number> {
   return new Promise((resolve) => {
     const start = performance.now();
-    
-    fetch(url, { method: 'HEAD' })
+
+    fetch(url, { method: "HEAD" })
       .then(() => {
         const end = performance.now();
         resolve(end - start);
@@ -96,14 +100,17 @@ export function measureNetworkPerformance(url: string): Promise<number> {
 // Component render performance hook
 export function useRenderPerformance(componentName: string) {
   const monitor = PerformanceMonitor.getInstance();
-  
+
   React.useEffect(() => {
     monitor.startTimer(`${componentName}-render`);
-    
+
     return () => {
       const duration = monitor.endTimer(`${componentName}-render`);
-      if (duration > 16) { // Longer than one frame (16ms)
-        console.warn(`${componentName} took ${duration.toFixed(2)}ms to render`);
+      if (duration > 16) {
+        // Longer than one frame (16ms)
+        console.warn(
+          `${componentName} took ${duration.toFixed(2)}ms to render`
+        );
       }
     };
   });
@@ -121,7 +128,7 @@ export function useLazyLoadPerformance<T>(
 
   React.useEffect(() => {
     monitor.startTimer(`${componentName}-lazy-load`);
-    
+
     importFn()
       .then((module) => {
         const duration = monitor.endTimer(`${componentName}-lazy-load`);
@@ -139,22 +146,31 @@ export function useLazyLoadPerformance<T>(
 }
 
 // Bundle size monitoring
-export function getBundleSize(): Promise<{ size: number; gzipped: number } | null> {
-  if (typeof window !== 'undefined') {
-    return fetch('/api/bundle-size')
-      .then(res => res.json())
+export function getBundleSize(): Promise<{
+  size: number;
+  gzipped: number;
+} | null> {
+  if (typeof window !== "undefined") {
+    return fetch("/api/bundle-size")
+      .then((res) => res.json())
       .catch(() => null);
   }
   return Promise.resolve(null);
 }
 
 // Performance budget checking
-export function checkPerformanceBudget(metric: string, value: number, budget: number): boolean {
+export function checkPerformanceBudget(
+  metric: string,
+  value: number,
+  budget: number
+): boolean {
   const isWithinBudget = value <= budget;
-  
+
   if (!isWithinBudget) {
-    console.warn(`Performance budget exceeded for ${metric}: ${value}ms (budget: ${budget}ms)`);
+    console.warn(
+      `Performance budget exceeded for ${metric}: ${value}ms (budget: ${budget}ms)`
+    );
   }
-  
+
   return isWithinBudget;
-} 
+}

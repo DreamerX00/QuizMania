@@ -42,6 +42,8 @@ export const QuestionList: React.FC<QuestionListProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {questions.map((question, index) => {
           const typeInfo = getQuestionTypeInfo(question.type);
+          if (!typeInfo) return null;
+
           return (
             <motion.div
               key={question.id}
@@ -107,6 +109,8 @@ export const QuestionList: React.FC<QuestionListProps> = ({
     >
       {questions.map((question, index) => {
         const typeInfo = getQuestionTypeInfo(question.type);
+        if (!typeInfo) return null;
+
         return (
           <Reorder.Item key={question.id} value={question}>
             <motion.div
@@ -159,4 +163,3 @@ export const QuestionList: React.FC<QuestionListProps> = ({
     </Reorder.Group>
   );
 };
-

@@ -126,8 +126,8 @@ const ModeWrapper = memo(function ModeWrapper({
     const destY = lockToBottom
       ? -v.height / 2 + 0.2
       : followPointer
-        ? (pointer.y * v.height) / 2
-        : 0;
+      ? (pointer.y * v.height) / 2
+      : 0;
     easing.damp3(ref.current.position, [destX, destY, 15], 0.15, delta);
 
     if ((modeProps as { scale?: number }).scale == null) {
@@ -248,8 +248,8 @@ function NavItems({ items }: { items: NavItem[] }) {
     return w <= DEVICE.mobile.max
       ? "mobile"
       : w <= DEVICE.tablet.max
-        ? "tablet"
-        : "desktop";
+      ? "tablet"
+      : "desktop";
   };
 
   const [device, setDevice] = useState<keyof typeof DEVICE>(getDevice());
@@ -314,14 +314,24 @@ function Images() {
   const { height } = useThree((s) => s.viewport);
 
   useFrame(() => {
-    group.current.children[0].material.zoom = 1 + data.range(0, 1 / 3) / 3;
-    group.current.children[1].material.zoom = 1 + data.range(0, 1 / 3) / 3;
-    group.current.children[2].material.zoom =
-      1 + data.range(1.15 / 3, 1 / 3) / 2;
-    group.current.children[3].material.zoom =
-      1 + data.range(1.15 / 3, 1 / 3) / 2;
-    group.current.children[4].material.zoom =
-      1 + data.range(1.15 / 3, 1 / 3) / 2;
+    if (group.current.children[0]?.material) {
+      group.current.children[0].material.zoom = 1 + data.range(0, 1 / 3) / 3;
+    }
+    if (group.current.children[1]?.material) {
+      group.current.children[1].material.zoom = 1 + data.range(0, 1 / 3) / 3;
+    }
+    if (group.current.children[2]?.material) {
+      group.current.children[2].material.zoom =
+        1 + data.range(1.15 / 3, 1 / 3) / 2;
+    }
+    if (group.current.children[3]?.material) {
+      group.current.children[3].material.zoom =
+        1 + data.range(1.15 / 3, 1 / 3) / 2;
+    }
+    if (group.current.children[4]?.material) {
+      group.current.children[4].material.zoom =
+        1 + data.range(1.15 / 3, 1 / 3) / 2;
+    }
   });
 
   return (
@@ -394,4 +404,3 @@ function Typography() {
     </Text>
   );
 }
-

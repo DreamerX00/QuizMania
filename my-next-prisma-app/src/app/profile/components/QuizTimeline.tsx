@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import useSWR from "swr";
 import Modal from "@/components/ui/Modal";
 import ScoreSummaryModalContent from "./ScoreSummaryModalContent";
+import { SkeletonCard } from "@/components/ui/loading";
 
 const fetcher = (url: string, token: string) =>
   fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then((res) =>
@@ -11,6 +12,21 @@ const fetcher = (url: string, token: string) =>
   );
 
 const tabs = ["All", "Completed", "In Progress", "Failed", "Retake Available"];
+
+interface QuizTimelineItem {
+  id: string;
+  attemptId: string;
+  title: string;
+  subject?: string;
+  score?: number;
+  totalQuestions?: number;
+  completedAt?: string;
+  date?: string;
+  status?: string;
+  type?: "ai" | "regular";
+  slug?: string;
+  quizId?: string;
+}
 
 export function QuizTimeline() {
   const { user } = useAuth();
@@ -27,9 +43,7 @@ export function QuizTimeline() {
   } | null>(null);
 
   if (isLoading || !data) {
-    return (
-      <div className="bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[180px] border border-gray-200 dark:border-white/10" />
-    );
+    return <SkeletonCard variant="timeline" className="min-h-[180px]" />;
   }
 
   const quizzes = data.recentQuizzes || [];
@@ -69,7 +83,7 @@ export function QuizTimeline() {
             No quizzes taken yet.
           </div>
         ) : (
-          quizzes.map((quiz: any, i: number) => (
+          quizzes.map((quiz: QuizTimelineItem, i: number) => (
             <motion.div
               key={quiz.attemptId || quiz.id || i}
               className="bg-linear-to-br from-blue-900/60 to-pink-900/40 rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-center gap-3 md:gap-4 hover:scale-[1.02] transition shadow border border-white/10 backdrop-blur-md"

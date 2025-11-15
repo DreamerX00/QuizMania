@@ -27,7 +27,9 @@ const fakeResults = (options: PollOption[], userAnswer: string) => {
   }));
   if (userAnswer) {
     const idx = base.findIndex((opt: PollOption) => opt.id === userAnswer);
-    if (idx !== -1) base[idx].votes = (base[idx].votes || 0) + 1;
+    if (idx !== -1 && base[idx]) {
+      base[idx].votes = (base[idx].votes || 0) + 1;
+    }
   }
   const total = base.reduce(
     (sum: number, o: PollOption) => sum + (o.votes || 0),
@@ -148,4 +150,3 @@ const Poll = ({ question }: { question: Question }) => {
 };
 
 export default Poll;
-

@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Award,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/loading";
 
 interface QuizQuestion {
   id: string;
@@ -193,6 +194,8 @@ export default function QuizPlayer({
 
   const handleAnswer = (optionId: string) => {
     const currentQ = quiz.questions[currentQuestion];
+    if (!currentQ) return;
+
     setAnswers((prev) => ({
       ...prev,
       [currentQ.id]: optionId,
@@ -282,6 +285,22 @@ export default function QuizPlayer({
   const progressPercentage =
     (Object.keys(answers).length / quiz.questions.length) * 100;
   const answeredQuestions = Object.keys(answers).length;
+
+  // Safety check for currentQ
+  if (!currentQ) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Quiz question not found
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Please refresh the page or return to the quiz selection.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -461,31 +480,43 @@ export default function QuizPlayer({
               </button>
 
               <div className="flex items-center gap-3">
-                {quiz.questions.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentQuestion(index)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                      index === currentQuestion
-                        ? "bg-blue-500 text-white scale-110"
-                        : answers[quiz.questions[index].id]
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
+                {quiz.questions.map((_, index) => {
+                  const question = quiz.questions[index];
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentQuestion(index)}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                        index === currentQuestion
+                          ? "bg-blue-500 text-white scale-110"
+                          : question && answers[question.id]
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                })}
               </div>
 
               {currentQuestion === quiz.questions.length - 1 ? (
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 px-8 py-3 bg-linear-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+                  className="flex items-center gap-2 px-8 py-3 bg-linear-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg relative"
                 >
-                  <Send className="w-5 h-5" />
-                  Submit Quiz
+                  {isSubmitting ? (
+                    <>
+                      <Spinner size="sm" withGlow={false} />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      <span>Submit Quiz</span>
+                    </>
+                  )}
                 </button>
               ) : (
                 <button
@@ -543,8 +574,9 @@ export default function QuizPlayer({
                   <button
                     onClick={submitQuiz}
                     disabled={isSubmitting}
-                    className="flex-1 px-6 py-3 bg-linear-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 transition-all"
+                    className="flex-1 px-6 py-3 bg-linear-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
+                    {isSubmitting && <Spinner size="sm" withGlow={false} />}
                     {isSubmitting ? "Submitting..." : "Submit"}
                   </button>
                 </div>

@@ -4,6 +4,7 @@ import { QuizAttemptService } from "@/services/quizAttemptService";
 import { updatePackageStatsForQuiz } from "@/services/updatePackageStats";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
+import { QuizStatus, Prisma } from "@prisma/client";
 
 // Accept either a simple score-based submission or a structured submission
 const structuredSchema = z.object({
@@ -63,7 +64,7 @@ export const POST = withValidation(
 
         const responses = rawResponses.map((r) => ({
           questionId: r.questionId,
-          answer: r.answer,
+          answer: r.answer as Prisma.JsonValue,
           type: r.type,
           requiresManualReview: !!r.requiresManualReview,
         }));
@@ -98,6 +99,13 @@ export const POST = withValidation(
         );
       }
 
+      const quizStatus =
+        status === "COMPLETED" ||
+        status === "IN_PROGRESS" ||
+        status === "FAILED"
+          ? (status as QuizStatus)
+          : QuizStatus.COMPLETED;
+
       const result = await QuizAttemptService.submitAttempt(
         userId,
         quizId,
@@ -105,7 +113,7 @@ export const POST = withValidation(
         score ?? 0,
         totalMarks ?? 0,
         duration ?? 0,
-        status
+        quizStatus
       );
       await updatePackageStatsForQuiz(quizId);
       return NextResponse.json({

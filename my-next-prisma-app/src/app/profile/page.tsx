@@ -13,6 +13,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import useSWR from "swr";
+import { PageLoader } from "@/components/ui/loading";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -41,11 +42,7 @@ export default function ProfilePage() {
 
   // Improved loading state: show spinner if user context or profile is loading/validating
   if (loading || profileValidating) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-white dark:bg-linear-to-br dark:from-[#0f1021] dark:to-[#23234d] text-gray-900 dark:text-white">
-        <div className="text-xl">Loading profile...</div>
-      </main>
-    );
+    return <PageLoader text="Loading profile..." />;
   }
 
   if (!user) {

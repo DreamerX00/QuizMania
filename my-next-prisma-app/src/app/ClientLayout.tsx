@@ -16,6 +16,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { NavbarButton } from "../../components/ui/resizable-navbar";
 import { AnimatedThemeToggle } from "../../components/ui/AnimatedThemeToggle";
 import { useSession } from "next-auth/react";
+import { NavigationLoader } from "@/components/NavigationLoader";
 
 // Helper component for signed-out buttons
 function SignedOutButtons() {
@@ -85,6 +86,7 @@ export default function ClientLayout({
         <ThemeProvider>
           <AuthProvider>
             <WebVitals />
+            <NavigationLoader />
             <ClickSpark
               sparkColor="#3b82f6"
               sparkSize={8}
@@ -134,4 +136,3 @@ export default function ClientLayout({
     </SessionProvider>
   );
 }
-

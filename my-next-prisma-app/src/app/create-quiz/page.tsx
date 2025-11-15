@@ -650,7 +650,7 @@ function CreateQuizPageComponent() {
             equalMarks:
               new Set(questions.map((q: Question) => q.marks || 0)).size <= 1,
             marksPerQuestion:
-              questions.length > 0 ? questions[0].marks || 10 : 10,
+              questions.length > 0 ? questions[0]?.marks || 10 : 10,
             // Advanced fields
             imageUrl: data.imageUrl || "",
             field: data.field || "",
@@ -1344,11 +1344,13 @@ function CreateQuizPageComponent() {
                         Edit Question
                       </button>
                       <button
-                        onClick={() =>
-                          deleteQuestion(
-                            quizData.questions[currentQuestionIndex].id
-                          )
-                        }
+                        onClick={() => {
+                          const questionId =
+                            quizData.questions[currentQuestionIndex]?.id;
+                          if (questionId) {
+                            deleteQuestion(questionId);
+                          }
+                        }}
                         className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all duration-300"
                       >
                         Delete
@@ -1365,9 +1367,11 @@ function CreateQuizPageComponent() {
                           "No question text"}
                       </p>
                     </div>
-                    <QuestionPreview
-                      question={quizData.questions[currentQuestionIndex]}
-                    />
+                    {quizData.questions[currentQuestionIndex] && (
+                      <QuestionPreview
+                        question={quizData.questions[currentQuestionIndex]}
+                      />
+                    )}
                   </div>
                 </div>
               )}
@@ -1660,8 +1664,10 @@ function QuestionSettings({
 }) {
   const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...(formData.options || [])];
-    newOptions[index].text = value;
-    setFormData({ ...formData, options: newOptions });
+    if (newOptions[index]) {
+      newOptions[index].text = value;
+      setFormData({ ...formData, options: newOptions });
+    }
   };
 
   const addOption = () => {
@@ -1699,8 +1705,10 @@ function QuestionSettings({
     value: string
   ) => {
     const newPairs = [...(formData.matchPairs || [])];
-    newPairs[index][field] = value;
-    setFormData({ ...formData, matchPairs: newPairs });
+    if (newPairs[index]) {
+      newPairs[index][field] = value;
+      setFormData({ ...formData, matchPairs: newPairs });
+    }
   };
 
   const addMatchPair = () => {
@@ -1760,8 +1768,10 @@ function QuestionSettings({
     value: string
   ) => {
     const newItems = [...(formData[type] || [])];
-    newItems[index].text = value;
-    setFormData({ ...formData, [type]: newItems });
+    if (newItems[index]) {
+      newItems[index].text = value;
+      setFormData({ ...formData, [type]: newItems });
+    }
   };
 
   const addDragDropItem = (type: "draggableItems" | "dropZones") => {
@@ -1800,8 +1810,10 @@ function QuestionSettings({
     const newMatrixOptions = {
       ...(formData.matrixOptions || { rows: [], cols: [] }),
     };
-    newMatrixOptions[type][index].text = value;
-    setFormData({ ...formData, matrixOptions: newMatrixOptions });
+    if (newMatrixOptions[type][index]) {
+      newMatrixOptions[type][index].text = value;
+      setFormData({ ...formData, matrixOptions: newMatrixOptions });
+    }
   };
 
   const addMatrixItem = (type: "rows" | "cols") => {
@@ -3983,4 +3995,3 @@ const fixDuplicateQuestionIds = (questions: Question[]): Question[] => {
 };
 
 export default CreateQuizPageComponent;
-

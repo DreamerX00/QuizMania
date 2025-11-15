@@ -6,13 +6,25 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AI_PROVIDERS, DIFFICULTY_LEVELS } from "@/constants/ai-quiz";
 import { QuotaStatus } from "@/types/ai-quiz";
+import { DisabledBadge } from "@/components/ui/DisabledBadge";
+
+interface ProviderAvailability {
+  [providerId: string]: {
+    available: boolean;
+    reason: string | null;
+  };
+}
 
 export default function AIQuizGenerationPage() {
   const [quotaStatus, setQuotaStatus] = useState<QuotaStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [providerAvailability, setProviderAvailability] =
+    useState<ProviderAvailability>({});
+  const [checkingAvailability, setCheckingAvailability] = useState(true);
 
   useEffect(() => {
     fetchQuotaStatus();
+    checkProviderAvailability();
   }, []);
 
   const fetchQuotaStatus = async () => {
@@ -26,6 +38,35 @@ export default function AIQuizGenerationPage() {
       console.error("Error fetching quota:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkProviderAvailability = async () => {
+    try {
+      setCheckingAvailability(true);
+      const response = await fetch("/api/ai-quiz/providers/availability");
+      const data = await response.json();
+
+      if (data.success) {
+        setProviderAvailability(data.data);
+      } else {
+        // Fallback: assume all are available if check fails
+        const fallback: ProviderAvailability = {};
+        AI_PROVIDERS.forEach((p) => {
+          fallback[p.id] = { available: true, reason: null };
+        });
+        setProviderAvailability(fallback);
+      }
+    } catch (error) {
+      console.error("Error checking provider availability:", error);
+      // Fallback: assume all are available if check fails
+      const fallback: ProviderAvailability = {};
+      AI_PROVIDERS.forEach((p) => {
+        fallback[p.id] = { available: true, reason: null };
+      });
+      setProviderAvailability(fallback);
+    } finally {
+      setCheckingAvailability(false);
     }
   };
 
@@ -74,61 +115,134 @@ export default function AIQuizGenerationPage() {
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">
             Choose Your AI Provider
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {AI_PROVIDERS.filter((p) => p.isActive).map((provider) => (
-              <Link
-                key={provider.id}
-                href={`/generate-random-quiz/configure?provider=${provider.id}`}
-                className="group relative p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-indigo-500"
-              >
-                {provider.isRecommended && (
-                  <div className="absolute top-4 right-4 px-3 py-1 bg-linear-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold rounded-full">
-                    ⭐ Recommended
+
+          {/* Loading State */}
+          {checkingAvailability ? (
+            <div className="text-center py-12">
+              <div className="inline-flex flex-col items-center gap-4 text-gray-600 dark:text-gray-400">
+                <svg
+                  className="animate-spin h-10 w-10 text-indigo-600"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span className="text-sm font-medium">
+                  Checking AI provider availability...
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {AI_PROVIDERS.filter((p) => p.isActive).map((provider) => {
+                const availability = providerAvailability[provider.id];
+                const isAvailable = availability?.available ?? true;
+
+                return (
+                  <div key={provider.id} className="relative">
+                    {/* Disabled overlay for unavailable providers */}
+                    {!isAvailable && (
+                      <DisabledBadge
+                        reason={availability?.reason || undefined}
+                      />
+                    )}
+
+                    <Link
+                      href={
+                        isAvailable
+                          ? `/generate-random-quiz/configure?provider=${provider.id}`
+                          : "#"
+                      }
+                      onClick={(e) => {
+                        if (!isAvailable) {
+                          e.preventDefault();
+                        }
+                      }}
+                      className={`
+                        group relative p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg
+                        transition-all duration-300 border-2 border-transparent block
+                        ${
+                          !isAvailable
+                            ? "grayscale opacity-60 cursor-not-allowed"
+                            : "hover:shadow-2xl hover:border-indigo-500 cursor-pointer"
+                        }
+                      `}
+                    >
+                      {provider.isRecommended && (
+                        <div className="absolute top-4 right-4 px-3 py-1 bg-linear-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold rounded-full">
+                          ⭐ Recommended
+                        </div>
+                      )}
+
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="text-5xl">{provider.icon}</div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                            {provider.name}
+                          </h3>
+                          <p className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold">
+                            {provider.model}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                        {provider.description}
+                      </p>
+
+                      <div className="space-y-2 mb-4">
+                        {provider.features.map((feature, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 text-sm"
+                          >
+                            <span className="text-green-500">✓</span>
+                            <span className="text-gray-700 dark:text-gray-300">
+                              {feature}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <span>⚡ ~{provider.avgTime}s</span>
+                        <span>
+                          📊 {(provider.successRate * 100).toFixed(0)}% accuracy
+                        </span>
+                      </div>
+
+                      <div className="mt-4">
+                        <button
+                          className={`
+                            w-full py-2 px-4 font-semibold rounded-lg transition-colors
+                            ${
+                              isAvailable
+                                ? "bg-indigo-600 hover:bg-indigo-700 text-white group-hover:bg-linear-to-r group-hover:from-indigo-600 group-hover:to-purple-600"
+                                : "bg-gray-400 text-gray-200 cursor-not-allowed"
+                            }
+                          `}
+                        >
+                          {isAvailable ? "Select Provider →" : "Not Available"}
+                        </button>
+                      </div>
+                    </Link>
                   </div>
-                )}
-
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="text-5xl">{provider.icon}</div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                      {provider.name}
-                    </h3>
-                    <p className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold">
-                      {provider.model}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                  {provider.description}
-                </p>
-
-                <div className="space-y-2 mb-4">
-                  {provider.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm">
-                      <span className="text-green-500">✓</span>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <span>⚡ ~{provider.avgTime}s</span>
-                  <span>
-                    📊 {(provider.successRate * 100).toFixed(0)}% accuracy
-                  </span>
-                </div>
-
-                <div className="mt-4">
-                  <button className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors group-hover:bg-linear-to-r group-hover:from-indigo-600 group-hover:to-purple-600">
-                    Select Provider →
-                  </button>
-                </div>
-              </Link>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         {/* Difficulty Levels Info */}

@@ -96,7 +96,9 @@ export const validateQuizData = (
 
   // Validate all questions
   for (let i = 0; i < questions.length; i++) {
-    const error = validateQuestion(questions[i]);
+    const question = questions[i];
+    if (!question) continue;
+    const error = validateQuestion(question);
     if (error) return `Question ${i + 1}: ${error}`;
   }
 

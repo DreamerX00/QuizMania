@@ -11,6 +11,7 @@ import {
   SiX,
 } from "react-icons/si";
 import { FiCopy, FiEdit2, FiShare2, FiPlus } from "react-icons/fi";
+import { SkeletonCard } from "@/components/ui/loading";
 
 function getSocialUrl(type: string, value: string) {
   if (!value) return "";
@@ -86,9 +87,7 @@ export function UserCard({
     (!data?.premiumUntil || new Date(data.premiumUntil) > new Date());
 
   if (isLoading || !data) {
-    return (
-      <div className="bg-linear-to-br from-[#1a1a2e] to-[#23234d] rounded-2xl p-6 shadow-2xl animate-pulse h-44 min-h-[220px]" />
-    );
+    return <SkeletonCard variant="profile" className="min-h-[220px]" />;
   }
   if (data?.error) {
     return (

@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     // ✅ Set nextCursor if more comments are available
     const nextCursor =
-      comments.length === PAGE_SIZE ? comments[PAGE_SIZE - 1].id : null;
+      comments.length === PAGE_SIZE ? comments[PAGE_SIZE - 1]?.id : null;
 
     return NextResponse.json({
       comments,

@@ -64,8 +64,8 @@ export default function MyTemplateDialog({ onClose }: { onClose: () => void }) {
   if (dateRange?.to) params.append("toDate", dateRange.to.toISOString());
   if (sort) {
     const [sortBy, sortOrder] = sort.split("_");
-    params.append("sortBy", sortBy);
-    params.append("sortOrder", sortOrder);
+    if (sortBy) params.append("sortBy", sortBy);
+    if (sortOrder) params.append("sortOrder", sortOrder);
   }
 
   const {
@@ -114,7 +114,9 @@ export default function MyTemplateDialog({ onClose }: { onClose: () => void }) {
                     max={PRICE_MAX}
                     step={10}
                     value={price}
-                    onValueChange={(v) => setPrice([v[0], v[1] ?? v[0]])}
+                    onValueChange={(v) =>
+                      setPrice([v[0] ?? PRICE_MIN, v[1] ?? v[0] ?? PRICE_MAX])
+                    }
                     defaultValue={[PRICE_MIN, PRICE_MAX]}
                     className="w-full"
                   />
@@ -255,4 +257,3 @@ export default function MyTemplateDialog({ onClose }: { onClose: () => void }) {
     </Modal>
   );
 }
-

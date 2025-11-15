@@ -4,6 +4,7 @@ import { BaseAIProvider } from "./base";
 import { OpenAIProvider } from "./openai";
 import { AnthropicProvider } from "./anthropic";
 import { GeminiProvider } from "./gemini";
+import { DeepSeekProvider } from "./deepseek";
 
 export type ProviderType =
   | "openai-gpt4o"
@@ -13,7 +14,8 @@ export type ProviderType =
   | "anthropic-sonnet"
   | "anthropic-haiku"
   | "gemini-pro"
-  | "gemini-flash";
+  | "gemini-flash"
+  | "deepseek";
 
 export function getProvider(providerId: string): BaseAIProvider {
   // Validate provider ID format
@@ -44,17 +46,17 @@ export function getProvider(providerId: string): BaseAIProvider {
       if (!process.env.ANTHROPIC_API_KEY) {
         throw new Error("Anthropic API key not configured");
       }
-      return new AnthropicProvider("claude-3-opus-20240229");
+      return new AnthropicProvider("claude-opus-4-1-20250805");
     case "anthropic-sonnet":
       if (!process.env.ANTHROPIC_API_KEY) {
         throw new Error("Anthropic API key not configured");
       }
-      return new AnthropicProvider("claude-3-sonnet-20240229");
+      return new AnthropicProvider("claude-sonnet-4-5-20250929");
     case "anthropic-haiku":
       if (!process.env.ANTHROPIC_API_KEY) {
         throw new Error("Anthropic API key not configured");
       }
-      return new AnthropicProvider("claude-3-haiku-20240307");
+      return new AnthropicProvider("claude-haiku-4-5-20251001");
     case "gemini-pro":
       if (!process.env.GEMINI_API_KEY) {
         throw new Error("Gemini API key not configured");
@@ -65,6 +67,11 @@ export function getProvider(providerId: string): BaseAIProvider {
         throw new Error("Gemini API key not configured");
       }
       return new GeminiProvider("gemini-2.5-flash");
+    case "deepseek":
+      if (!process.env.DEEPSEEK_API_KEY) {
+        throw new Error("DeepSeek API key not configured");
+      }
+      return new DeepSeekProvider("deepseek-chat");
     default:
       throw new Error(`Unknown provider: ${sanitizedId}`);
   }
@@ -81,6 +88,8 @@ export function isProviderAvailable(providerId: string): boolean {
       return process.env.ANTHROPIC_API_KEY !== undefined;
     } else if (sanitizedId.startsWith("gemini-")) {
       return process.env.GEMINI_API_KEY !== undefined;
+    } else if (sanitizedId === "deepseek") {
+      return process.env.DEEPSEEK_API_KEY !== undefined;
     }
 
     return false;

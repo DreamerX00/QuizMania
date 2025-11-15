@@ -434,6 +434,14 @@ export default function PremiumPage() {
     currentPricing.find((p) => p.name === selectedDuration) ||
     currentPricing[1];
 
+  if (!selectedPlanData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Pricing data not available</p>
+      </div>
+    );
+  }
+
   const handleSubscribe = async () => {
     setLoading(true);
     try {
@@ -1204,14 +1212,16 @@ export default function PremiumPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-700 dark:text-gray-300">
-                    <strong>Premium (₹{premiumPricing[0].price}/mo)</strong>:
-                    Get access to all premium explore quizzes, exam prep, and 5
-                    AI quiz generations per day using basic AI models (GPT-4o
+                    <strong>
+                      Premium (₹{premiumPricing[0]?.price || 99}/mo)
+                    </strong>
+                    : Get access to all premium explore quizzes, exam prep, and
+                    5 AI quiz generations per day using basic AI models (GPT-4o
                     Mini, Claude Sonnet, Gemini Flash, GPT-3.5).
                     <br />
                     <br />
                     <strong>
-                      Premium Plus (₹{premiumPlusPricing[0].price}/mo)
+                      Premium Plus (₹{premiumPlusPricing[0]?.price || 249}/mo)
                     </strong>
                     : Everything in Premium PLUS unlimited AI quiz generation
                     with all 8 AI models including GPT-4, Claude Opus, and

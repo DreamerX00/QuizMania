@@ -51,7 +51,8 @@ export const useQuizForm = (initialQuestions: Question[] = []) => {
   const duplicateQuestion = useCallback((index: number) => {
     setQuestions((prev) => {
       const question = prev[index];
-      const duplicated = { ...question, id: nanoid() };
+      if (!question) return prev;
+      const duplicated: Question = { ...question, id: nanoid() };
       return [
         ...prev.slice(0, index + 1),
         duplicated,
@@ -64,6 +65,7 @@ export const useQuizForm = (initialQuestions: Question[] = []) => {
     setQuestions((prev) => {
       const newQuestions = [...prev];
       const [moved] = newQuestions.splice(fromIndex, 1);
+      if (!moved) return prev;
       newQuestions.splice(toIndex, 0, moved);
       return newQuestions;
     });

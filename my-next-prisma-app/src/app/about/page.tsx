@@ -1218,24 +1218,27 @@ function EasterEgg() {
 
           // Add new prompt randomly based on current spawn rate
           if (Math.random() < spawnRate) {
+            const randomText =
+              GAME_PROMPTS[Math.floor(Math.random() * GAME_PROMPTS.length)] ||
+              "Quiz";
+            const colors = [
+              "#00ff88",
+              "#ff0088",
+              "#0088ff",
+              "#ffff00",
+              "#ff8800",
+              "#ff00ff",
+            ];
+            const randomColor =
+              colors[Math.floor(Math.random() * colors.length)] || "#00ff88";
+
             const newPrompt: FallingPrompt = {
               id: Date.now() + Math.random(),
-              text: GAME_PROMPTS[
-                Math.floor(Math.random() * GAME_PROMPTS.length)
-              ],
+              text: randomText,
               x: Math.random() * (gameCanvasRef.current?.clientWidth || 600), // Full width random position
               y: -50,
               speed: 1 + Math.random() * 2,
-              color: [
-                "#00ff88",
-                "#ff0088",
-                "#0088ff",
-                "#ffff00",
-                "#ff8800",
-                "#ff00ff",
-                "#00ffff",
-                "#8800ff",
-              ][Math.floor(Math.random() * 8)],
+              color: randomColor,
             };
             return [...updated, newPrompt];
           }
@@ -1333,12 +1336,16 @@ function EasterEgg() {
             voice.name.includes("Alex") ||
             voice.name.includes("Microsoft David") ||
             voice.name.includes("Microsoft Zira")
-        ) || voices[0];
+        ) ||
+        voices[0] ||
+        null;
 
       const utterance = new SpeechSynthesisUtterance(SECRET_TEXT);
 
       // Voice customization
-      utterance.voice = selectedVoice;
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
       utterance.rate = 0.85; // Slightly slower for better clarity
       utterance.pitch = 1.2; // Slightly higher pitch for more engaging tone
       utterance.volume = 0.9;
@@ -1975,4 +1982,3 @@ export default function AboutPage() {
     </>
   );
 }
-

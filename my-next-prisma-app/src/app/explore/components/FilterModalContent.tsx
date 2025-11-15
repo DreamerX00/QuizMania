@@ -74,7 +74,11 @@ export default function FilterModalContent({
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const [sortBy, sortOrder] = e.target.value.split("_");
-    setFilters((prev) => ({ ...prev, sortBy, sortOrder }));
+    setFilters((prev) => ({
+      ...prev,
+      sortBy: sortBy || "",
+      sortOrder: sortOrder || "",
+    }));
   };
 
   const handleTagToggle = (tag: string) => {
@@ -423,4 +427,3 @@ export default function FilterModalContent({
     </div>
   );
 }
-

@@ -37,7 +37,9 @@ export const AnimatedTestimonials = ({
   useEffect(() => {
     setIsClient(true);
     // Generate random rotations only on client
-    const randomRotations = testimonials.map(() => Math.floor(Math.random() * 21) - 10);
+    const randomRotations = testimonials.map(
+      () => Math.floor(Math.random() * 21) - 10
+    );
     setRotations(randomRotations);
   }, [testimonials.length]);
 
@@ -163,13 +165,13 @@ export const AnimatedTestimonials = ({
             }}
           >
             <h3 className="text-2xl font-bold mb-1 bg-gradient-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text">
-              {testimonials[active].name}
+              {testimonials[active]?.name}
             </h3>
             <p className="text-sm mb-4 text-slate-600 dark:text-blue-300">
-              {testimonials[active].designation}
+              {testimonials[active]?.designation}
             </p>
             <motion.p className="mt-4 text-lg text-slate-700 dark:text-gray-200">
-              {testimonials[active].quote.split(" ").map((word, index) => (
+              {testimonials[active]?.quote.split(" ").map((word, index) => (
                 <motion.span
                   key={index}
                   initial={{
@@ -212,4 +214,4 @@ export const AnimatedTestimonials = ({
       </div>
     </div>
   );
-}; 
+};

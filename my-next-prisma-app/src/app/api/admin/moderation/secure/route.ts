@@ -76,11 +76,8 @@ export async function POST(request: Request) {
         if (action === "block") {
           result = await prisma.userBlock.create({
             data: {
-              blockerId: userId,
-              blockedId: blockedId,
-              userId,
-              blockedUserId: blockedId,
-              blockedBy: admin.id,
+              blockerId: admin.id, // Admin who blocks
+              blockedId: blockedId, // User being blocked
               reason: reason || "Admin action",
             },
           });
@@ -117,12 +114,7 @@ export async function POST(request: Request) {
     }
 
     // Log the admin action for audit trail
-    await logAdminAction(
-      admin.id,
-      action,
-      userId || targetId,
-      actionDetails
-    );
+    await logAdminAction(admin.id, action, userId || targetId, actionDetails);
 
     return NextResponse.json({
       success: true,

@@ -169,6 +169,7 @@ model User {
   emailVerified DateTime?
   name          String?
   image         String? // Unified avatar field (NextAuth compatible)
+  avatarUrl     String? // Custom avatar URL (legacy support)
   bannerUrl     String?
   createdAt     DateTime    @default(now())
   role          Role        @default(STUDENT)

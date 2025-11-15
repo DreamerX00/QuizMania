@@ -174,6 +174,10 @@ export default function ErrorPage() {
     ERROR_CONFIG[status as keyof typeof ERROR_CONFIG] || ERROR_CONFIG["404"];
   const [showReport, setShowReport] = useState(false);
 
+  if (!config) {
+    return null; // Fallback in case config is still undefined
+  }
+
   function handleCTA(cta: ErrorCTA) {
     if (cta.action === "reload") {
       router.refresh();
