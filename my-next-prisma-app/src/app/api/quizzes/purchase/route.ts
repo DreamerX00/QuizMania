@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { RazorpayService } from "@/services/razorpayService";
 import { QuizAttemptService } from "@/services/quizAttemptService";
@@ -19,7 +19,7 @@ const purchaseQuizSchema = z.object({
 export const POST = withValidation(purchaseQuizSchema, async (request: any) => {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

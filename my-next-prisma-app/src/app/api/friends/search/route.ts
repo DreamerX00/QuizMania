@@ -3,6 +3,10 @@ import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 
 // GET: Search users by name or alias (excluding self and existing friends/requests)
+
+export const dynamic = "force-dynamic";
+export const revalidate = 300; // 5 minutes cache
+
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();

@@ -505,17 +505,14 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
   );
   const allPackages = packages || [];
   const selectedPackageQuizIds = selectedPackage?.quizIds || [];
-  console.log("Selected package quizIds:", selectedPackageQuizIds);
   const { data: selectedPackageQuizzes } = useSWR(
     selectedPackage && selectedPackageQuizIds.length > 0
       ? ["factory-package-quizzes", selectedPackageQuizIds]
       : null,
     async () => {
       const url = `/api/quizzes/bulk?ids=${selectedPackageQuizIds.join(",")}`;
-      console.log("Fetching quizzes for package:", url);
       const res = await fetch(url);
       const data = await res.json();
-      console.log("Fetched quizzes:", data);
       return data;
     }
   );

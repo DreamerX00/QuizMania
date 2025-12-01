@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { getRankByXP } from "@/utils/rank";
 
+// Force dynamic for real-time data
+export const dynamic = "force-dynamic";
+
 // Validation schema
 const SubmitQuizSchema = z.object({
   quizId: z.string().min(1, "Quiz ID is required"),

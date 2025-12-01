@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 180; // 3 minutes cache for quiz details
+
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ quizId: string }> }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { getPricingConfig } from "@/constants/pricing";
 import slugify from "slugify";
@@ -56,7 +56,7 @@ export const POST = withValidation(createQuizSchema, async (req: any) => {
     }
 
     // Generate a unique, URL-safe slug from the title
-    let baseSlug = slugify(title, { lower: true, strict: true });
+    const baseSlug = slugify(title, { lower: true, strict: true });
     let slug = baseSlug;
     let suffix = 1;
     while (await prisma.quiz.findUnique({ where: { slug } })) {

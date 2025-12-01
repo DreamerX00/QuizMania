@@ -1,13 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/session';
-import prisma from '@/lib/prisma';
-import { z } from 'zod';
-import { withValidation } from '@/utils/validation';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/session";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { withValidation } from "@/utils/validation";
+
+export const dynamic = "force-dynamic";
+// NO cache - real-time multiplayer rooms
 
 function generateRoomCode(length = 6) {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < length; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < length; i++)
+    code += chars[Math.floor(Math.random() * chars.length)];
   return code;
 }
 
@@ -15,30 +19,33 @@ function generateRoomCode(length = 6) {
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { searchParams } = new URL(request.url);
-    const my = searchParams.get('my');
+    const my = searchParams.get("my");
     let rooms;
-    if (my === '1') {
+    if (my === "1") {
       rooms = await prisma.room.findMany({
         where: {
           memberships: { some: { userId } },
         },
         include: { memberships: true },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
     } else {
       rooms = await prisma.room.findMany({
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
     }
     return NextResponse.json({ rooms });
   } catch (error) {
-    console.error('Error listing rooms:', error);
-    return NextResponse.json({ error: 'Failed to list rooms' }, { status: 500 });
+    console.error("Error listing rooms:", error);
+    return NextResponse.json(
+      { error: "Failed to list rooms" },
+      { status: 500 }
+    );
   }
 }
 
@@ -53,9 +60,9 @@ const createRoomSchema = z.object({
 export const POST = withValidation(createRoomSchema, async (request: any) => {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { name, maxPlayers, type, quizTypes, password } = request.validated;
     // Generate unique code
@@ -70,14 +77,14 @@ export const POST = withValidation(createRoomSchema, async (request: any) => {
       data: {
         name,
         code,
-        type: type || 'Public',
+        type: type || "Public",
         maxParticipants: maxPlayers || 8,
         quizTypes: quizTypes || [],
         password: password || null,
         memberships: {
           create: {
             userId,
-            role: 'HOST',
+            role: "HOST",
           },
         },
       },
@@ -85,8 +92,11 @@ export const POST = withValidation(createRoomSchema, async (request: any) => {
     });
     return NextResponse.json({ room });
   } catch (error) {
-    console.error('Error creating room:', error);
-    return NextResponse.json({ error: 'Failed to create room' }, { status: 500 });
+    console.error("Error creating room:", error);
+    return NextResponse.json(
+      { error: "Failed to create room" },
+      { status: 500 }
+    );
   }
 });
 
@@ -97,23 +107,31 @@ const deleteRoomSchema = z.object({
 export const DELETE = withValidation(deleteRoomSchema, async (request: any) => {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { roomId } = request.validated;
     if (!roomId) {
-      return NextResponse.json({ error: 'Room ID required' }, { status: 400 });
+      return NextResponse.json({ error: "Room ID required" }, { status: 400 });
     }
     // Check if user is host
-    const membership = await prisma.roomMembership.findFirst({ where: { roomId, userId, role: 'HOST' } });
+    const membership = await prisma.roomMembership.findFirst({
+      where: { roomId, userId, role: "HOST" },
+    });
     if (!membership) {
-      return NextResponse.json({ error: 'Only host can delete room' }, { status: 403 });
+      return NextResponse.json(
+        { error: "Only host can delete room" },
+        { status: 403 }
+      );
     }
     await prisma.room.delete({ where: { id: roomId } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting room:', error);
-    return NextResponse.json({ error: 'Failed to delete room' }, { status: 500 });
+    console.error("Error deleting room:", error);
+    return NextResponse.json(
+      { error: "Failed to delete room" },
+      { status: 500 }
+    );
   }
-}); 
+});

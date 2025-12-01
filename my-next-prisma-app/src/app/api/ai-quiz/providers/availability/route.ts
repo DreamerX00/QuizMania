@@ -6,6 +6,7 @@ import { isProviderAvailable } from "@/lib/ai-quiz/providers";
 import { AI_PROVIDERS } from "@/constants/ai-quiz";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 600; // 10 minutes cache
 
 interface ProviderStatus {
   available: boolean;

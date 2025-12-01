@@ -1,0 +1,94 @@
+# Vercel Ignore - Exclude files from deployment
+
+# Build artifacts
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output/
+**/*.test.*
+**/*.spec.*
+tests/
+__tests__/
+__mocks__/
+
+# Local environment files
+.env.local
+.env.development
+.env.test
+.env*.local
+
+# Development files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Documentation
+README.md
+docs/
+*.md
+!DEPLOYMENT.md
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+azure-pipelines.yml
+.circleci/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+
+# Docker (deployment uses Vercel, not Docker)
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+docker/
+
+# Scripts
+scripts/
+*.sh
+*.bat
+
+# Monitoring (if using separate infrastructure)
+infra/
+
+# WebSocket server (deployed separately)
+ws-server/
+
+# User resources and test data
+user_resources/
+public/user_resources/
+quiz-content*.json
+quiz-debug.json
+temp_*.txt
+
+# Development schemas
+schemas/
+
+# TypeScript config for seed scripts
+tsconfig-seed.json
+
+# Local files
+.vercel/

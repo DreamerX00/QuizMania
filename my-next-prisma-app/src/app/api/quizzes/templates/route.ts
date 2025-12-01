@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 600; // 10 minutes cache for templates
 
 export async function GET(request: Request) {
   const currentUser = await getCurrentUser();

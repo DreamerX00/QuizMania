@@ -6,6 +6,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { checkQuota, formatResetTime } from "@/lib/ai-quiz/quota-manager";
 
+export const dynamic = "force-dynamic";
+// NO cache - user quota updates frequently
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);

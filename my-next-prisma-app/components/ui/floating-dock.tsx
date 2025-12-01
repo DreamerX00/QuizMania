@@ -1,18 +1,11 @@
 "use client";
 import { cn } from "../../src/lib/utils";
 import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-} from "framer-motion";
-import { useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 export const FloatingDock = ({
   items,
-  desktopClassName,
   mobileClassName,
 }: {
   items: { title: string; icon: React.ReactNode; href: string }[];
@@ -36,7 +29,9 @@ const FloatingDockMobile = ({
 }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className={cn("fixed z-50 bottom-4 right-4 block md:hidden", className)}>
+    <div
+      className={cn("fixed z-50 bottom-4 right-4 block md:hidden", className)}
+    >
       <AnimatePresence>
         {open && (
           <motion.div
@@ -56,7 +51,9 @@ const FloatingDockMobile = ({
                   className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-900 shadow-lg"
                   aria-label={item.title}
                 >
-                  <div className="h-6 w-6 flex items-center justify-center">{item.icon}</div>
+                  <div className="h-6 w-6 flex items-center justify-center">
+                    {item.icon}
+                  </div>
                 </a>
               </motion.div>
             ))}
@@ -72,4 +69,4 @@ const FloatingDockMobile = ({
       </button>
     </div>
   );
-}; 
+};

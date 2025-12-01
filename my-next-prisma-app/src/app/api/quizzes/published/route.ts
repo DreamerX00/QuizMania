@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 180; // 3 minutes cache
 
 export async function GET(req: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }

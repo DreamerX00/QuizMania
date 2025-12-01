@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 
 // GET: List all friends for the authenticated user
-export async function GET(request: NextRequest) {
+
+export const dynamic = "force-dynamic";
+export const revalidate = 300; // 5 minutes cache
+
+export async function GET() {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
@@ -61,6 +65,7 @@ const friendDeleteSchema = z.object({
 
 export const POST = withValidation(
   friendRequestSchema,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (request: any) => {
     try {
       const currentUser = await getCurrentUser();
@@ -111,6 +116,7 @@ export const POST = withValidation(
 
 export const DELETE = withValidation(
   friendDeleteSchema,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (request: any) => {
     try {
       const currentUser = await getCurrentUser();

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { livekitService } from '@/services/livekitService';
+import { NextRequest, NextResponse } from "next/server";
+import { liveKitService } from "@/lib/livekit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,41 +8,40 @@ export async function POST(request: NextRequest) {
 
     if (!userId || !roomName) {
       return NextResponse.json(
-        { error: 'Missing userId or roomName' },
+        { error: "Missing userId or roomName" },
         { status: 400 }
       );
     }
 
     // Check if LiveKit is available
-    if (livekitService.isFallbackActive()) {
+    if (liveKitService.isFallbackActive()) {
       return NextResponse.json(
-        { 
-          error: 'LiveKit is currently unavailable, using WebRTC fallback',
-          fallback: true 
+        {
+          error: "LiveKit is currently unavailable, using WebRTC fallback",
+          fallback: true,
         },
         { status: 503 }
       );
     }
 
     // Generate LiveKit token
-    const token = await livekitService.generateToken(userId, roomName, options);
+    const token = await liveKitService.generateToken(userId, roomName, options);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       token,
       roomName,
-      mode: 'livekit'
+      mode: "livekit",
     });
-
   } catch (error) {
-    console.error('LiveKit token generation error:', error);
-    
+    console.error("LiveKit token generation error:", error);
+
     // If LiveKit fails, return fallback response
     return NextResponse.json(
-      { 
-        error: 'LiveKit token generation failed, using WebRTC fallback',
-        fallback: true 
+      {
+        error: "LiveKit token generation failed, using WebRTC fallback",
+        fallback: true,
       },
       { status: 503 }
     );
   }
-} 
+}

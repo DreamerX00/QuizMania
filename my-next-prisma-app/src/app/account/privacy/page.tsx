@@ -1,13 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Trash2, Shield, Download, Eye, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Trash2,
+  Shield,
+  Download,
+  AlertTriangle,
+  CheckCircle,
+} from "lucide-react";
 
 interface DataCategory {
   id: string;
@@ -21,7 +33,7 @@ interface DataCategory {
 
 interface DeletionRequest {
   id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: "pending" | "processing" | "completed" | "failed";
   requestedAt: Date;
   completedAt?: Date;
   categories: string[];
@@ -31,7 +43,9 @@ export default function PrivacyPage() {
   const { data: session } = useSession();
   const user = session?.user;
   const [dataCategories, setDataCategories] = useState<DataCategory[]>([]);
-  const [deletionRequests, setDeletionRequests] = useState<DeletionRequest[]>([]);
+  const [deletionRequests, setDeletionRequests] = useState<DeletionRequest[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -46,52 +60,56 @@ export default function PrivacyPage() {
   const loadUserData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Fetch user's data categories
-      const response = await fetch('/api/user/data-categories');
+      const response = await fetch("/api/user/data-categories");
       if (response.ok) {
         const categories = await response.json();
         setDataCategories(categories);
       }
 
       // Fetch deletion requests
-      const requestsResponse = await fetch('/api/user/deletion-requests');
+      const requestsResponse = await fetch("/api/user/deletion-requests");
       if (requestsResponse.ok) {
         const requests = await requestsResponse.json();
         setDeletionRequests(requests);
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error("Error loading user data:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleCategoryToggle = (categoryId: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(categoryId) 
-        ? prev.filter(id => id !== categoryId)
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
         : [...prev, categoryId]
     );
   };
 
   const handleDeleteData = async () => {
     if (selectedCategories.length === 0) {
-      alert('Please select at least one category to delete');
+      alert("Please select at least one category to delete");
       return;
     }
 
-    if (!confirm('Are you sure you want to delete the selected data? This action cannot be undone.')) {
+    if (
+      !confirm(
+        "Are you sure you want to delete the selected data? This action cannot be undone."
+      )
+    ) {
       return;
     }
 
     try {
       setIsDeleting(true);
-      
-      const response = await fetch('/api/user/delete-data', {
-        method: 'POST',
+
+      const response = await fetch("/api/user/delete-data", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           categories: selectedCategories,
@@ -100,15 +118,15 @@ export default function PrivacyPage() {
 
       if (response.ok) {
         const result = await response.json();
-        setDeletionRequests(prev => [result, ...prev]);
+        setDeletionRequests((prev) => [result, ...prev]);
         setSelectedCategories([]);
-        alert('Data deletion request submitted successfully');
+        alert("Data deletion request submitted successfully");
       } else {
-        throw new Error('Failed to submit deletion request');
+        throw new Error("Failed to submit deletion request");
       }
     } catch (error) {
-      console.error('Error deleting data:', error);
-      alert('Failed to submit deletion request. Please try again.');
+      console.error("Error deleting data:", error);
+      alert("Failed to submit deletion request. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -117,33 +135,38 @@ export default function PrivacyPage() {
   const handleDownloadData = async () => {
     try {
       setIsDownloading(true);
-      
-      const response = await fetch('/api/user/download-data', {
-        method: 'POST',
+
+      const response = await fetch("/api/user/download-data", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          categories: selectedCategories.length > 0 ? selectedCategories : dataCategories.map(c => c.id),
+          categories:
+            selectedCategories.length > 0
+              ? selectedCategories
+              : dataCategories.map((c) => c.id),
         }),
       });
 
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `quizmania-data-${new Date().toISOString().split('T')[0]}.zip`;
+        a.download = `quizmania-data-${
+          new Date().toISOString().split("T")[0]
+        }.zip`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        throw new Error('Failed to download data');
+        throw new Error("Failed to download data");
       }
     } catch (error) {
-      console.error('Error downloading data:', error);
-      alert('Failed to download data. Please try again.');
+      console.error("Error downloading data:", error);
+      alert("Failed to download data. Please try again.");
     } finally {
       setIsDownloading(false);
     }
@@ -151,13 +174,13 @@ export default function PrivacyPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending':
+      case "pending":
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'processing':
+      case "processing":
         return <Progress className="h-4 w-4 text-blue-500" />;
-      case 'completed':
+      case "completed":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'failed':
+      case "failed":
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
       default:
         return null;
@@ -166,10 +189,10 @@ export default function PrivacyPage() {
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      pending: 'secondary',
-      processing: 'default',
-      completed: 'default',
-      failed: 'destructive'
+      pending: "secondary",
+      processing: "default",
+      completed: "default",
+      failed: "destructive",
     } as const;
 
     return (
@@ -199,7 +222,8 @@ export default function PrivacyPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Privacy & Data Management</h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Manage your data and privacy settings. Download your data or request deletion.
+          Manage your data and privacy settings. Download your data or request
+          deletion.
         </p>
       </div>
 
@@ -221,8 +245,8 @@ export default function PrivacyPage() {
                 key={category.id}
                 className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                   selectedCategories.includes(category.id)
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
                 }`}
                 onClick={() => handleCategoryToggle(category.id)}
               >
@@ -241,7 +265,9 @@ export default function PrivacyPage() {
                     </p>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span>Size: {category.size}</span>
-                      <span>Updated: {category.lastUpdated.toLocaleDateString()}</span>
+                      <span>
+                        Updated: {category.lastUpdated.toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -266,7 +292,8 @@ export default function PrivacyPage() {
 
           <div className="flex items-center justify-between mt-6 pt-6 border-t">
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              {selectedCategories.length} of {dataCategories.length} categories selected
+              {selectedCategories.length} of {dataCategories.length} categories
+              selected
             </div>
             <div className="flex gap-2">
               <Button
@@ -275,7 +302,7 @@ export default function PrivacyPage() {
                 disabled={isDownloading || selectedCategories.length === 0}
               >
                 <Download className="h-4 w-4 mr-2" />
-                {isDownloading ? 'Downloading...' : 'Download Selected'}
+                {isDownloading ? "Downloading..." : "Download Selected"}
               </Button>
               <Button
                 variant="destructive"
@@ -283,7 +310,7 @@ export default function PrivacyPage() {
                 disabled={isDeleting || selectedCategories.length === 0}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {isDeleting ? 'Deleting...' : 'Delete Selected'}
+                {isDeleting ? "Deleting..." : "Delete Selected"}
               </Button>
             </div>
           </div>
@@ -313,7 +340,7 @@ export default function PrivacyPage() {
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    Requested deletion of: {request.categories.join(', ')}
+                    Requested deletion of: {request.categories.join(", ")}
                   </p>
                   {request.completedAt && (
                     <p className="text-xs text-gray-500">
@@ -331,11 +358,11 @@ export default function PrivacyPage() {
       <Alert className="mt-8">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          <strong>Important:</strong> Data deletion requests are processed within 30 days. 
-          Some data may be retained for legal or security purposes. 
-          For immediate account deletion, please contact support.
+          <strong>Important:</strong> Data deletion requests are processed
+          within 30 days. Some data may be retained for legal or security
+          purposes. For immediate account deletion, please contact support.
         </AlertDescription>
       </Alert>
     </div>
   );
-} 
+}

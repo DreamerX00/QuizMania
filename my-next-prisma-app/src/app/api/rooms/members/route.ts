@@ -4,6 +4,9 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 
+export const dynamic = "force-dynamic";
+// NO cache - real-time room members
+
 // GET: List members of a room
 export async function GET(request: NextRequest) {
   try {

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+// NO cache - real-time clan chat
 
 // GET: Fetch recent chat messages for a clan
 export async function GET(req: NextRequest) {

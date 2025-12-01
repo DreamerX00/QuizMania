@@ -1,10 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 
-export async function GET(req: NextRequest) {
+export const dynamic = "force-dynamic";
+export const revalidate = 180; // 3 minutes cache for public chat history
+
+export async function GET() {
   const messages = await prisma.publicChat.findMany({
     orderBy: { createdAt: "desc" },
     take: 50,
@@ -19,6 +22,7 @@ const publicChatSchema = z.object({
   message: z.string().min(1).max(1000),
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const POST = withValidation(publicChatSchema, async (req: any) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;

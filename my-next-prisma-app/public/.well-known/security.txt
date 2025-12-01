@@ -1,0 +1,11 @@
+Contact: mailto:security@quizmania.com
+Expires: 2025-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://quizmania.com/.well-known/security.txt
+Policy: https://quizmania.com/security-policy
+Acknowledgments: https://quizmania.com/security-hall-of-fame
+
+# Security Contact Information
+# Report security vulnerabilities to: security@quizmania.com
+# PGP Key: [Add your PGP key URL here]
+# Bug Bounty: Coming soon

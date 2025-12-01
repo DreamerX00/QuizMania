@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { QuizAttemptService } from "@/services/quizAttemptService";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 180; // 3 minutes cache
+
 interface QuizBulkResponse {
   id: string;
   title: string;

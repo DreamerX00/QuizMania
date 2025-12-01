@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/session';
-import prisma from '@/lib/prisma';
-import { RazorpayService } from '@/services/razorpayService';
-import { z } from 'zod';
-import { withValidation } from '@/utils/validation';
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/session";
+import prisma from "@/lib/prisma";
+import { RazorpayService } from "@/services/razorpayService";
+import { z } from "zod";
+import { withValidation } from "@/utils/validation";
 
 const verifySchema = z.object({
   orderId: z.string().min(1),
@@ -14,9 +14,9 @@ const verifySchema = z.object({
 export const POST = withValidation(verifySchema, async (request: any) => {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { orderId, paymentId, signature } = request.validated;
 
@@ -28,23 +28,29 @@ export const POST = withValidation(verifySchema, async (request: any) => {
     );
 
     if (!isValidSignature) {
-      return NextResponse.json({ error: 'Invalid payment signature' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid payment signature" },
+        { status: 400 }
+      );
     }
 
     // Get payment details from Razorpay
     const paymentDetails = await RazorpayService.getPaymentDetails(paymentId);
-    
-    if (paymentDetails.status !== 'captured') {
-      return NextResponse.json({ error: 'Payment not captured' }, { status: 400 });
+
+    if (paymentDetails.status !== "captured") {
+      return NextResponse.json(
+        { error: "Payment not captured" },
+        { status: 400 }
+      );
     }
 
     // Get user
     const user = await prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Get payment transaction
@@ -52,23 +58,29 @@ export const POST = withValidation(verifySchema, async (request: any) => {
       where: {
         razorpayOrderId: orderId,
         userId: user.id,
-        status: 'PENDING'
-      }
+        status: "PENDING",
+      },
     });
 
     if (!paymentTransaction) {
-      return NextResponse.json({ error: 'Payment transaction not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Payment transaction not found" },
+        { status: 404 }
+      );
     }
 
     // Ensure metadata is an object
     let existingMetadata: Record<string, any> = {};
-    if (typeof paymentTransaction.metadata === 'string') {
+    if (typeof paymentTransaction.metadata === "string") {
       try {
         existingMetadata = JSON.parse(paymentTransaction.metadata);
       } catch {
         existingMetadata = {};
       }
-    } else if (typeof paymentTransaction.metadata === 'object' && paymentTransaction.metadata !== null) {
+    } else if (
+      typeof paymentTransaction.metadata === "object" &&
+      paymentTransaction.metadata !== null
+    ) {
       existingMetadata = paymentTransaction.metadata;
     }
     // Update payment transaction
@@ -76,14 +88,14 @@ export const POST = withValidation(verifySchema, async (request: any) => {
       where: { id: paymentTransaction.id },
       data: {
         razorpayPaymentId: paymentId,
-        status: 'CAPTURED',
+        status: "CAPTURED",
         metadata: {
           ...existingMetadata,
           razorpayPaymentId: paymentId,
           paymentStatus: paymentDetails.status,
-          capturedAt: new Date().toISOString()
-        }
-      }
+          capturedAt: new Date().toISOString(),
+        },
+      },
     });
 
     // Always add 1 month to premiumUntil for the premium plan
@@ -95,7 +107,7 @@ export const POST = withValidation(verifySchema, async (request: any) => {
       where: { id: user.id },
       data: {
         premiumUntil: premiumUntil,
-        accountType: 'PREMIUM'
+        accountType: "PREMIUM",
       },
       select: {
         id: true,
@@ -103,8 +115,8 @@ export const POST = withValidation(verifySchema, async (request: any) => {
         name: true,
         accountType: true,
         premiumUntil: true,
-        points: true
-      }
+        points: true,
+      },
     });
 
     // Create or update premium summary
@@ -116,24 +128,23 @@ export const POST = withValidation(verifySchema, async (request: any) => {
         templatesUsed: 0,
         quizPacks: 0,
         timeSaved: 0,
-        dollarValue: 0
-      }
+        dollarValue: 0,
+      },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Premium subscription activated successfully',
+      message: "Premium subscription activated successfully",
       user: updatedUser,
       premiumUntil: premiumUntil,
-      plan: 'premium',
-      paymentId: paymentId
+      plan: "premium",
+      paymentId: paymentId,
     });
-
   } catch (error) {
-    console.error('Payment verification error:', error);
+    console.error("Payment verification error:", error);
     return NextResponse.json(
-      { error: 'Failed to verify payment' },
+      { error: "Failed to verify payment" },
       { status: 500 }
     );
   }
-}); 
+});

@@ -1,28 +1,35 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useSocket } from '@/lib/socket';
-import { useCurrentRoom, useParticipants, useGame, useVoice, useUI, useMultiplayerActions } from '@/store/multiplayer';
-import GameSetup from './_components/GameSetup';
-import Lobby from './_components/Lobby';
-import SocialChat from './_components/SocialChat';
-import PublicChat from './_components/PublicChat';
-import VotingSystem from './_components/VotingSystem';
-import FriendModalOverlay from './_components/FriendModalOverlay';
-import RankPanelOverlay from './_components/RankPanelOverlay';
-import ClanHubOverlay from './_components/ClanHubOverlay';
-import RoomModalOverlay from './_components/RoomModalOverlay';
-import VoiceChat from '@/components/voice/VoiceChat';
-import { AnimatePresence, motion } from 'framer-motion';
-import { User, Users, Shield, Home, DoorOpen, Phone, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { FloatingDock } from '@/components/ui/floating-dock';
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useSocket } from "@/lib/socket";
+import {
+  useCurrentRoom,
+  useParticipants,
+  useGame,
+  useVoice,
+  useUI,
+  useMultiplayerActions,
+} from "@/store/multiplayer";
+import GameSetup from "./_components/GameSetup";
+import Lobby from "./_components/Lobby";
+import SocialChat from "./_components/SocialChat";
+import PublicChat from "./_components/PublicChat";
+import VotingSystem from "./_components/VotingSystem";
+import FriendModalOverlay from "./_components/FriendModalOverlay";
+import RankPanelOverlay from "./_components/RankPanelOverlay";
+import ClanHubOverlay from "./_components/ClanHubOverlay";
+import RoomModalOverlay from "./_components/RoomModalOverlay";
+import VoiceChat from "@/components/voice/VoiceChat";
+import { AnimatePresence, motion } from "framer-motion";
+import { User, Users, Shield, Home, DoorOpen, Phone, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FloatingDock } from "@/components/ui/floating-dock";
 
 export default function MultiplayerArenaPage() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const { isConnected } = useSocket();
-  
+
   // Multiplayer store state
   const currentRoom = useCurrentRoom();
   const participants = useParticipants();
@@ -30,7 +37,7 @@ export default function MultiplayerArenaPage() {
   const voice = useVoice();
   const ui = useUI();
   const actions = useMultiplayerActions();
-  
+
   const [activePanel, setActivePanel] = useState<string | null>(null);
 
   // Initialize socket connection
@@ -40,7 +47,7 @@ export default function MultiplayerArenaPage() {
         try {
           actions.connect(userId);
         } catch (error) {
-          console.error('Failed to initialize connection:', error);
+          console.error("Failed to initialize connection:", error);
         }
       };
       initializeConnection();
@@ -56,66 +63,68 @@ export default function MultiplayerArenaPage() {
   // Auto-join room if specified in URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get('room');
+    const roomId = urlParams.get("room");
     if (roomId && isConnected && !currentRoom) {
-      actions.joinRoom(roomId, 'public');
+      actions.joinRoom(roomId, "public");
     }
   }, [isConnected, currentRoom, actions]);
 
   // Persist dock state in localStorage
   useEffect(() => {
     if (activePanel) {
-      localStorage.setItem('arenaDockPanel', activePanel);
+      localStorage.setItem("arenaDockPanel", activePanel);
     } else {
-      localStorage.removeItem('arenaDockPanel');
+      localStorage.removeItem("arenaDockPanel");
     }
   }, [activePanel]);
-  
+
   useEffect(() => {
-    const lastPanel = localStorage.getItem('arenaDockPanel');
+    const lastPanel = localStorage.getItem("arenaDockPanel");
     if (lastPanel) setActivePanel(lastPanel);
   }, []);
 
   const handleVoiceButtonClick = () => {
-    console.log('Voice button clicked, current UI state:', ui);
     actions.toggleVoiceChat();
   };
 
   // Dock items
   const dockItems = [
     {
-      title: 'Friends',
+      title: "Friends",
       icon: <Users className="w-7 h-7" />,
-      onClick: () => setActivePanel(activePanel === 'friends' ? null : 'friends'),
+      onClick: () =>
+        setActivePanel(activePanel === "friends" ? null : "friends"),
     },
     {
-      title: 'Room',
+      title: "Room",
       icon: <DoorOpen className="w-7 h-7" />,
-      onClick: () => setActivePanel(activePanel === 'room' ? null : 'room'),
+      onClick: () => setActivePanel(activePanel === "room" ? null : "room"),
     },
     {
-      title: 'Voice',
-      icon: ui.showVoiceChat ? 
-        <Phone className="w-7 h-7 text-purple-400" /> : 
-        voice.isConnected ? 
-          <Phone className="w-7 h-7" /> : 
-          <Phone className="w-7 h-7 opacity-50" />,
+      title: "Voice",
+      icon: ui.showVoiceChat ? (
+        <Phone className="w-7 h-7 text-purple-400" />
+      ) : voice.isConnected ? (
+        <Phone className="w-7 h-7" />
+      ) : (
+        <Phone className="w-7 h-7 opacity-50" />
+      ),
       onClick: handleVoiceButtonClick,
     },
     {
-      title: 'Home',
+      title: "Home",
       icon: <Home className="w-7 h-7" />,
       onClick: () => setActivePanel(null),
     },
     {
-      title: 'Rank',
+      title: "Rank",
       icon: <User className="w-7 h-7" />,
-      onClick: () => setActivePanel(activePanel === 'rank' ? null : 'rank'),
+      onClick: () => setActivePanel(activePanel === "rank" ? null : "rank"),
     },
     {
-      title: 'Clan',
+      title: "Clan",
       icon: <Shield className="w-7 h-7" />,
-      onClick: () => setActivePanel(activePanel === 'clan' ? null : 'clan'),
+      onClick: () => setActivePanel(activePanel === "clan" ? null : "clan"),
     },
   ];
 
@@ -129,10 +138,22 @@ export default function MultiplayerArenaPage() {
       </div>
 
       {/* Overlays */}
-      <FriendModalOverlay open={activePanel === 'friends'} onClose={() => setActivePanel(null)} />
-      <RankPanelOverlay open={activePanel === 'rank'} onClose={() => setActivePanel(null)} />
-      <ClanHubOverlay open={activePanel === 'clan'} onClose={() => setActivePanel(null)} />
-      <RoomModalOverlay open={activePanel === 'room'} onClose={() => setActivePanel(null)} />
+      <FriendModalOverlay
+        open={activePanel === "friends"}
+        onClose={() => setActivePanel(null)}
+      />
+      <RankPanelOverlay
+        open={activePanel === "rank"}
+        onClose={() => setActivePanel(null)}
+      />
+      <ClanHubOverlay
+        open={activePanel === "clan"}
+        onClose={() => setActivePanel(null)}
+      />
+      <RoomModalOverlay
+        open={activePanel === "room"}
+        onClose={() => setActivePanel(null)}
+      />
 
       {/* Voice Chat Panel */}
       <AnimatePresence>
@@ -144,8 +165,8 @@ export default function MultiplayerArenaPage() {
             className="fixed top-20 sm:top-24 right-2 sm:right-6 z-30 w-72 sm:w-80 bg-white/90 dark:bg-slate-800/90 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-2xl backdrop-blur-xl"
           >
             {currentRoom ? (
-              <VoiceChat 
-                roomId={currentRoom.id} 
+              <VoiceChat
+                roomId={currentRoom.id}
                 onClose={() => actions.toggleVoiceChat()}
               />
             ) : (
@@ -153,7 +174,9 @@ export default function MultiplayerArenaPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
-                    <h3 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base">Voice Chat</h3>
+                    <h3 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base">
+                      Voice Chat
+                    </h3>
                   </div>
                   <Button
                     size="sm"
@@ -169,7 +192,7 @@ export default function MultiplayerArenaPage() {
                   <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mb-3 sm:mb-4">
                     Join a room to start voice chat
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => actions.toggleVoiceChat()}
                     variant="outline"
                     size="sm"
@@ -182,7 +205,7 @@ export default function MultiplayerArenaPage() {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Main Arena UI (hidden when overlay is open) */}
       <AnimatePresence>
         {!activePanel && (
@@ -200,29 +223,25 @@ export default function MultiplayerArenaPage() {
                 <div className="lg:col-span-3 xl:col-span-3 h-full">
                   <GameSetup />
                 </div>
-                
+
                 {/* Center Column - Battle Arena */}
                 <div className="lg:col-span-6 xl:col-span-6 flex flex-col gap-3 sm:gap-4 lg:gap-6 h-full">
                   <div className="flex-1 min-h-0">
-                    <Lobby 
+                    <Lobby
                       participants={participants}
                       currentRoom={currentRoom}
                       gameState={game.phase}
                     />
                   </div>
                   <div className="flex-1 min-h-0">
-                    <VotingSystem 
-                      roomId={currentRoom?.id || ''}
-                    />
+                    <VotingSystem roomId={currentRoom?.id || ""} />
                   </div>
                 </div>
-                
+
                 {/* Right Column - Communication Hub */}
                 <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-3 sm:gap-4 lg:gap-6 h-full">
                   <div className="flex-1 min-h-0">
-                    <SocialChat 
-                      roomId={currentRoom?.id}
-                    />
+                    <SocialChat roomId={currentRoom?.id} />
                   </div>
                   <div className="flex-1 min-h-0">
                     <PublicChat />
@@ -239,7 +258,7 @@ export default function MultiplayerArenaPage() {
         items={dockItems.map((item) => ({
           title: item.title,
           icon: item.icon,
-          href: '#',
+          href: "#",
           onClick: (e: React.MouseEvent) => {
             e.preventDefault();
             item.onClick();
@@ -250,4 +269,4 @@ export default function MultiplayerArenaPage() {
       />
     </main>
   );
-} 
+}

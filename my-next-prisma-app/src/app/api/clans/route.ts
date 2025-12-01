@@ -4,7 +4,11 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 300; // 5 minutes cache
+
 // GET: List all clans, or clans the user is a member of
+
 export async function GET(req: NextRequest) {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
@@ -13,7 +17,7 @@ export async function GET(req: NextRequest) {
   const region = searchParams.get("region") || undefined;
   const page = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = 10;
-  const where: any = {
+  const where: Record<string, unknown> = {
     ...(search
       ? {
           OR: [
@@ -75,6 +79,7 @@ const deleteClanSchema = z.object({
   clanId: z.string().min(1),
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const POST = withValidation(createClanSchema, async (req: any) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
@@ -101,6 +106,7 @@ export const POST = withValidation(createClanSchema, async (req: any) => {
   return NextResponse.json({ clan });
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const DELETE = withValidation(deleteClanSchema, async (request: any) => {
   try {
     const currentUser = await getCurrentUser();

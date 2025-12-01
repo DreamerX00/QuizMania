@@ -1,17 +1,22 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { z } from 'zod';
+import { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
-function jsonSchemaToZod(schema: any): z.ZodTypeAny {
+interface SchemaField {
+  type: "string" | "number" | "array";
+  optional?: boolean;
+}
+
+function jsonSchemaToZod(schema: Record<string, unknown>): z.ZodTypeAny {
   const shape: Record<string, z.ZodTypeAny> = {};
   for (const key in schema) {
-    const field = schema[key];
-    if (field.type === 'string') {
+    const field = schema[key] as SchemaField;
+    if (field.type === "string") {
       shape[key] = z.string();
       if (field.optional) shape[key] = shape[key].optional();
-    } else if (field.type === 'number') {
+    } else if (field.type === "number") {
       shape[key] = z.number();
       if (field.optional) shape[key] = shape[key].optional();
-    } else if (field.type === 'array') {
+    } else if (field.type === "array") {
       shape[key] = z.array(z.string());
       if (field.optional) shape[key] = shape[key].optional();
     }
@@ -20,9 +25,10 @@ function jsonSchemaToZod(schema: any): z.ZodTypeAny {
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method !== "POST") return res.status(405).end();
   const { schema, data } = req.body;
-  if (!schema || typeof schema !== 'object') return res.status(400).json({ error: 'Missing or invalid schema' });
+  if (!schema || typeof schema !== "object")
+    return res.status(400).json({ error: "Missing or invalid schema" });
   const zodSchema = jsonSchemaToZod(schema);
   const result = zodSchema.safeParse(data);
   if (result.success) {
@@ -30,4 +36,4 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   } else {
     return res.status(200).json({ valid: false, errors: result.error.errors });
   }
-} 
+}

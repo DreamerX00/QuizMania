@@ -1,5 +1,7 @@
 import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { applySecurityHeaders } from "@/lib/security-headers";
+import { applyCorsHeaders, handleCorsPreFlight } from "@/lib/cors-config";
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -8,13 +10,13 @@ const publicRoutes = [
   "/explore",
   "/premium",
   "/leaderboard",
-  "/clear-session",
   "/auth/signin",
   "/auth/signup",
   "/auth/error",
   "/api/auth",
   "/api/health",
   "/api/leaderboard",
+  "/api/csrf", // CSRF token endpoint
 ];
 
 // Admin routes requiring elevated permissions
@@ -41,6 +43,15 @@ export default withAuth(
   function middleware(req) {
     const { pathname } = req.nextUrl;
     const token = req.nextauth.token;
+    const origin = req.headers.get("origin");
+
+    // Handle CORS preflight (OPTIONS requests)
+    const preflightResponse = handleCorsPreFlight(
+      req as unknown as NextRequest
+    );
+    if (preflightResponse) {
+      return preflightResponse;
+    }
 
     // Validate error routes
     if (isErrorRoute(pathname)) {
@@ -48,12 +59,16 @@ export default withAuth(
       if (!errorCode || !errorCodes.includes(errorCode)) {
         return NextResponse.redirect(new URL("/errors/404", req.url));
       }
-      return NextResponse.next();
+      const response = NextResponse.next();
+      applySecurityHeaders(response);
+      return applyCorsHeaders(response, origin);
     }
 
     // Allow public routes
     if (isPublicRoute(pathname)) {
-      return NextResponse.next();
+      const response = NextResponse.next();
+      applySecurityHeaders(response);
+      return applyCorsHeaders(response, origin);
     }
 
     // Check admin routes
@@ -64,7 +79,10 @@ export default withAuth(
       }
     }
 
-    return NextResponse.next();
+    // Apply security headers to all responses
+    const response = NextResponse.next();
+    applySecurityHeaders(response);
+    return applyCorsHeaders(response, origin);
   },
   {
     callbacks: {

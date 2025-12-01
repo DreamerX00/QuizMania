@@ -73,7 +73,7 @@ export async function rateLimiter(
     // Check burst limit
     if (burstCount > BURST_LIMIT) {
       // Apply temporary ban
-      await redisClient.setex(
+      await redisClient.setex?.(
         banKey,
         BAN_DURATION,
         Date.now() + BAN_DURATION * 1000
@@ -94,7 +94,7 @@ export async function rateLimiter(
 
       if (violations >= BAN_THRESHOLD) {
         // Permanent ban for repeated violations
-        await redisClient.setex(
+        await redisClient.setex?.(
           banKey,
           BAN_DURATION * 2,
           Date.now() + BAN_DURATION * 2000

@@ -1,4 +1,4 @@
-import { Server, Socket } from 'socket.io';
+import { Server, Socket } from "socket.io";
 
 interface WebRTCPeer {
   userId: string;
@@ -29,12 +29,12 @@ class WebRTCFallbackService {
    */
   joinRoom(socket: Socket, roomId: string, userId: string): void {
     let room = this.rooms.get(roomId);
-    
+
     if (!room) {
       room = {
         roomId,
         peers: new Map(),
-        created: new Date()
+        created: new Date(),
       };
       this.rooms.set(roomId, room);
     }
@@ -44,27 +44,27 @@ class WebRTCFallbackService {
       socketId: socket.id,
       roomId,
       isMuted: false,
-      isSpeaking: false
+      isSpeaking: false,
     };
 
     room.peers.set(socket.id, peer);
 
     // Notify other peers in the room
-    socket.to(roomId).emit('webrtc:peer-joined', {
+    socket.to(roomId).emit("webrtc:peer-joined", {
       userId,
-      socketId: socket.id
+      socketId: socket.id,
     });
 
     // Send list of existing peers to the new user
     const existingPeers = Array.from(room.peers.values())
-      .filter(p => p.socketId !== socket.id)
-      .map(p => ({
+      .filter((p) => p.socketId !== socket.id)
+      .map((p) => ({
         userId: p.userId,
         socketId: p.socketId,
-        isMuted: p.isMuted
+        isMuted: p.isMuted,
       }));
 
-    socket.emit('webrtc:room-peers', existingPeers);
+    socket.emit("webrtc:room-peers", existingPeers);
 
     console.log(`WebRTC: User ${userId} joined room ${roomId} (fallback mode)`);
   }
@@ -88,9 +88,9 @@ class WebRTCFallbackService {
     room.peers.delete(socket.id);
 
     // Notify other peers
-    socket.to(roomId).emit('webrtc:peer-left', {
+    socket.to(roomId).emit("webrtc:peer-left", {
       userId: peer.userId,
-      socketId: socket.id
+      socketId: socket.id,
     });
 
     // Clean up empty rooms
@@ -98,25 +98,31 @@ class WebRTCFallbackService {
       this.rooms.delete(roomId);
     }
 
-    console.log(`WebRTC: User ${peer.userId} left room ${roomId} (fallback mode)`);
+    console.log(
+      `WebRTC: User ${peer.userId} left room ${roomId} (fallback mode)`
+    );
   }
 
   /**
    * Handle WebRTC signaling (offer/answer/ice-candidate)
    */
-  handleSignaling(socket: Socket, roomId: string, data: {
-    type: 'offer' | 'answer' | 'ice-candidate';
-    targetSocketId: string;
-    payload: any;
-  }): void {
+  handleSignaling(
+    socket: Socket,
+    roomId: string,
+    data: {
+      type: "offer" | "answer" | "ice-candidate";
+      targetSocketId: string;
+      payload: any;
+    }
+  ): void {
     const room = this.rooms.get(roomId);
     if (!room) return;
 
     // Forward signaling to target peer
-    socket.to(data.targetSocketId).emit('webrtc:signaling', {
+    socket.to(data.targetSocketId).emit("webrtc:signaling", {
       type: data.type,
       fromSocketId: socket.id,
-      payload: data.payload
+      payload: data.payload,
     });
   }
 
@@ -133,10 +139,10 @@ class WebRTCFallbackService {
     peer.isMuted = muted;
 
     // Notify other peers
-    socket.to(roomId).emit('webrtc:peer-muted', {
+    socket.to(roomId).emit("webrtc:peer-muted", {
       userId: peer.userId,
       socketId: socket.id,
-      muted
+      muted,
     });
   }
 
@@ -153,10 +159,10 @@ class WebRTCFallbackService {
     peer.isSpeaking = speaking;
 
     // Notify other peers
-    socket.to(roomId).emit('webrtc:peer-speaking', {
+    socket.to(roomId).emit("webrtc:peer-speaking", {
       userId: peer.userId,
       socketId: socket.id,
-      speaking
+      speaking,
     });
   }
 
@@ -169,11 +175,11 @@ class WebRTCFallbackService {
     created: Date;
     age: number;
   }> {
-    return Array.from(this.rooms.values()).map(room => ({
+    return Array.from(this.rooms.values()).map((room) => ({
       roomId: room.roomId,
       peerCount: room.peers.size,
       created: room.created,
-      age: Date.now() - room.created.getTime()
+      age: Date.now() - room.created.getTime(),
     }));
   }
 
@@ -209,9 +215,9 @@ class WebRTCFallbackService {
       }
     }
     this.rooms.clear();
-    console.log('WebRTC: Force cleaned up all rooms');
+    console.log("WebRTC: Force cleaned up all rooms");
   }
 }
 
 // Export singleton instance
-export const webrtcFallbackService = new WebRTCFallbackService(); 
+export const webrtcFallbackService = new WebRTCFallbackService();

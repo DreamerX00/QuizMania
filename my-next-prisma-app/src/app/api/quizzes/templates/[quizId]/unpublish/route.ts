@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/session";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 import prisma from "@/lib/prisma";
@@ -11,7 +11,7 @@ export const PATCH = withValidation(
   async (request: any, { params }: { params: { quizId: string } }) => {
     try {
       const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+      const userId = currentUser?.id;
       if (!userId) {
         return new NextResponse("Unauthorized", { status: 401 });
       }

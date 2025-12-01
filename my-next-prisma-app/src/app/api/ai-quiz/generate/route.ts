@@ -50,6 +50,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate providerId exists in database
+    const provider = await prisma.aIProvider.findUnique({
+      where: { id: config.providerId },
+    });
+
+    if (!provider || !provider.isActive) {
+      // Fallback to first active provider
+      const defaultProvider = await prisma.aIProvider.findFirst({
+        where: { isActive: true },
+        orderBy: { isRecommended: "desc" },
+      });
+
+      if (!defaultProvider) {
+        return NextResponse.json(
+          { error: "No active AI providers available" },
+          { status: 503 }
+        );
+      }
+
+      config.providerId = defaultProvider.id;
+    }
+
     // Validate subject length
     if (config.subject.length < 2 || config.subject.length > 200) {
       return NextResponse.json(
@@ -134,11 +156,99 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Get AI provider
-      const provider = getProvider(config.providerId);
+      // Get provider details from database
+      const dbProvider = await prisma.aIProvider.findUnique({
+        where: { id: config.providerId },
+        select: { type: true, modelName: true },
+      });
 
-      // Generate quiz
-      const generatedQuiz = await provider.generateQuestions(config);
+      if (!dbProvider) {
+        throw new Error("Provider not found");
+      }
+
+      // Map database provider type to provider factory format
+      let providerKey: string;
+      switch (dbProvider.type) {
+        case "OPENAI":
+          providerKey = "openai-gpt4o";
+          break;
+        case "ANTHROPIC":
+          providerKey = "anthropic-sonnet";
+          break;
+        case "GOOGLE_GEMINI":
+          providerKey = "gemini-pro";
+          break;
+        case "DEEPSEEK":
+          providerKey = "deepseek";
+          break;
+        default:
+          providerKey = "openai-gpt4o"; // fallback
+      }
+
+      // Try to get the provider, fallback to OpenAI if it fails
+      let provider: ReturnType<typeof getProvider>;
+      try {
+        provider = getProvider(providerKey);
+      } catch (error) {
+        console.warn(
+          `Failed to get provider ${providerKey}, falling back to OpenAI:`,
+          error
+        );
+        providerKey = "openai-gpt4o";
+        provider = getProvider(providerKey);
+      }
+
+      // Generate quiz with error handling and fallback to other providers
+      let generatedQuiz: Awaited<
+        ReturnType<typeof provider.generateQuestions>
+      > | null = null;
+      const fallbackOrder = [
+        "gemini-pro",
+        "deepseek",
+        "openai-gpt4o",
+        "anthropic-sonnet",
+      ];
+      const attempedProviders = [providerKey];
+
+      try {
+        generatedQuiz = await provider.generateQuestions(config);
+      } catch (error) {
+        console.warn(`Provider ${providerKey} failed:`, error);
+
+        // Try fallback providers in order
+        for (const fallbackKey of fallbackOrder) {
+          if (attempedProviders.includes(fallbackKey)) continue;
+
+          try {
+            console.log(`Trying fallback provider: ${fallbackKey}`);
+            const fallbackProvider = getProvider(fallbackKey);
+            generatedQuiz = await fallbackProvider.generateQuestions(config);
+            providerKey = fallbackKey;
+            console.log(`Fallback to ${fallbackKey} succeeded`);
+            break;
+          } catch (fallbackError) {
+            console.warn(
+              `Fallback provider ${fallbackKey} also failed:`,
+              fallbackError
+            );
+            attempedProviders.push(fallbackKey);
+          }
+        }
+
+        if (!generatedQuiz) {
+          throw new Error(
+            `All AI providers failed. Attempted: ${attempedProviders.join(
+              ", "
+            )}. Last error: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`
+          );
+        }
+      }
+
+      if (!generatedQuiz) {
+        throw new Error("Failed to generate quiz with any provider");
+      }
 
       // Get difficulty tier
       const difficultyTier = getDifficultyTier(config.difficultyLevel);

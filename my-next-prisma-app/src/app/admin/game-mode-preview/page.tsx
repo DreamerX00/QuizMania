@@ -2,12 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 
+type SchemaField = {
+  type: string;
+  items?: {
+    type: string;
+  };
+  optional?: boolean;
+};
+
+type Schema = Record<string, SchemaField>;
+
 const schemaList = [
   { name: "Default", file: "default.json" },
   { name: "Premium", file: "premium.json" },
 ];
 
-const fetchSchema = async (file: string) => {
+const fetchSchema = async (file: string): Promise<Schema> => {
   const res = await fetch(`/schemas/game-modes/v1/${file}`);
   if (!res.ok) throw new Error("Failed to load schema");
   return res.json();
@@ -17,10 +27,14 @@ export default function GameModePreviewPage() {
   const [selected, setSelected] = useState(
     schemaList[0]?.file || "default.json"
   );
-  const [schema, setSchema] = useState<any>(null);
+  const [schema, setSchema] = useState<Schema | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rollbackVersion, setRollbackVersion] = useState("");
-  const [rollbackResult, setRollbackResult] = useState<any>(null);
+  const [rollbackResult, setRollbackResult] = useState<{
+    error?: string;
+    success?: boolean;
+    message?: string;
+  } | null>(null);
   const [rollbackLoading, setRollbackLoading] = useState(false);
 
   useEffect(() => {
@@ -41,7 +55,7 @@ export default function GameModePreviewPage() {
       });
       const data = await res.json();
       setRollbackResult(data);
-    } catch (err) {
+    } catch {
       setRollbackResult({ error: "Rollback failed" });
     } finally {
       setRollbackLoading(false);

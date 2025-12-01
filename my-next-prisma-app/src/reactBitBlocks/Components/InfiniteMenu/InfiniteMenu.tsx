@@ -1106,17 +1106,17 @@ class InfiniteGridMenu {
     gl.uniformMatrix4fv(
       this.discLocations.uWorldMatrix,
       false,
-      this.worldMatrix
+      this.worldMatrix as Float32Array
     );
     gl.uniformMatrix4fv(
       this.discLocations.uViewMatrix,
       false,
-      this.camera.matrices.view
+      this.camera.matrices.view as Float32Array
     );
     gl.uniformMatrix4fv(
       this.discLocations.uProjectionMatrix,
       false,
-      this.camera.matrices.projection
+      this.camera.matrices.projection as Float32Array
     );
     gl.uniform3f(
       this.discLocations.uCameraPosition,
@@ -1231,10 +1231,13 @@ class InfiniteGridMenu {
     let maxD = -1;
     let nearestVertexIndex = 0;
     for (let i = 0; i < this.instancePositions.length; ++i) {
-      const d = vec3.dot(nt, this.instancePositions[i]);
-      if (d > maxD) {
-        maxD = d;
-        nearestVertexIndex = i;
+      const pos = this.instancePositions[i];
+      if (pos) {
+        const d = vec3.dot(nt, pos);
+        if (d > maxD) {
+          maxD = d;
+          nearestVertexIndex = i;
+        }
       }
     }
     return nearestVertexIndex;
@@ -1242,6 +1245,9 @@ class InfiniteGridMenu {
 
   private getVertexWorldPosition(index: number): vec3 {
     const nearestVertexPos = this.instancePositions[index];
+    if (!nearestVertexPos) {
+      throw new Error(`No position found at index ${index}`);
+    }
     return vec3.transformQuat(
       vec3.create(),
       nearestVertexPos,

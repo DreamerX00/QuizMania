@@ -38,6 +38,9 @@ interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
+export const dynamic = "force-dynamic";
+export const revalidate = 300; // 5 minutes cache for user profiles
+
 export async function GET(request: Request, context: RouteContext) {
   const { id } = await context.params;
   const currentUser = await getCurrentUser();

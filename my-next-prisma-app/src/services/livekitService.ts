@@ -1,9 +1,9 @@
-import { AccessToken, VideoGrant } from 'livekit-server-sdk';
+import { AccessToken, VideoGrant } from "livekit-server-sdk";
 
 // LiveKit configuration
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
-const LIVEKIT_URL = process.env.LIVEKIT_URL || 'wss://livekit.example.com';
+const LIVEKIT_URL = process.env.LIVEKIT_URL || "wss://livekit.example.com";
 
 // Health check configuration
 const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
@@ -24,7 +24,7 @@ class LiveKitService {
     isHealthy: true,
     lastCheck: new Date(),
     consecutiveFailures: 0,
-    fallbackActive: false
+    fallbackActive: false,
   };
 
   private healthCheckInterval?: NodeJS.Timeout;
@@ -36,19 +36,23 @@ class LiveKitService {
   /**
    * Generate LiveKit access token for a user
    */
-  async generateToken(userId: string, roomName: string, options?: {
-    canPublish?: boolean;
-    canSubscribe?: boolean;
-    canPublishData?: boolean;
-    metadata?: string;
-  }): Promise<string> {
+  async generateToken(
+    userId: string,
+    roomName: string,
+    options?: {
+      canPublish?: boolean;
+      canSubscribe?: boolean;
+      canPublishData?: boolean;
+      metadata?: string;
+    }
+  ): Promise<string> {
     if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
-      throw new Error('LiveKit API credentials not configured');
+      throw new Error("LiveKit API credentials not configured");
     }
 
     const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity: userId,
-      metadata: options?.metadata || ''
+      metadata: options?.metadata || "",
     });
 
     const grant: VideoGrant = {
@@ -69,36 +73,41 @@ class LiveKitService {
   async checkHealth(): Promise<boolean> {
     try {
       // Simple health check - try to generate a test token
-      await this.generateToken('health-check', 'test-room');
-      
+      await this.generateToken("health-check", "test-room");
+
       // If we reach here, LiveKit is healthy
       this.healthStatus.isHealthy = true;
       this.healthStatus.consecutiveFailures = 0;
       this.healthStatus.lastError = undefined;
-      
+
       // If fallback was active, check if we can switch back
       if (this.healthStatus.fallbackActive) {
-        const fallbackDuration = Date.now() - (this.healthStatus.fallbackSince?.getTime() || 0);
+        const fallbackDuration =
+          Date.now() - (this.healthStatus.fallbackSince?.getTime() || 0);
         if (fallbackDuration > FALLBACK_COOLDOWN) {
           this.healthStatus.fallbackActive = false;
           this.healthStatus.fallbackSince = undefined;
-          console.log('LiveKit recovered, switching back from fallback mode');
+          console.log("LiveKit recovered, switching back from fallback mode");
         }
       }
-      
+
       return true;
     } catch (error) {
       this.healthStatus.isHealthy = false;
       this.healthStatus.consecutiveFailures++;
-      this.healthStatus.lastError = error instanceof Error ? error.message : 'Unknown error';
-      
+      this.healthStatus.lastError =
+        error instanceof Error ? error.message : "Unknown error";
+
       // Activate fallback if threshold is reached
-      if (this.healthStatus.consecutiveFailures >= FALLBACK_THRESHOLD && !this.healthStatus.fallbackActive) {
+      if (
+        this.healthStatus.consecutiveFailures >= FALLBACK_THRESHOLD &&
+        !this.healthStatus.fallbackActive
+      ) {
         this.healthStatus.fallbackActive = true;
         this.healthStatus.fallbackSince = new Date();
-        console.warn('LiveKit health check failed, activating fallback mode');
+        console.warn("LiveKit health check failed, activating fallback mode");
       }
-      
+
       return false;
     } finally {
       this.healthStatus.lastCheck = new Date();
@@ -144,7 +153,7 @@ class LiveKitService {
   forceFallback(): void {
     this.healthStatus.fallbackActive = true;
     this.healthStatus.fallbackSince = new Date();
-    console.log('LiveKit fallback mode forced manually');
+    console.log("LiveKit fallback mode forced manually");
   }
 
   /**
@@ -154,7 +163,7 @@ class LiveKitService {
     this.healthStatus.fallbackActive = false;
     this.healthStatus.fallbackSince = undefined;
     this.healthStatus.consecutiveFailures = 0;
-    console.log('LiveKit fallback mode reset manually');
+    console.log("LiveKit fallback mode reset manually");
   }
 }
 
@@ -162,4 +171,4 @@ class LiveKitService {
 export const livekitService = new LiveKitService();
 
 // Export types for use in other modules
-export type { LiveKitHealthStatus }; 
+export type { LiveKitHealthStatus };

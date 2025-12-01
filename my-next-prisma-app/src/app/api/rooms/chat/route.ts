@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+// NO cache - real-time chat
 
 // GET: Fetch recent chat messages for a room
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -42,7 +45,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

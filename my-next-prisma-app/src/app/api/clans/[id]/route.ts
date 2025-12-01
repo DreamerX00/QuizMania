@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 300; // 5 minutes cache
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +13,7 @@ export async function GET(
 ) {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -54,7 +57,7 @@ export const PATCH = withValidation(
   ) => {
     try {
       const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+      const userId = currentUser?.id;
       if (!userId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }

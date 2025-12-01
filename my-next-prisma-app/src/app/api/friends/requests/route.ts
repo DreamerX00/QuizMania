@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 
+export const dynamic = "force-dynamic";
+// NO cache - real-time friend requests
+
 // GET: List all pending friend requests for the authenticated user
-export async function GET(request: NextRequest) {
+
+export async function GET() {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
@@ -58,6 +62,7 @@ const friendRequestActionSchema = z.object({
 
 export const POST = withValidation(
   friendRequestActionSchema,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async (request: any) => {
     try {
       const currentUser = await getCurrentUser();

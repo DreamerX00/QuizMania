@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getRankByXP } from "@/utils/rank";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 300; // 5 minutes cache
+
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }

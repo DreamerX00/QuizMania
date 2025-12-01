@@ -1,4 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 300; // 5 minutes cache
 
 export async function GET(request: Request, context: any) {
   const { id } = await context.params;
@@ -11,4 +14,4 @@ export async function GET(request: Request, context: any) {
     dollarValue: 49.99,
     userId: id,
   });
-} 
+}

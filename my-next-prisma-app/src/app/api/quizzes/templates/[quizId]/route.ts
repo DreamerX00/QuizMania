@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from "@/lib/session";
 import { QuizAttemptService } from "@/services/quizAttemptService";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 600; // 10 minutes cache
+
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+    const userId = currentUser?.id;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -40,7 +43,7 @@ export const DELETE = withValidation(
   async (request: any, { params }: { params: { quizId: string } }) => {
     try {
       const currentUser = await getCurrentUser();
-  const userId = currentUser?.id;
+      const userId = currentUser?.id;
       if (!userId) {
         return new NextResponse("Unauthorized", { status: 401 });
       }

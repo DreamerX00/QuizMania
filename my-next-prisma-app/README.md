@@ -10,22 +10,23 @@ A modern, scalable quiz platform built with Next.js 15, React 19, TypeScript, an
 - **Admin Dashboard** - Comprehensive moderation and analytics
 - **Containerized Deployment** - Docker with production optimizations
 - **Security Hardened** - Enterprise-level security measures
-- **Monitoring Ready** - Prometheus and Grafana integration
+- **Production Ready** - Optimized for Vercel deployment
 
 ## 🏗️ Tech Stack
 
 - **Frontend**: Next.js 15.3.4, React 19, TypeScript 5
-- **Database**: PostgreSQL 15.6 with Prisma 6.11.1 ORM
+- **Database**: PostgreSQL 15.6 with Prisma 6.19.0 ORM + **Prisma Accelerate** (caching & connection pooling)
 - **Authentication**: Clerk with role-based access control
 - **Real-time**: WebSocket server with LiveKit voice integration
-- **Caching**: Redis 7.2 for session management
+- **Caching**: Redis 7.2 for session management + Prisma Accelerate for query caching
 - **Payments**: Razorpay integration
-- **Deployment**: Docker containerization
-- **Monitoring**: Prometheus metrics with Grafana dashboards
+- **Deployment**: Docker containerization & Vercel support
+- **Monitoring**: Cloud-native monitoring ready (Vercel Analytics, Sentry)
 
 ## 🐳 Quick Start with Docker
 
 ### Production Deployment (Recommended)
+
 ```bash
 # Clone and setup
 git clone <repository-url>
@@ -40,11 +41,10 @@ docker-compose up -d
 # Access application
 # - App: http://localhost:3000
 # - Admin: http://localhost:3000/admin
-# - Grafana: http://localhost:3001
-# - Prometheus: http://localhost:9090
 ```
 
 ### Development Setup
+
 ```bash
 # Install dependencies
 npm install
@@ -102,10 +102,8 @@ OPENAI_API_KEY=sk-...
 ADMIN_SECRET_KEY=your_admin_secret_key
 ENCRYPTION_KEY=your_32_char_encryption_key
 
-# Monitoring & Analytics
+# Analytics (Optional)
 NEXT_PUBLIC_ANALYTICS_ID=your_analytics_id
-PROMETHEUS_PORT=9090
-GRAFANA_PORT=3001
 
 # Production Settings
 NODE_ENV=production
@@ -115,6 +113,7 @@ NEXT_PUBLIC_APP_URL=https://your-domain.com
 ## 🔐 Security Features
 
 ### Production Security Measures
+
 - **Admin Authentication**: Role-based access control with secure middleware
 - **Rate Limiting**: API endpoint protection against abuse
 - **Input Sanitization**: XSS and injection prevention
@@ -122,6 +121,7 @@ NEXT_PUBLIC_APP_URL=https://your-domain.com
 - **Container Security**: Isolated Docker deployment with least privilege
 
 ### Security Audit Results
+
 - ✅ **Development helpers removed** - No debug interfaces in production
 - ✅ **Admin routes secured** - Authentication required for sensitive operations
 - ✅ **Input validation** - All user inputs sanitized and validated
@@ -130,18 +130,21 @@ NEXT_PUBLIC_APP_URL=https://your-domain.com
 ## 🎮 Core Features
 
 ### Multiplayer Arena
+
 - Real-time quiz battles with WebSocket synchronization
 - Voice chat integration with LiveKit
 - Ranking system with ELO-based matchmaking
 - Live spectator mode
 
 ### Quiz Management
+
 - Dynamic quiz creation with AI assistance
 - Template system for reusable content
 - Premium quiz marketplace
 - Advanced analytics and reporting
 
 ### User Experience
+
 - Responsive design for all devices
 - Dark/light theme support
 - Progressive Web App (PWA) capabilities
@@ -150,6 +153,7 @@ NEXT_PUBLIC_APP_URL=https://your-domain.com
 ## 📊 Monitoring & Analytics
 
 ### Health Monitoring
+
 ```bash
 # Check application health
 curl http://localhost:3000/api/health
@@ -161,20 +165,26 @@ curl http://localhost:3000/api/livekit/health
 curl http://localhost:3001/healthz
 ```
 
-### Metrics Dashboard
-- **Grafana**: http://localhost:3001 (admin/admin)
-- **Prometheus**: http://localhost:9090
-- **Application Metrics**: Real-time performance data
-- **Business Metrics**: User engagement and revenue analytics
+### Production Monitoring
+
+For production deployment on Vercel, consider these monitoring solutions:
+
+- **Vercel Analytics**: Built-in performance monitoring
+- **Sentry**: Error tracking and performance monitoring
+- **LogRocket**: Session replay and debugging
+- **Prisma Pulse**: Database change tracking (optional)
 
 ## 🗣️ Voice Chat Setup
 
 ### LiveKit Configuration
+
 1. **Get LiveKit credentials:**
+
    - Sign up at [LiveKit Cloud](https://cloud.livekit.io/) or self-host
    - Get API key and secret from dashboard
 
 2. **Environment setup:**
+
    ```env
    LIVEKIT_API_KEY=your_livekit_api_key
    LIVEKIT_API_SECRET=your_livekit_secret
@@ -190,6 +200,7 @@ curl http://localhost:3001/healthz
    ```
 
 ### Voice Chat Features
+
 - **Automatic Fallback**: WebRTC fallback when LiveKit unavailable
 - **Health Monitoring**: Real-time service status checking
 - **Admin Controls**: Voice channel management and moderation
@@ -198,6 +209,7 @@ curl http://localhost:3001/healthz
 ## 🛠️ Development
 
 ### Local Development
+
 ```bash
 # Install dependencies
 npm install
@@ -214,6 +226,7 @@ cd ws-server && npm run dev  # WebSocket server (port 3001)
 ```
 
 ### Build & Deploy
+
 ```bash
 # Production build
 npm run build
@@ -226,6 +239,7 @@ docker-compose up -d
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 npm test
@@ -261,16 +275,19 @@ my-next-prisma-app/
 ## 🚦 API Endpoints
 
 ### Public APIs
+
 - `GET /api/health` - Application health status
 - `GET /api/quizzes` - Public quiz listings
 - `POST /api/auth/login` - User authentication
 
 ### Protected APIs
+
 - `POST /api/quizzes/create` - Create new quiz
 - `GET /api/users/[id]/stats` - User statistics
 - `POST /api/premium/subscribe` - Premium subscription
 
 ### Admin APIs (Secured)
+
 - `GET /api/admin/moderation` - Moderation dashboard
 - `POST /api/admin/moderation/secure` - Security actions
 - `GET /api/admin/moderation/logs` - Audit logs
@@ -278,6 +295,7 @@ my-next-prisma-app/
 ## 🎯 Production Deployment
 
 ### Prerequisites
+
 - Docker & Docker Compose
 - PostgreSQL 15+ database
 - Redis instance
@@ -285,18 +303,22 @@ my-next-prisma-app/
 - Domain with SSL certificate
 
 ### Deployment Steps
+
 1. **Environment Setup:**
+
    ```bash
    cp env.example .env.local
    # Configure all environment variables
    ```
 
 2. **Database Migration:**
+
    ```bash
    npx prisma migrate deploy
    ```
 
 3. **Container Deployment:**
+
    ```bash
    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
    ```

@@ -17,9 +17,16 @@ export function getRankByXP(xp: number): RankProgress {
   const next = RANK_TIERS[tierIndex + 1] || null;
 
   if (!current) {
-    // Fallback if no tier found
-    const fallbackTier = RANK_TIERS[0] || {
+    // Fallback if no tier found - use first tier
+    const fallbackTier: RankTier = RANK_TIERS[0] || {
+      tier: 1,
       name: "Novice",
+      emoji: "🌱",
+      description: "Starting your journey",
+      theme: "Minimal Starter",
+      colorScheme: ["#7ecbff", "#f5faff"],
+      cardUI: "Simple card",
+      badgeConcept: "Basic badge",
       xpMin: 0,
       xpMax: 100,
     };

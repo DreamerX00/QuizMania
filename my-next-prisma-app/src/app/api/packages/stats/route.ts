@@ -1,14 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/session';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 600; // 10 minutes cache
 
 export async function GET(req: NextRequest) {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const packageId = req.nextUrl.searchParams.get('id');
-  if (!packageId) return NextResponse.json({ error: 'Package ID is required' }, { status: 400 });
+  const packageId = req.nextUrl.searchParams.get("id");
+  if (!packageId)
+    return NextResponse.json(
+      { error: "Package ID is required" },
+      { status: 400 }
+    );
 
   try {
     // Get the package with real-time stats
@@ -24,12 +32,12 @@ export async function GET(req: NextRequest) {
         averageRating: true,
         averageScore: true,
         quizIds: true,
-        userId: true
-      }
+        userId: true,
+      },
     });
 
     if (!pkg || pkg.userId !== userId) {
-      return NextResponse.json({ error: 'Package not found' }, { status: 404 });
+      return NextResponse.json({ error: "Package not found" }, { status: 404 });
     }
 
     // Return the real-time stats directly from the package
@@ -40,11 +48,13 @@ export async function GET(req: NextRequest) {
       averageRating: pkg.averageRating,
       averageScore: pkg.averageScore,
       quizCount: pkg.quizIds.length,
-      packagePrice: pkg.price
+      packagePrice: pkg.price,
     });
-
   } catch (error) {
-    console.error('Error fetching package stats:', error);
-    return NextResponse.json({ error: 'Failed to fetch package statistics' }, { status: 500 });
+    console.error("Error fetching package stats:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch package statistics" },
+      { status: 500 }
+    );
   }
-} 
+}

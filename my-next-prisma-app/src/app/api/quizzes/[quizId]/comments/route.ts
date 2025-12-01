@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { QuizAttemptService } from "@/services/quizAttemptService";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 180; // 3 minutes cache for comments
+
 const PAGE_SIZE = 10;
 
 export async function GET(request: NextRequest) {

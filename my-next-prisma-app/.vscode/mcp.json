@@ -3,6 +3,15 @@
     "QuizMania Docs": {
       "type": "sse",
       "url": "https://gitmcp.io/DreamerX00/QuizMania"
+    },
+    "Neon": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@neondatabase/mcp-server-neon",
+        "start",
+        "napi_43t2zb70xkdbyq2m9ls2utm4tjfaom6r79ln3hyssi2che4tzqwhtpvwk1d016p7"
+      ]
     }
   }
 }

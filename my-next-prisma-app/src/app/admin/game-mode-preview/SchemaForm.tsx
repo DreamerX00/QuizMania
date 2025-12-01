@@ -2,21 +2,27 @@ import React, { useState } from "react";
 
 type SchemaField = {
   type: string;
-  items?: any;
+  items?: {
+    type: string;
+  };
   optional?: boolean;
 };
 
 type Schema = Record<string, SchemaField>;
 
 export default function SchemaForm({ schema }: { schema: Schema }) {
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState<Record<string, unknown>>({});
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
-  const [apiResult, setApiResult] = useState<any>(null);
+  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [apiResult, setApiResult] = useState<{
+    error?: string;
+    valid?: boolean;
+    errors?: unknown;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (key: string, value: any) => {
-    setForm((f: any) => ({ ...f, [key]: value }));
+  const handleChange = (key: string, value: unknown) => {
+    setForm((f: Record<string, unknown>) => ({ ...f, [key]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +50,7 @@ export default function SchemaForm({ schema }: { schema: Schema }) {
       });
       const data = await res.json();
       setApiResult(data);
-    } catch (err) {
+    } catch {
       setApiResult({ error: "API validation failed" });
     } finally {
       setLoading(false);
@@ -59,7 +65,7 @@ export default function SchemaForm({ schema }: { schema: Schema }) {
           {field.type === "string" && (
             <input
               type="text"
-              value={form[key] || ""}
+              value={(form[key] as string) || ""}
               onChange={(e) => handleChange(key, e.target.value)}
               className="border p-2 rounded w-full"
             />
@@ -67,14 +73,14 @@ export default function SchemaForm({ schema }: { schema: Schema }) {
           {field.type === "number" && (
             <input
               type="number"
-              value={form[key] || ""}
+              value={(form[key] as number) || ""}
               onChange={(e) => handleChange(key, Number(e.target.value))}
               className="border p-2 rounded w-full"
             />
           )}
           {field.type === "array" && field.items?.type === "string" && (
             <textarea
-              value={form[key]?.join("\n") || ""}
+              value={(form[key] as string[])?.join("\n") || ""}
               onChange={(e) => handleChange(key, e.target.value.split("\n"))}
               className="border p-2 rounded w-full"
               placeholder="One item per line"
