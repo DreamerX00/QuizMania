@@ -81,15 +81,5 @@
       "source": "/api/ws/:path*",
       "destination": "https://your-ws-server.railway.app/:path*"
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/admin/cleanup-sessions",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/leaderboard/weekly-reset",
-      "schedule": "59 23 * * 0"
-    }
   ]
 }
