@@ -1,5 +1,5 @@
 import prisma from "../lib/prisma";
-import { redisClient } from "../../ws-server/config/redis";
+import { getRedisClient } from "../lib/redis";
 
 const MUTE_PREFIX = "mute:"; // mute:{roomId}:{userId}
 const BLOCK_PREFIX = "block:"; // block:{userId}:{blockedId}
@@ -11,9 +11,10 @@ export async function muteUser(
   byId: string,
   reason?: string
 ) {
-  await redisClient.set(`${MUTE_PREFIX}${roomId}:${userId}`, "1", {
-    EX: MUTE_TTL,
-  });
+  const redis = getRedisClient();
+  if (redis) {
+    await redis.set(`${MUTE_PREFIX}${roomId}:${userId}`, "1", "EX", MUTE_TTL);
+  }
   await logModerationAction("mute", userId, byId, reason, { roomId });
 }
 export async function unmuteUser(
@@ -22,11 +23,16 @@ export async function unmuteUser(
   byId: string,
   reason?: string
 ) {
-  await redisClient.del(`${MUTE_PREFIX}${roomId}:${userId}`);
+  const redis = getRedisClient();
+  if (redis) {
+    await redis.del(`${MUTE_PREFIX}${roomId}:${userId}`);
+  }
   await logModerationAction("unmute", userId, byId, reason, { roomId });
 }
 export async function isMuted(roomId: string, userId: string) {
-  return !!(await redisClient.get(`${MUTE_PREFIX}${roomId}:${userId}`));
+  const redis = getRedisClient();
+  if (!redis) return false;
+  return !!(await redis.get(`${MUTE_PREFIX}${roomId}:${userId}`));
 }
 export async function blockUser(
   userId: string,
@@ -34,7 +40,10 @@ export async function blockUser(
   byId: string,
   reason?: string
 ) {
-  await redisClient.set(`${BLOCK_PREFIX}${userId}:${blockedId}`, "1");
+  const redis = getRedisClient();
+  if (redis) {
+    await redis.set(`${BLOCK_PREFIX}${userId}:${blockedId}`, "1");
+  }
   await logModerationAction("block", blockedId, byId, reason);
 }
 export async function unblockUser(
@@ -43,11 +52,16 @@ export async function unblockUser(
   byId: string,
   reason?: string
 ) {
-  await redisClient.del(`${BLOCK_PREFIX}${userId}:${blockedId}`);
+  const redis = getRedisClient();
+  if (redis) {
+    await redis.del(`${BLOCK_PREFIX}${userId}:${blockedId}`);
+  }
   await logModerationAction("unblock", blockedId, byId, reason);
 }
 export async function isBlocked(userId: string, blockedId: string) {
-  return !!(await redisClient.get(`${BLOCK_PREFIX}${userId}:${blockedId}`));
+  const redis = getRedisClient();
+  if (!redis) return false;
+  return !!(await redis.get(`${BLOCK_PREFIX}${userId}:${blockedId}`));
 }
 export async function reportUser(
   targetId: string,
