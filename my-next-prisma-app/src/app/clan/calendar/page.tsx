@@ -1,15 +1,42 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Plus, Users, Clock, MapPin, Bell, CheckCircle, XCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Calendar,
+  Plus,
+  Users,
+  Clock,
+  MapPin,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 
 interface ClanEvent {
   id: string;
@@ -21,8 +48,8 @@ interface ClanEvent {
   location: string;
   maxParticipants: number;
   currentParticipants: number;
-  eventType: 'tournament' | 'practice' | 'social' | 'meeting';
-  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  eventType: "tournament" | "practice" | "social" | "meeting";
+  status: "upcoming" | "ongoing" | "completed" | "cancelled";
   createdBy: string;
   rsvpList: RSVP[];
 }
@@ -30,14 +57,14 @@ interface ClanEvent {
 interface RSVP {
   userId: string;
   userName: string;
-  status: 'going' | 'maybe' | 'not-going';
+  status: "going" | "maybe" | "not-going";
   respondedAt: Date;
 }
 
 interface Clan {
   id: string;
   name: string;
-  role: 'LEADER' | 'ELDER' | 'MEMBER';
+  role: "LEADER" | "ELDER" | "MEMBER";
 }
 
 export default function ClanCalendarPage() {
@@ -49,14 +76,14 @@ export default function ClanCalendarPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({
-    title: '',
-    description: '',
-    date: '',
-    time: '',
+    title: "",
+    description: "",
+    date: "",
+    time: "",
     duration: 60,
-    location: '',
+    location: "",
     maxParticipants: 10,
-    eventType: 'practice' as const
+    eventType: "practice" as const,
   });
 
   useEffect(() => {
@@ -68,25 +95,27 @@ export default function ClanCalendarPage() {
   const loadClanData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Fetch user's clan
-      const clanResponse = await fetch('/api/user/clan');
+      const clanResponse = await fetch("/api/user/clan");
       if (clanResponse.ok) {
         const clanData = await clanResponse.json();
         setClan(clanData);
       }
 
       // Fetch clan events
-      const eventsResponse = await fetch('/api/clan/events');
+      const eventsResponse = await fetch("/api/clan/events");
       if (eventsResponse.ok) {
         const eventsData = await eventsResponse.json();
-        setEvents(eventsData.map((event: any) => ({
-          ...event,
-          date: new Date(event.date)
-        })));
+        setEvents(
+          eventsData.map((event: any) => ({
+            ...event,
+            date: new Date(event.date),
+          }))
+        );
       }
     } catch (error) {
-      console.error('Error loading clan data:', error);
+      console.error("Error loading clan data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -94,71 +123,84 @@ export default function ClanCalendarPage() {
 
   const handleCreateEvent = async () => {
     try {
-      const response = await fetch('/api/clan/events', {
-        method: 'POST',
+      const response = await fetch("/api/clan/events", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(newEvent),
       });
 
       if (response.ok) {
         const createdEvent = await response.json();
-        setEvents(prev => [...prev, { ...createdEvent, date: new Date(createdEvent.date) }]);
+        setEvents((prev) => [
+          ...prev,
+          { ...createdEvent, date: new Date(createdEvent.date) },
+        ]);
         setIsCreateDialogOpen(false);
         setNewEvent({
-          title: '',
-          description: '',
-          date: '',
-          time: '',
+          title: "",
+          description: "",
+          date: "",
+          time: "",
           duration: 60,
-          location: '',
+          location: "",
           maxParticipants: 10,
-          eventType: 'practice'
+          eventType: "practice",
         });
       }
     } catch (error) {
-      console.error('Error creating event:', error);
+      console.error("Error creating event:", error);
     }
   };
 
-  const handleRSVP = async (eventId: string, status: 'going' | 'maybe' | 'not-going') => {
+  const handleRSVP = async (
+    eventId: string,
+    status: "going" | "maybe" | "not-going"
+  ) => {
     try {
       const response = await fetch(`/api/clan/events/${eventId}/rsvp`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ status }),
       });
 
       if (response.ok) {
         // Update local state
-        setEvents(prev => prev.map(event => {
-          if (event.id === eventId) {
-            const updatedRsvpList = event.rsvpList.filter(rsvp => rsvp.userId !== user?.id);
-            updatedRsvpList.push({
-              userId: user?.id || '',
-              userName: user?.name || '',
-              status,
-              respondedAt: new Date()
-            });
-            return {
-              ...event,
-              rsvpList: updatedRsvpList,
-              currentParticipants: status === 'going' ? event.currentParticipants + 1 : event.currentParticipants
-            };
-          }
-          return event;
-        }));
+        setEvents((prev) =>
+          prev.map((event) => {
+            if (event.id === eventId) {
+              const updatedRsvpList = event.rsvpList.filter(
+                (rsvp) => rsvp.userId !== user?.id
+              );
+              updatedRsvpList.push({
+                userId: user?.id || "",
+                userName: user?.name || "",
+                status,
+                respondedAt: new Date(),
+              });
+              return {
+                ...event,
+                rsvpList: updatedRsvpList,
+                currentParticipants:
+                  status === "going"
+                    ? event.currentParticipants + 1
+                    : event.currentParticipants,
+              };
+            }
+            return event;
+          })
+        );
       }
     } catch (error) {
-      console.error('Error updating RSVP:', error);
+      console.error("Error updating RSVP:", error);
     }
   };
 
   const getEventsForDate = (date: Date) => {
-    return events.filter(event => {
+    return events.filter((event) => {
       const eventDate = new Date(event.date);
       return eventDate.toDateString() === date.toDateString();
     });
@@ -166,21 +208,21 @@ export default function ClanCalendarPage() {
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
-      case 'tournament':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'practice':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'social':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'meeting':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      case "tournament":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "practice":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "social":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "meeting":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
   const getUserRSVP = (event: ClanEvent) => {
-    return event.rsvpList.find(rsvp => rsvp.userId === user?.id);
+    return event.rsvpList.find((rsvp) => rsvp.userId === user?.id);
   };
 
   const generateCalendarDays = () => {
@@ -192,7 +234,7 @@ export default function ClanCalendarPage() {
     const startingDay = firstDay.getDay();
 
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDay; i++) {
       days.push(null);
@@ -263,7 +305,10 @@ export default function ClanCalendarPage() {
             ← Previous
           </Button>
           <h2 className="text-xl font-semibold">
-            {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            {selectedDate.toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric",
+            })}
           </h2>
           <Button
             variant="outline"
@@ -277,8 +322,11 @@ export default function ClanCalendarPage() {
           </Button>
         </div>
 
-        {(clan.role === 'LEADER' || clan.role === 'ELDER') && (
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        {(clan.role === "LEADER" || clan.role === "ELDER") && (
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -296,23 +344,34 @@ export default function ClanCalendarPage() {
                 <Input
                   placeholder="Event Title"
                   value={newEvent.title}
-                  onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setNewEvent((prev) => ({ ...prev, title: e.target.value }))
+                  }
                 />
                 <Textarea
                   placeholder="Event Description"
                   value={newEvent.description}
-                  onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) =>
+                    setNewEvent((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
                 />
                 <div className="grid grid-cols-2 gap-4">
                   <Input
                     type="date"
                     value={newEvent.date}
-                    onChange={(e) => setNewEvent(prev => ({ ...prev, date: e.target.value }))}
+                    onChange={(e) =>
+                      setNewEvent((prev) => ({ ...prev, date: e.target.value }))
+                    }
                   />
                   <Input
                     type="time"
                     value={newEvent.time}
-                    onChange={(e) => setNewEvent(prev => ({ ...prev, time: e.target.value }))}
+                    onChange={(e) =>
+                      setNewEvent((prev) => ({ ...prev, time: e.target.value }))
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -320,23 +379,43 @@ export default function ClanCalendarPage() {
                     type="number"
                     placeholder="Duration (minutes)"
                     value={newEvent.duration}
-                    onChange={(e) => setNewEvent(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
+                    onChange={(e) =>
+                      setNewEvent((prev) => ({
+                        ...prev,
+                        duration: parseInt(e.target.value),
+                      }))
+                    }
                   />
                   <Input
                     type="number"
                     placeholder="Max Participants"
                     value={newEvent.maxParticipants}
-                    onChange={(e) => setNewEvent(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) }))}
+                    onChange={(e) =>
+                      setNewEvent((prev) => ({
+                        ...prev,
+                        maxParticipants: parseInt(e.target.value),
+                      }))
+                    }
                   />
                 </div>
                 <Input
                   placeholder="Location"
                   value={newEvent.location}
-                  onChange={(e) => setNewEvent(prev => ({ ...prev, location: e.target.value }))}
+                  onChange={(e) =>
+                    setNewEvent((prev) => ({
+                      ...prev,
+                      location: e.target.value,
+                    }))
+                  }
                 />
                 <Select
                   value={newEvent.eventType}
-                  onValueChange={(value) => setNewEvent(prev => ({ ...prev, eventType: value as any }))}
+                  onValueChange={(value) =>
+                    setNewEvent((prev) => ({
+                      ...prev,
+                      eventType: value as any,
+                    }))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Event Type" />
@@ -362,7 +441,7 @@ export default function ClanCalendarPage() {
         <CardContent className="p-6">
           {/* Day Headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
               <div key={day} className="text-center font-medium text-sm py-2">
                 {day}
               </div>
@@ -373,7 +452,12 @@ export default function ClanCalendarPage() {
           <div className="grid grid-cols-7 gap-1">
             {calendarDays.map((day, index) => {
               if (!day) {
-                return <div key={index} className="h-32 border border-gray-200 dark:border-gray-700" />;
+                return (
+                  <div
+                    key={index}
+                    className="h-32 border border-gray-200 dark:border-gray-700"
+                  />
+                );
               }
 
               const dayEvents = getEventsForDate(day);
@@ -383,17 +467,19 @@ export default function ClanCalendarPage() {
                 <div
                   key={index}
                   className={`h-32 border border-gray-200 dark:border-gray-700 p-2 ${
-                    isToday ? 'bg-blue-50 dark:bg-blue-950' : ''
+                    isToday ? "bg-blue-50 dark:bg-blue-950" : ""
                   }`}
                 >
                   <div className="text-sm font-medium mb-1">
                     {day.getDate()}
                   </div>
                   <div className="space-y-1">
-                    {dayEvents.slice(0, 2).map(event => (
+                    {dayEvents.slice(0, 2).map((event) => (
                       <div
                         key={event.id}
-                        className={`text-xs p-1 rounded cursor-pointer ${getEventTypeColor(event.eventType)}`}
+                        className={`text-xs p-1 rounded cursor-pointer ${getEventTypeColor(
+                          event.eventType
+                        )}`}
                         onClick={() => {
                           // Open event details modal
                         }}
@@ -419,12 +505,14 @@ export default function ClanCalendarPage() {
         <h3 className="text-xl font-semibold mb-4">Upcoming Events</h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {events
-            .filter(event => event.date > new Date() && event.status === 'upcoming')
+            .filter(
+              (event) => event.date > new Date() && event.status === "upcoming"
+            )
             .sort((a, b) => a.date.getTime() - b.date.getTime())
             .slice(0, 6)
-            .map(event => {
+            .map((event) => {
               const userRSVP = getUserRSVP(event);
-              
+
               return (
                 <Card key={event.id}>
                   <CardHeader>
@@ -462,26 +550,34 @@ export default function ClanCalendarPage() {
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        variant={userRSVP?.status === 'going' ? 'default' : 'outline'}
-                        onClick={() => handleRSVP(event.id, 'going')}
+                        variant={
+                          userRSVP?.status === "going" ? "default" : "outline"
+                        }
+                        onClick={() => handleRSVP(event.id, "going")}
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
                         Going
                       </Button>
                       <Button
                         size="sm"
-                        variant={userRSVP?.status === 'maybe' ? 'default' : 'outline'}
-                        onClick={() => handleRSVP(event.id, 'maybe')}
+                        variant={
+                          userRSVP?.status === "maybe" ? "default" : "outline"
+                        }
+                        onClick={() => handleRSVP(event.id, "maybe")}
                       >
                         Maybe
                       </Button>
                       <Button
                         size="sm"
-                        variant={userRSVP?.status === 'not-going' ? 'default' : 'outline'}
-                        onClick={() => handleRSVP(event.id, 'not-going')}
+                        variant={
+                          userRSVP?.status === "not-going"
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() => handleRSVP(event.id, "not-going")}
                       >
                         <XCircle className="h-4 w-4 mr-1" />
-                        Can't Go
+                        Can&apos;t Go
                       </Button>
                     </div>
                   </CardContent>
@@ -492,4 +588,4 @@ export default function ClanCalendarPage() {
       </div>
     </div>
   );
-} 
+}

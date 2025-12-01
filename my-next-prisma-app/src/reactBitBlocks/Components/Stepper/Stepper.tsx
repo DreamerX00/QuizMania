@@ -87,7 +87,7 @@ export default function Stepper({
 
   return (
     <div
-      className="flex min-h-full flex-1 flex-col items-center justify-center p-4 sm:aspect-[4/3] md:aspect-[2/1]"
+      className="flex min-h-full flex-1 flex-col items-center justify-center p-4 sm:aspect-4/3 md:aspect-2/1"
       {...rest}
     >
       <div
@@ -288,8 +288,8 @@ function StepIndicator({
     currentStep === step
       ? "active"
       : currentStep < step
-        ? "inactive"
-        : "complete";
+      ? "inactive"
+      : "complete";
 
   const handleClick = () => {
     if (step !== currentStep && !disableStepIndicators) {
@@ -348,7 +348,7 @@ function StepConnector({ isComplete }: StepConnectorProps) {
   );
 }
 
-interface CheckIconProps extends React.SVGProps<SVGSVGElement> {}
+type CheckIconProps = React.SVGProps<SVGSVGElement>;
 
 function CheckIcon(props: CheckIconProps) {
   return (
@@ -375,4 +375,3 @@ function CheckIcon(props: CheckIconProps) {
     </svg>
   );
 }
-

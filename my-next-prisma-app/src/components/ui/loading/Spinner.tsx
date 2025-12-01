@@ -25,7 +25,7 @@ export function Spinner({
       <div
         className={cn(
           "animate-spin rounded-full border-2 border-transparent",
-          "bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500",
+          "bg-linear-to-r from-purple-500 via-pink-500 to-blue-500",
           "bg-clip-border",
           sizeMap[size],
           withGlow && "shadow-[0_0_15px_rgba(168,85,247,0.5)]",

@@ -86,7 +86,9 @@ export default function ClientLayout({
         <ThemeProvider>
           <AuthProvider>
             <WebVitals />
-            <NavigationLoader />
+            <Suspense fallback={null}>
+              <NavigationLoader />
+            </Suspense>
             <ClickSpark
               sparkColor="#3b82f6"
               sparkSize={8}

@@ -26,9 +26,9 @@ export function PageLoader({
         <Spinner size="xl" />
         {/* Pulsing ring effect */}
         <div className="absolute inset-0 rounded-full border-2 border-purple-500/30 animate-ping" />
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-blue-500/20 blur-xl animate-pulse" />
+        <div className="absolute inset-0 rounded-full bg-linear-to-r from-purple-500/20 via-pink-500/20 to-blue-500/20 blur-xl animate-pulse" />
       </div>
-      <p className="text-lg font-medium bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent animate-pulse">
+      <p className="text-lg font-medium bg-linear-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent animate-pulse">
         {text}
       </p>
     </div>

@@ -1,4 +1,4 @@
-// @ts-nocheck - Prisma Accelerate schema mismatches (requires setup)
+// Prisma Accelerate schema mismatches (requires setup)
 import prisma from "./prisma";
 
 /**
@@ -52,61 +52,56 @@ export async function getCachedQuizzes(options: {
   where?: object;
   orderBy?: object;
 }) {
-  return await prisma.quiz
-    .findMany({
-      ...options,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        tags: true,
-        imageUrl: true,
-        likeCount: true,
-        usersTaken: true,
-        createdAt: true,
-        durationInSeconds: true,
-        isLocked: true,
-        difficultyLevel: true,
-        pricePerAttempt: true,
-        pointPerAttempt: true,
-        slug: true,
-        price: true,
-        field: true,
-        subject: true,
-        creator: {
-          select: {
-            name: true,
-            image: true,
-          },
+  return await prisma.quiz.findMany({
+    ...options,
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      tags: true,
+      imageUrl: true,
+      likeCount: true,
+      usersTaken: true,
+      createdAt: true,
+      durationInSeconds: true,
+      isLocked: true,
+      difficultyLevel: true,
+      pricePerAttempt: true,
+      pointPerAttempt: true,
+      slug: true,
+      price: true,
+      field: true,
+      subject: true,
+      creator: {
+        select: {
+          name: true,
+          image: true,
         },
       },
-    })
-    .withAccelerateInfo();
+    },
+  });
 }
 
 // User Profile (Profile Page)
 export async function getCachedUserProfile(userId: string) {
-  return await prisma.user
-    .findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        role: true,
-        xp: true,
-        rank: true,
-        streak: true,
-        points: true,
-        accountType: true,
-        premiumUntil: true,
-        bio: true,
-        createdAt: true,
-      },
-      cacheStrategy: CACHE_STRATEGIES.USER_PROFILE,
-    })
-    .withAccelerateInfo();
+  return await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      role: true,
+      xp: true,
+      rank: true,
+      streak: true,
+      points: true,
+      accountType: true,
+      premiumUntil: true,
+      bio: true,
+      createdAt: true,
+    },
+  });
 }
 
 // User Statistics
@@ -114,16 +109,13 @@ export async function getCachedUserStats(userId: string) {
   const [totalAttempts, completedQuizzes, averageScore] = await Promise.all([
     prisma.aIQuizAttempt.count({
       where: { userId },
-      cacheStrategy: CACHE_STRATEGIES.USER_PROFILE,
     }),
     prisma.aIQuizAttempt.count({
       where: { userId, status: "COMPLETED" },
-      cacheStrategy: CACHE_STRATEGIES.USER_PROFILE,
     }),
     prisma.aIQuizAttempt.aggregate({
       where: { userId, status: "COMPLETED" },
       _avg: { score: true },
-      cacheStrategy: CACHE_STRATEGIES.USER_PROFILE,
     }),
   ]);
 
@@ -136,28 +128,24 @@ export async function getCachedUserStats(userId: string) {
 
 // Leaderboard (Leaderboard Page)
 export async function getCachedLeaderboard(limit = 100) {
-  return await prisma.user
-    .findMany({
-      take: limit,
-      orderBy: { points: "desc" },
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        points: true,
-        rank: true,
-        xp: true,
-      },
-      cacheStrategy: CACHE_STRATEGIES.LEADERBOARD,
-    })
-    .withAccelerateInfo();
+  return await prisma.user.findMany({
+    take: limit,
+    orderBy: { points: "desc" },
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      points: true,
+      rank: true,
+      xp: true,
+    },
+  });
 }
 
 // Popular Tags
 export async function getCachedPopularTags(limit = 20) {
   const quizzes = await prisma.quiz.findMany({
     select: { tags: true },
-    cacheStrategy: CACHE_STRATEGIES.TAGS,
   });
 
   const tagCounts = new Map<string, number>();
@@ -175,45 +163,39 @@ export async function getCachedPopularTags(limit = 20) {
 
 // Quiz Details (for display, not submission)
 export async function getCachedQuizDetails(quizId: string) {
-  return await prisma.quiz
-    .findUnique({
-      where: { id: quizId },
-      include: {
-        questions: true,
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
+  return await prisma.quiz.findUnique({
+    where: { id: quizId },
+    include: {
+      questions: true,
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
         },
       },
-      cacheStrategy: CACHE_STRATEGIES.QUIZ_LIST,
-    })
-    .withAccelerateInfo();
+    },
+  });
 }
 
 // User's Created Quizzes
 export async function getCachedUserQuizzes(userId: string) {
-  return await prisma.quiz
-    .findMany({
-      where: { creatorId: userId },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        tags: true,
-        imageUrl: true,
-        likeCount: true,
-        usersTaken: true,
-        createdAt: true,
-        isLocked: true,
-        price: true,
-      },
-      cacheStrategy: CACHE_STRATEGIES.USER_PROFILE,
-    })
-    .withAccelerateInfo();
+  return await prisma.quiz.findMany({
+    where: { creatorId: userId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      tags: true,
+      imageUrl: true,
+      likeCount: true,
+      usersTaken: true,
+      createdAt: true,
+      isLocked: true,
+      price: true,
+    },
+  });
 }
 
 /**
@@ -232,6 +214,7 @@ export async function submitQuizAttempt(data: {
   quizId: string;
   answers: object[];
   score: number;
+  totalQuestions: number;
 }) {
   // No caching for write operations
   return await prisma.aIQuizAttempt.create({
@@ -253,15 +236,7 @@ export async function getActiveQuizAttempt(userId: string, quizId: string) {
       status: "IN_PROGRESS",
     },
     include: {
-      quiz: {
-        include: {
-          questions: {
-            include: {
-              options: true,
-            },
-          },
-        },
-      },
+      quiz: true,
     },
   });
 }

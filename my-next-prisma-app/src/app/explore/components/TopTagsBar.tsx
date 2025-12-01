@@ -3,22 +3,143 @@ import { useEffect, useRef, useState } from "react";
 
 const TAG_GROUPS = [
   {
-    label: 'Popular',
-    tags: ['#Trending', '#Premium', '#Free', '#EditorsChoice', '#MostLiked', '#MostAttempted', '#Popular', '#Recommended'],
-  },
-  {
-    label: 'Difficulty',
-    tags: ['#Beginner', '#Intermediate', '#Advanced', '#Short', '#Long', '#Timed', '#Untimed', '#TimedChallenge'],
-  },
-  {
-    label: 'Subject',
+    label: "Popular",
     tags: [
-      '#Math', '#Science', '#Physics', '#Chemistry', '#Biology', '#Astronomy', '#History', '#Geography', '#Programming', '#Java', '#Python', '#C++', '#WebDev', '#DataStructures', '#Algorithms', '#AI', '#ML', '#School', '#CompetitiveExams', '#JEE', '#NEET', '#SAT', '#GRE', '#GMAT', '#Olympiad', '#Commerce', '#Economics', '#Business', '#Arts', '#Philosophy', '#Literature', '#English', '#GK', '#CurrentAffairs', '#Logic', '#Puzzles', '#Riddles', '#PictureQuiz', '#AudioQuiz', '#VideoQuiz', '#Poll', '#Essay', '#Matrix', '#Match', '#FillBlanks', '#Ordering', '#TrueFalse', '#MCQ', '#CodeOutput', '#DragDrop', '#ImageBased', '#Paragraph'
+      "#Trending",
+      "#Premium",
+      "#Free",
+      "#EditorsChoice",
+      "#MostLiked",
+      "#MostAttempted",
+      "#Popular",
+      "#Recommended",
     ],
   },
   {
-    label: 'Special',
-    tags: ['#QuizOfTheDay', '#UserCreated', '#Official', '#Community', '#Fun', '#Serious', '#Practice', '#MockTest', '#ExamPrep', '#SkillTest', '#Leaderboard', '#Pin', '#Saved', '#Favorites', '#MyQuizzes', '#Friends', '#Global', '#Local', '#Custom', '#Random', '#Surprise', '#Challenge', '#Collab', '#Live', '#Event', '#Festival', '#Holiday', '#Seasonal', '#Special', '#Anniversary', '#Milestone', '#Awarded', '#Badge', '#Streak', '#XP', '#Rank', '#Level', '#Unlock', '#Achievement', '#Goal', '#Journey', '#Adventure', '#Explore', '#Discover', '#Learn', '#Grow', '#Future', '#2100', '#Futuristic', '#Marketplace', '#QuizMania'],
+    label: "Difficulty",
+    tags: [
+      "#Beginner",
+      "#Intermediate",
+      "#Advanced",
+      "#Short",
+      "#Long",
+      "#Timed",
+      "#Untimed",
+      "#TimedChallenge",
+    ],
+  },
+  {
+    label: "Subject",
+    tags: [
+      "#Math",
+      "#Science",
+      "#Physics",
+      "#Chemistry",
+      "#Biology",
+      "#Astronomy",
+      "#History",
+      "#Geography",
+      "#Programming",
+      "#Java",
+      "#Python",
+      "#C++",
+      "#WebDev",
+      "#DataStructures",
+      "#Algorithms",
+      "#AI",
+      "#ML",
+      "#School",
+      "#CompetitiveExams",
+      "#JEE",
+      "#NEET",
+      "#SAT",
+      "#GRE",
+      "#GMAT",
+      "#Olympiad",
+      "#Commerce",
+      "#Economics",
+      "#Business",
+      "#Arts",
+      "#Philosophy",
+      "#Literature",
+      "#English",
+      "#GK",
+      "#CurrentAffairs",
+      "#Logic",
+      "#Puzzles",
+      "#Riddles",
+      "#PictureQuiz",
+      "#AudioQuiz",
+      "#VideoQuiz",
+      "#Poll",
+      "#Essay",
+      "#Matrix",
+      "#Match",
+      "#FillBlanks",
+      "#Ordering",
+      "#TrueFalse",
+      "#MCQ",
+      "#CodeOutput",
+      "#DragDrop",
+      "#ImageBased",
+      "#Paragraph",
+    ],
+  },
+  {
+    label: "Special",
+    tags: [
+      "#QuizOfTheDay",
+      "#UserCreated",
+      "#Official",
+      "#Community",
+      "#Fun",
+      "#Serious",
+      "#Practice",
+      "#MockTest",
+      "#ExamPrep",
+      "#SkillTest",
+      "#Leaderboard",
+      "#Pin",
+      "#Saved",
+      "#Favorites",
+      "#MyQuizzes",
+      "#Friends",
+      "#Global",
+      "#Local",
+      "#Custom",
+      "#Random",
+      "#Surprise",
+      "#Challenge",
+      "#Collab",
+      "#Live",
+      "#Event",
+      "#Festival",
+      "#Holiday",
+      "#Seasonal",
+      "#Special",
+      "#Anniversary",
+      "#Milestone",
+      "#Awarded",
+      "#Badge",
+      "#Streak",
+      "#XP",
+      "#Rank",
+      "#Level",
+      "#Unlock",
+      "#Achievement",
+      "#Goal",
+      "#Journey",
+      "#Adventure",
+      "#Explore",
+      "#Discover",
+      "#Learn",
+      "#Grow",
+      "#Future",
+      "#2100",
+      "#Futuristic",
+      "#Marketplace",
+      "#QuizMania",
+    ],
   },
 ];
 
@@ -33,7 +154,7 @@ export default function TopTagsBar() {
     if (!autoScroll) return;
     const el = scrollRef.current;
     if (!el) return;
-    let speed = 1.2; // px per tick
+    const speed = 1.2; // px per tick
     const interval = setInterval(() => {
       if (!el) return;
       if (direction === "right") {
@@ -94,7 +215,7 @@ export default function TopTagsBar() {
               </span>
               {/* Tags */}
               <div className="flex items-center gap-2">
-                {group.tags.map((tag, i) => (
+                {group.tags.map((tag, _i) => (
                   <span
                     key={tag}
                     className="futuristic-badge px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer bg-linear-to-r from-purple-700/30 to-blue-700/30 text-white shadow-glow hover:scale-110 hover:from-purple-500/60 hover:to-blue-500/60 transition-all duration-200 relative whitespace-nowrap border border-white/20 backdrop-blur-md hover:ring-2 hover:ring-blue-400/40"
@@ -142,4 +263,4 @@ export default function TopTagsBar() {
       `}</style>
     </div>
   );
-} 
+}

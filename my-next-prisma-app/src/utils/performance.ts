@@ -113,7 +113,7 @@ export function useRenderPerformance(componentName: string) {
         );
       }
     };
-  });
+  }, [componentName, monitor]);
 }
 
 // Lazy loading performance

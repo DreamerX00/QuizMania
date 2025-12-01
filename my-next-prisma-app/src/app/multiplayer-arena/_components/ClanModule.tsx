@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Swords, Bell, Users, Settings } from "lucide-react";
+import { Users } from "lucide-react";
 import ClanModal from "../components/ClanModal"; // Adjusted import path
 import useSWR from "swr";
 import toast from "react-hot-toast";
@@ -19,8 +19,8 @@ const ClanModule = () => {
   const myClan = clansData?.clans?.[0] || null;
   const {
     data: membersData,
-    error: membersError,
-    isLoading: membersLoading,
+    error: _membersError,
+    isLoading: _membersLoading,
   } = useSWR(myClan ? `/api/clans/members?clanId=${myClan.id}` : null, fetcher);
   const myMembership =
     membersData?.members?.find((m: any) => m.userId === myClan?.id) || null;
@@ -116,4 +116,3 @@ const ClanModule = () => {
 };
 
 export default ClanModule;
-

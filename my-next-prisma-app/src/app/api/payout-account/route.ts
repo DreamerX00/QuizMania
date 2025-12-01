@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { RazorpayService } from "@/services/razorpayService";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 300; // 5 minutes cache
 
 // GET: Check if user has a payout account
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;

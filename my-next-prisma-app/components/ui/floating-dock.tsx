@@ -62,7 +62,7 @@ const FloatingDockMobile = ({
       </AnimatePresence>
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg text-white"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-blue-600 shadow-lg text-white"
         aria-label="Open navigation menu"
       >
         <IconLayoutNavbarCollapse className="h-7 w-7" />

@@ -1,18 +1,12 @@
-import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Shield, MessageSquare, Users, Settings, Swords, Crown, UserPlus, Bell, Send, X, Target, Zap, Star } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import useSWR from 'swr';
-import toast from 'react-hot-toast';
-import ClanPanelTabs from './ClanPanelTabs';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Shield, X } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ClanPanelTabs from "./ClanPanelTabs";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
-
-const MemberCard = ({ member }: { member: any }) => (
-  <motion.div 
+const _MemberCard = ({ member }: { member: Record<string, unknown> }) => (
+  <motion.div
     whileHover={{ scale: 1.02, y: -2 }}
     className="flex items-center justify-between p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-lg hover:shadow-xl transition-all duration-300"
   >
@@ -24,19 +18,39 @@ const MemberCard = ({ member }: { member: any }) => (
         </AvatarFallback>
       </Avatar>
       <div>
-        <p className="font-semibold text-slate-700 dark:text-slate-200">{member.username}</p>
-        <p className="text-sm text-slate-500 dark:text-slate-400">{member.role}</p>
+        <p className="font-semibold text-slate-700 dark:text-slate-200">
+          {member.username}
+        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {member.role}
+        </p>
       </div>
     </div>
     <div className="flex items-center gap-2">
-      {member.role === 'Leader' && <Crown size={18} className="text-yellow-500" />}
-      {member.isMVP && <Swords size={18} className="text-purple-600 dark:text-purple-400" />}
-      <Button size="sm" variant="ghost" className="hover:bg-slate-200/50 dark:hover:bg-slate-700/50">...</Button>
+      {member.role === "Leader" && (
+        <Crown size={18} className="text-yellow-500" />
+      )}
+      {member.isMVP && (
+        <Swords size={18} className="text-purple-600 dark:text-purple-400" />
+      )}
+      <Button
+        size="sm"
+        variant="ghost"
+        className="hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
+      >
+        ...
+      </Button>
     </div>
   </motion.div>
 );
 
-const ClanHubOverlay = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+const ClanHubOverlay = ({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) => {
   return (
     <AnimatePresence>
       {open && (
@@ -54,7 +68,7 @@ const ClanHubOverlay = ({ open, onClose }: { open: boolean; onClose: () => void 
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           />
-          
+
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -66,7 +80,7 @@ const ClanHubOverlay = ({ open, onClose }: { open: boolean; onClose: () => void 
           >
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
-            
+
             {/* Header */}
             <div className="relative z-10 p-6 pb-4 bg-linear-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
               <div className="flex items-center justify-between">
@@ -106,4 +120,4 @@ const ClanHubOverlay = ({ open, onClose }: { open: boolean; onClose: () => void 
   );
 };
 
-export default ClanHubOverlay; 
+export default ClanHubOverlay;

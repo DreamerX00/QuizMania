@@ -3,7 +3,6 @@ import { AccessToken, VideoGrant } from "livekit-server-sdk";
 // LiveKit configuration
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
-const LIVEKIT_URL = process.env.LIVEKIT_URL || "wss://livekit.example.com";
 
 // Health check configuration
 const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds

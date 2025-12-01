@@ -13,8 +13,6 @@ import {
   Users,
   Settings,
   Volume2,
-  VolumeX,
-  Wifi,
   WifiOff,
   AlertCircle,
   CheckCircle,
@@ -24,7 +22,6 @@ import {
 } from "lucide-react";
 import { useLiveKit } from "@/lib/livekit";
 import { useSocket } from "@/lib/socket";
-import { Participant } from "livekit-client";
 import { toast } from "react-hot-toast";
 
 interface VoiceChatProps {
@@ -66,7 +63,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
   const [isPushToTalkEnabled, setIsPushToTalkEnabled] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [voiceState, setVoiceState] = useState(getVoiceState());
+  const [_voiceState, setVoiceState] = useState(getVoiceState());
   const [participants, setParticipants] = useState<ParticipantInfo[]>([]);
   const [connectionMode, setConnectionMode] = useState<
     "livekit" | "webrtc-fallback" | "disconnected"
@@ -74,7 +71,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const _audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Initialize voice chat
   useEffect(() => {
@@ -541,4 +538,3 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
 };
 
 export default VoiceChat;
-

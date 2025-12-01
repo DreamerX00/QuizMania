@@ -1,7 +1,8 @@
 "use client";
 import { IconArrowLeft, IconArrowRight } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 
 type Testimonial = {
   quote: string;
@@ -21,13 +22,13 @@ export const AnimatedTestimonials = ({
   const [rotations, setRotations] = useState<number[]>([]);
   const [isClient, setIsClient] = useState(false);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setActive((prev) => (prev + 1) % testimonials.length);
-  };
+  }, [testimonials.length]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     setActive((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  };
+  }, [testimonials.length]);
 
   const isActive = (index: number) => {
     return index === active;
@@ -41,14 +42,14 @@ export const AnimatedTestimonials = ({
       () => Math.floor(Math.random() * 21) - 10
     );
     setRotations(randomRotations);
-  }, [testimonials.length]);
+  }, [testimonials]);
 
   useEffect(() => {
     if (autoplay) {
       const interval = setInterval(handleNext, 5000);
       return () => clearInterval(interval);
     }
-  }, [autoplay]);
+  }, [autoplay, handleNext]);
 
   // Don't render anything until client-side hydration is complete
   if (!isClient) {
@@ -59,9 +60,9 @@ export const AnimatedTestimonials = ({
             <div className="relative h-80 w-full">
               {/* Placeholder content for SSR */}
               <div className="absolute inset-0 origin-bottom">
-                <img
-                  src={testimonials[0]?.src}
-                  alt={testimonials[0]?.name}
+                <Image
+                  src={testimonials[0]?.src || "/placeholder.png"}
+                  alt={testimonials[0]?.name || "Testimonial"}
                   width={500}
                   height={500}
                   draggable={false}
@@ -72,7 +73,7 @@ export const AnimatedTestimonials = ({
           </div>
           <div className="flex flex-col justify-between py-4">
             <div>
-              <h3 className="text-2xl font-bold mb-1 bg-gradient-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text">
+              <h3 className="text-2xl font-bold mb-1 bg-linear-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text">
                 {testimonials[0]?.name}
               </h3>
               <p className="text-sm mb-4 text-slate-600 dark:text-blue-300">
@@ -131,7 +132,7 @@ export const AnimatedTestimonials = ({
                   }}
                   className="absolute inset-0 origin-bottom"
                 >
-                  <img
+                  <Image
                     src={testimonial.src}
                     alt={testimonial.name}
                     width={500}
@@ -164,7 +165,7 @@ export const AnimatedTestimonials = ({
               ease: "easeInOut",
             }}
           >
-            <h3 className="text-2xl font-bold mb-1 bg-gradient-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text">
+            <h3 className="text-2xl font-bold mb-1 bg-linear-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text">
               {testimonials[active]?.name}
             </h3>
             <p className="text-sm mb-4 text-slate-600 dark:text-blue-300">

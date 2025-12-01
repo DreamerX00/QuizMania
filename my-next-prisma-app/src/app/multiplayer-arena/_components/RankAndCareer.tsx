@@ -1,14 +1,13 @@
 "use client";
-import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { BarChart } from 'lucide-react';
-import RankModal from '../components/RankModal';
-import RankCard from '../components/RankCard';
-import useSWR from 'swr';
-import { useAuth } from '@/context/AuthContext';
+import RankModal from "../components/RankModal";
+import RankCard from "../components/RankCard";
+import useSWR from "swr";
+import { useAuth } from "@/context/AuthContext";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const Confetti = ({ show }: { show: boolean }) => (
   <>
@@ -17,7 +16,7 @@ const Confetti = ({ show }: { show: boolean }) => (
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        transition={{ duration: 0.8, type: 'spring' }}
+        transition={{ duration: 0.8, type: "spring" }}
         className="absolute left-1/2 top-0 z-20 -translate-x-1/2 pointer-events-none"
       >
         <span className="text-5xl select-none">🎉✨🎊</span>
@@ -31,7 +30,9 @@ const ThreeDBadgePlaceholder = ({ rankName }: { rankName: string }) => (
     <div className="w-24 h-24 rounded-full bg-linear-to-br from-yellow-200 via-purple-400 to-blue-400 shadow-2xl flex items-center justify-center animate-pulse border-4 border-white/20">
       <span className="text-4xl">🏅</span>
     </div>
-    <div className="text-xs text-slate-400 mt-2">3D Badge Coming Soon for {rankName}</div>
+    <div className="text-xs text-slate-400 mt-2">
+      3D Badge Coming Soon for {rankName}
+    </div>
   </div>
 );
 
@@ -39,9 +40,18 @@ const RankAndCareer = () => {
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const { data, error, isLoading } = useSWR(user ? `/api/multiplayer-arena/user/${user?.id}/stats` : null, fetcher);
+  const { data, error, isLoading } = useSWR(
+    user ? `/api/multiplayer-arena/user/${user?.id}/stats` : null,
+    fetcher
+  );
   const xp = data?.totalXP || 0;
-  const rankInfo = data?.rank || { name: '', emoji: '', description: '', xpMin: 0, xpMax: 0 };
+  const rankInfo = data?.rank || {
+    name: "",
+    emoji: "",
+    description: "",
+    xpMin: 0,
+    xpMax: 0,
+  };
 
   useEffect(() => {
     if (data && data.rank && data.rank.name) {
@@ -51,10 +61,18 @@ const RankAndCareer = () => {
   }, [data?.rank?.name]);
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-full">Loading rank...</div>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        Loading rank...
+      </div>
+    );
   }
   if (error) {
-    return <div className="flex items-center justify-center h-full text-red-500">Failed to load rank.</div>;
+    return (
+      <div className="flex items-center justify-center h-full text-red-500">
+        Failed to load rank.
+      </div>
+    );
   }
 
   return (
@@ -67,19 +85,27 @@ const RankAndCareer = () => {
       >
         <div className="flex flex-col items-center justify-center w-full">
           <Confetti show={showConfetti} />
-          <RankCard xp={xp} className="w-full max-w-md mx-auto" compact={true} />
+          <RankCard
+            xp={xp}
+            className="w-full max-w-md mx-auto"
+            compact={true}
+          />
           <ThreeDBadgePlaceholder rankName={rankInfo.name} />
         </div>
-        <Button 
-            onClick={() => setIsModalOpen(true)}
-            className="w-full mt-8 bg-purple-600 hover:bg-purple-700 text-white font-bold flex items-center gap-2"
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full mt-8 bg-purple-600 hover:bg-purple-700 text-white font-bold flex items-center gap-2"
         >
-            View Full Stats
+          View Full Stats
         </Button>
       </motion.div>
-      <RankModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} xp={xp} />
+      <RankModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        xp={xp}
+      />
     </>
   );
 };
 
-export default RankAndCareer; 
+export default RankAndCareer;

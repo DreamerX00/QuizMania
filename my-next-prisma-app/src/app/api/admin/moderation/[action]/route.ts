@@ -53,7 +53,7 @@ export const POST = withValidation(
     }
 
     const { action, roomId, userId, reason, blockedId, targetId, context } = (
-      request as { validated: ModerationRequest }
+      request as unknown as { validated: ModerationRequest }
     ).validated;
 
     try {

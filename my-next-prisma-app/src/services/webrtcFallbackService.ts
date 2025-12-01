@@ -1,4 +1,4 @@
-import { Server, Socket } from "socket.io";
+import { Socket } from "socket.io";
 
 interface WebRTCPeer {
   userId: string;
@@ -207,7 +207,7 @@ class WebRTCFallbackService {
    * Force cleanup of all rooms (for testing)
    */
   forceCleanup(): void {
-    for (const [roomId, room] of this.rooms.entries()) {
+    for (const [_roomId, room] of this.rooms.entries()) {
       for (const peer of room.peers.values()) {
         if (peer.rtcConnection) {
           peer.rtcConnection.close();

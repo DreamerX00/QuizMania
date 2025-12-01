@@ -107,7 +107,7 @@ const VoteTypesDialog: React.FC<VoteTypesDialogProps> = ({ isOpen, onClose }) =>
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="!w-[90vw] !h-[85vh] !max-w-none !max-h-none p-0 bg-linear-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 text-gray-900 dark:text-white flex flex-col rounded-3xl shadow-2xl overflow-hidden">
+      <DialogContent className="w-[90vw]! h-[85vh]! max-w-none! max-h-none! p-0 bg-linear-to-br from-white/95 via-blue-50/95 to-purple-50/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 text-gray-900 dark:text-white flex flex-col rounded-3xl shadow-2xl overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
         

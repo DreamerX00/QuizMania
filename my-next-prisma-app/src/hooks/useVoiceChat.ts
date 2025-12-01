@@ -149,7 +149,7 @@ export function useVoiceChat({
       "webrtc:peer-joined",
       ({
         userId: peerUserId,
-        socketId,
+        socketId: _socketId,
       }: {
         userId: string;
         socketId: string;

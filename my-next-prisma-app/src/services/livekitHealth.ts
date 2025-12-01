@@ -1,9 +1,4 @@
-import {
-  Room,
-  RoomEvent,
-  RemoteParticipant,
-  LocalParticipant,
-} from "livekit-client";
+import { Room } from "livekit-client";
 
 export interface LiveKitHealthConfig {
   url: string;

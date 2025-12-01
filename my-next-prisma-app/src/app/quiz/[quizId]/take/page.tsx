@@ -15,7 +15,7 @@ interface SessionValidationResponse {
 }
 
 // DEV-ONLY: Violation rules toggle
-const isDev =
+const _isDev =
   typeof window !== "undefined" && window.location.hostname === "localhost";
 // Development components removed for production
 

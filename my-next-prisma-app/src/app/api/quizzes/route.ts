@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { CACHE_STRATEGIES } from "@/lib/prisma-cache";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 180; // Revalidate every 3 minutes
@@ -70,9 +69,8 @@ export async function GET(req: NextRequest) {
         orderBy,
         take: limit,
         skip,
-        cacheStrategy: CACHE_STRATEGIES.QUIZ_LIST,
       }),
-      prisma.quiz.count({ where, cacheStrategy: CACHE_STRATEGIES.QUIZ_LIST }),
+      prisma.quiz.count({ where }),
     ]);
 
     // Calculate pagination metadata

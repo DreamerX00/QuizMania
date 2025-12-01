@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import validator from 'validator';
-import jsPDF from 'jspdf';
+import React, { useEffect, useState } from "react";
+import validator from "validator";
 
 interface ScoreSummaryModalContentProps {
   quizId: string;
@@ -22,7 +20,11 @@ interface ManualReview {
 
 const QUESTIONS_PER_PAGE = 20;
 
-export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }: ScoreSummaryModalContentProps) {
+export default function ScoreSummaryModalContent({
+  quizId,
+  attemptId,
+  onClose,
+}: ScoreSummaryModalContentProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
@@ -39,39 +41,48 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
         return res.json();
       })
       .then(setData)
-      .catch((err) => setError(err.message || 'Failed to load result.'))
+      .catch((err) => setError(err.message || "Failed to load result."))
       .finally(() => setLoading(false));
   }, [quizId, attemptId]);
 
-  useEffect(() => { setPage(1); }, [data]);
+  useEffect(() => {
+    setPage(1);
+  }, [data]);
 
-  const sanitize = (str: string | null | undefined) => str ? validator.escape(str) : '';
+  const sanitize = (str: string | null | undefined) =>
+    str ? validator.escape(str) : "";
 
-  const handleDownload = async (format: 'pdf' | 'md') => {
+  const handleDownload = async (format: "pdf" | "md") => {
     setDownloading(true);
     try {
-      if (format === 'md') {
+      if (format === "md") {
         let content = `# Quiz Result: ${sanitize(data?.attempt?.quizTitle)}\n`;
         content += `\n- Attempt ID: ${attemptId}`;
-        content += `\n- Date: ${data?.attempt?.dateTaken ? new Date(data.attempt.dateTaken).toLocaleString() : ''}`;
+        content += `\n- Date: ${
+          data?.attempt?.dateTaken
+            ? new Date(data.attempt.dateTaken).toLocaleString()
+            : ""
+        }`;
         content += `\n- Auto-evaluated Marks: ${data?.attempt?.autoMarks}`;
         content += `\n- Revised Marks: ${data?.attempt?.revisedMarks}`;
-        content += `\n- Status: ${data?.attempt?.allReviewed ? 'Reviewed' : 'Pending manual review'}`;
+        content += `\n- Status: ${
+          data?.attempt?.allReviewed ? "Reviewed" : "Pending manual review"
+        }`;
         content += `\n\n## Per-Question Breakdown\n`;
         data?.manualReviews?.forEach((r: ManualReview, i: number) => {
           content += `\n### Q${i + 1}`;
-          content += `\n- Marks Awarded: ${r.marksAwarded ?? 'N/A'}`;
-          content += `\n- Reviewed: ${r.reviewed ? 'Yes' : 'No'}`;
+          content += `\n- Marks Awarded: ${r.marksAwarded ?? "N/A"}`;
+          content += `\n- Reviewed: ${r.reviewed ? "Yes" : "No"}`;
           content += `\n- Feedback: ${sanitize(r.feedback)}`;
         });
-        const blob = new Blob([content], { type: 'text/markdown' });
+        const blob = new Blob([content], { type: "text/markdown" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `quiz-result-${attemptId}.md`;
         a.click();
         URL.revokeObjectURL(url);
-      } else if (format === 'pdf') {
+      } else if (format === "pdf") {
         // Scaffold: PDF generation coming soon
         setPdfTooltip(true);
         setTimeout(() => setPdfTooltip(false), 2000);
@@ -81,14 +92,28 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
     }
   };
 
-  if (loading) return <div className="text-white text-center py-20">Loading score summary...</div>;
-  if (error) return <div className="text-red-400 text-center py-20">{sanitize(error)}</div>;
+  if (loading)
+    return (
+      <div className="text-white text-center py-20">
+        Loading score summary...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="text-red-400 text-center py-20">{sanitize(error)}</div>
+    );
   if (!data) return null;
 
   const { attempt, manualReviews } = data;
   const totalQuestions = manualReviews.length;
-  const totalPages = Math.max(1, Math.ceil(totalQuestions / QUESTIONS_PER_PAGE));
-  const paginatedReviews = manualReviews.slice((page - 1) * QUESTIONS_PER_PAGE, page * QUESTIONS_PER_PAGE);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalQuestions / QUESTIONS_PER_PAGE)
+  );
+  const paginatedReviews = manualReviews.slice(
+    (page - 1) * QUESTIONS_PER_PAGE,
+    page * QUESTIONS_PER_PAGE
+  );
 
   const paginationControls = (
     <div className="flex items-center justify-between gap-2 my-2">
@@ -97,14 +122,20 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
         onClick={() => setPage((p) => Math.max(1, p - 1))}
         disabled={page === 1}
         aria-label="Previous page"
-      >Prev</button>
-      <span className="text-white/80 text-sm">Page {page} of {totalPages}</span>
+      >
+        Prev
+      </button>
+      <span className="text-white/80 text-sm">
+        Page {page} of {totalPages}
+      </span>
       <button
         className="px-3 py-1 rounded bg-gray-700 text-white disabled:opacity-40"
         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
         disabled={page === totalPages}
         aria-label="Next page"
-      >Next</button>
+      >
+        Next
+      </button>
     </div>
   );
 
@@ -114,29 +145,75 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
       id="score-summary-modal-content"
       aria-labelledby="score-summary-modal-title"
       aria-describedby="score-summary-modal-desc"
-      style={{ maxWidth: '90vw', maxHeight: '80vh', width: '100%', height: 'auto', overflow: 'hidden' }}
+      style={{
+        maxWidth: "90vw",
+        maxHeight: "80vh",
+        width: "100%",
+        height: "auto",
+        overflow: "hidden",
+      }}
     >
       <div className="flex items-center justify-between w-full mb-4">
-        <div id="score-summary-modal-title" className="text-2xl md:text-3xl font-bold text-white">Score Summary</div>
-        <button onClick={onClose} className="text-white/70 hover:text-white text-2xl font-bold px-4 py-2 rounded-full bg-black/30" aria-label="Close dialog">×</button>
+        <div
+          id="score-summary-modal-title"
+          className="text-2xl md:text-3xl font-bold text-white"
+        >
+          Score Summary
+        </div>
+        <button
+          onClick={onClose}
+          className="text-white/70 hover:text-white text-2xl font-bold px-4 py-2 rounded-full bg-black/30"
+          aria-label="Close dialog"
+        >
+          ×
+        </button>
       </div>
       <div className="w-full flex flex-col md:flex-row gap-8 mb-6">
         <div className="flex-1 bg-linear-to-br from-blue-900/60 to-pink-900/40 rounded-2xl p-6 shadow-xl border border-white/10">
-          <div className="text-lg text-white/80 font-semibold mb-2">Quiz: <span className="font-bold">{sanitize(attempt.quizTitle)}</span></div>
-          <div className="text-white/70 mb-1">Attempt ID: <span className="font-mono">{attempt.id}</span></div>
-          <div className="text-white/70 mb-1">Date: {attempt.dateTaken ? new Date(attempt.dateTaken).toLocaleString() : ''}</div>
-          <div className="text-white/70 mb-1">Auto-evaluated Marks: <span className="font-bold text-green-400">{attempt.autoMarks}</span></div>
-          <div className="text-white/70 mb-1">Revised Marks: <span className="font-bold text-yellow-300">{attempt.revisedMarks}</span></div>
-          <div className="text-white/70 mb-1">Status: {attempt.allReviewed ? <span className="text-green-400 font-bold">Reviewed</span> : <span className="text-yellow-300 font-bold">Pending manual review</span>}</div>
+          <div className="text-lg text-white/80 font-semibold mb-2">
+            Quiz:{" "}
+            <span className="font-bold">{sanitize(attempt.quizTitle)}</span>
+          </div>
+          <div className="text-white/70 mb-1">
+            Attempt ID: <span className="font-mono">{attempt.id}</span>
+          </div>
+          <div className="text-white/70 mb-1">
+            Date:{" "}
+            {attempt.dateTaken
+              ? new Date(attempt.dateTaken).toLocaleString()
+              : ""}
+          </div>
+          <div className="text-white/70 mb-1">
+            Auto-evaluated Marks:{" "}
+            <span className="font-bold text-green-400">
+              {attempt.autoMarks}
+            </span>
+          </div>
+          <div className="text-white/70 mb-1">
+            Revised Marks:{" "}
+            <span className="font-bold text-yellow-300">
+              {attempt.revisedMarks}
+            </span>
+          </div>
+          <div className="text-white/70 mb-1">
+            Status:{" "}
+            {attempt.allReviewed ? (
+              <span className="text-green-400 font-bold">Reviewed</span>
+            ) : (
+              <span className="text-yellow-300 font-bold">
+                Pending manual review
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex flex-col gap-2 items-end">
           <button
             className="rounded-lg px-6 py-2 bg-linear-to-r from-blue-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition"
-            onClick={() => handleDownload('md')}
+            onClick={() => handleDownload("md")}
             disabled={downloading}
             aria-label="Download as Markdown"
           >
-            {downloading ? 'Downloading...' : 'Download as Markdown'}
+            {downloading ? "Downloading..." : "Download as Markdown"}
           </button>
           <div className="relative">
             <button
@@ -170,22 +247,59 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
           </button>
         </div>
       </div>
-      <div id="score-summary-modal-desc" className="w-full bg-white/10 rounded-xl p-4 mb-4 flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
-        <div className="text-lg font-semibold text-white mb-2">Per-Question Breakdown</div>
+      <div
+        id="score-summary-modal-desc"
+        className="w-full bg-white/10 rounded-xl p-4 mb-4 flex-1 overflow-y-auto"
+        style={{ minHeight: 0 }}
+      >
+        <div className="text-lg font-semibold text-white mb-2">
+          Per-Question Breakdown
+        </div>
         {paginationControls}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {paginatedReviews.length === 0 && <div className="text-white/60 italic">No manual review data available.</div>}
+          {paginatedReviews.length === 0 && (
+            <div className="text-white/60 italic">
+              No manual review data available.
+            </div>
+          )}
           {paginatedReviews.map((r: ManualReview, i: number) => (
-            <div key={r.id} className="bg-linear-to-br from-blue-800/40 to-pink-800/30 rounded-lg p-4 border border-white/10">
+            <div
+              key={r.id}
+              className="bg-linear-to-br from-blue-800/40 to-pink-800/30 rounded-lg p-4 border border-white/10"
+            >
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-bold text-white">Q{(page - 1) * QUESTIONS_PER_PAGE + i + 1}:</span>
+                <span className="font-bold text-white">
+                  Q{(page - 1) * QUESTIONS_PER_PAGE + i + 1}:
+                </span>
                 <span className="text-white/80">{sanitize(r.type)}</span>
               </div>
-              <div className="text-white/70 mb-1">Marks Awarded: <span className="font-bold text-yellow-300">{r.marksAwarded ?? 'N/A'}</span></div>
-              <div className="text-white/70 mb-1">Reviewed: {r.reviewed ? <span className="text-green-400 font-bold">Yes</span> : <span className="text-yellow-300 font-bold">No</span>}</div>
-              <div className="text-white/70 mb-1">Feedback: <span className="italic">{sanitize(r.feedback)}</span></div>
-              {r.reviewedBy && <div className="text-white/60 text-xs">Reviewed by: {sanitize(r.reviewedBy)}</div>}
-              {r.reviewedAt && <div className="text-white/60 text-xs">Reviewed at: {new Date(r.reviewedAt).toLocaleString()}</div>}
+              <div className="text-white/70 mb-1">
+                Marks Awarded:{" "}
+                <span className="font-bold text-yellow-300">
+                  {r.marksAwarded ?? "N/A"}
+                </span>
+              </div>
+              <div className="text-white/70 mb-1">
+                Reviewed:{" "}
+                {r.reviewed ? (
+                  <span className="text-green-400 font-bold">Yes</span>
+                ) : (
+                  <span className="text-yellow-300 font-bold">No</span>
+                )}
+              </div>
+              <div className="text-white/70 mb-1">
+                Feedback: <span className="italic">{sanitize(r.feedback)}</span>
+              </div>
+              {r.reviewedBy && (
+                <div className="text-white/60 text-xs">
+                  Reviewed by: {sanitize(r.reviewedBy)}
+                </div>
+              )}
+              {r.reviewedAt && (
+                <div className="text-white/60 text-xs">
+                  Reviewed at: {new Date(r.reviewedAt).toLocaleString()}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -214,4 +328,4 @@ export default function ScoreSummaryModalContent({ quizId, attemptId, onClose }:
       `}</style>
     </div>
   );
-} 
+}

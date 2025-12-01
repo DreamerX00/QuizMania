@@ -9,7 +9,10 @@ const quizIdParamSchema = z.object({ quizId: z.string().min(1) });
 
 export const POST = withValidation(
   quizIdParamSchema,
-  async (request: any, { params }: { params: Promise<{ quizId: string }> }) => {
+  async (
+    request: any,
+    { params: _params }: { params: Promise<{ quizId: string }> }
+  ) => {
     try {
       const currentUser = await getCurrentUser();
       const userId = currentUser?.id;
@@ -59,7 +62,10 @@ export const POST = withValidation(
 
 export const DELETE = withValidation(
   quizIdParamSchema,
-  async (request: any, { params }: { params: Promise<{ quizId: string }> }) => {
+  async (
+    request: any,
+    { params: _params }: { params: Promise<{ quizId: string }> }
+  ) => {
     try {
       const currentUser = await getCurrentUser();
       const userId = currentUser?.id;

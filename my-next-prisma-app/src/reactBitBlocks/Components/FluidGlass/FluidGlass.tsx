@@ -2,7 +2,7 @@
 	Installed from https://reactbits.dev/ts/tailwind/
 */
 
-/* eslint-disable react/no-unknown-property */
+/* eslint-disable jsx-a11y/alt-text */
 import * as THREE from "three";
 import { useRef, useState, useEffect, memo, ReactNode } from "react";
 import {
@@ -92,7 +92,7 @@ interface ZoomMaterial extends THREE.Material {
   zoom: number;
 }
 
-interface ZoomMesh extends THREE.Mesh<THREE.BufferGeometry, ZoomMaterial> {}
+type ZoomMesh = THREE.Mesh<THREE.BufferGeometry, ZoomMaterial>;
 
 type ZoomGroup = THREE.Group & { children: ZoomMesh[] };
 
@@ -258,7 +258,7 @@ function NavItems({ items }: { items: NavItem[] }) {
     const onResize = () => setDevice(getDevice());
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, []);
+  }, [getDevice]);
 
   const { spacing, fontSize } = DEVICE[device];
 
@@ -274,9 +274,11 @@ function NavItems({ items }: { items: NavItem[] }) {
 
   const handleNavigate = (link: string) => {
     if (!link) return;
-    link.startsWith("#")
-      ? (window.location.hash = link)
-      : (window.location.href = link);
+    if (link.startsWith("#")) {
+      window.location.hash = link;
+    } else {
+      window.location.href = link;
+    }
   };
 
   return (

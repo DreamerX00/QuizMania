@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
-import { useQuizStore } from './state/quizStore';
-import { useQuizSubmission } from '@/hooks/useQuizSubmission';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import React, { useState } from "react";
+import { useQuizStore } from "./state/quizStore";
+import { useQuizSubmission } from "@/hooks/useQuizSubmission";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const SubmitButton = () => {
   const quiz = useQuizStore((s) => s.quiz);
@@ -9,13 +15,6 @@ const SubmitButton = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const { submitQuiz, isSubmitting, error, result } = useQuizSubmission();
   const [dialogOpen, setDialogOpen] = useState(false);
-  if (!quiz) return null;
-  // Required: all non-manual, non-poll questions must be answered
-  const requiredIds = quiz.questions.filter(q => !['essay','paragraph','audio','video','poll'].includes(q.type)).map(q => q.id);
-  const answeredIds = responses.map(r => r.questionId);
-  const unansweredCount = requiredIds.filter(id => !answeredIds.includes(id)).length;
-  const allAnswered = unansweredCount === 0;
-  const tooltip = isSubmitting ? 'Submitting...' : 'Submit quiz';
 
   // Show feedback on result
   React.useEffect(() => {
@@ -24,6 +23,21 @@ const SubmitButton = () => {
       setTimeout(() => setShowSuccess(false), 3000);
     }
   }, [result]);
+
+  if (!quiz) return null;
+
+  // Required: all non-manual, non-poll questions must be answered
+  const requiredIds = quiz.questions
+    .filter(
+      (q) => !["essay", "paragraph", "audio", "video", "poll"].includes(q.type)
+    )
+    .map((q) => q.id);
+  const answeredIds = responses.map((r) => r.questionId);
+  const unansweredCount = requiredIds.filter(
+    (id) => !answeredIds.includes(id)
+  ).length;
+  const allAnswered = unansweredCount === 0;
+  const tooltip = isSubmitting ? "Submitting..." : "Submit quiz";
 
   const handleClick = async () => {
     if (allAnswered) {
@@ -41,14 +55,14 @@ const SubmitButton = () => {
   return (
     <>
       <button
-        className="w-full rounded-xl py-3 bg-[var(--primary-accent)] text-white font-bold text-lg shadow-lg hover:scale-105 transition sticky bottom-0 disabled:opacity-60"
+        className="w-full rounded-xl py-3 bg-(--primary-accent) text-white font-bold text-lg shadow-lg hover:scale-105 transition sticky bottom-0 disabled:opacity-60"
         onClick={handleClick}
         disabled={isSubmitting}
         aria-busy={isSubmitting}
         aria-label="Submit quiz"
         title={tooltip}
       >
-        {isSubmitting ? 'Submitting…' : 'Submit Quiz'}
+        {isSubmitting ? "Submitting…" : "Submit Quiz"}
       </button>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent showCloseButton>
@@ -56,7 +70,9 @@ const SubmitButton = () => {
             <DialogTitle>Some questions are unanswered</DialogTitle>
           </DialogHeader>
           <div className="py-2 text-base">
-            You have <b>{unansweredCount}</b> required question{unansweredCount !== 1 ? 's' : ''} remaining to answer.<br />
+            You have <b>{unansweredCount}</b> required question
+            {unansweredCount !== 1 ? "s" : ""} remaining to answer.
+            <br />
             Are you sure you want to submit anyway?
           </div>
           <DialogFooter>
@@ -68,7 +84,7 @@ const SubmitButton = () => {
               Cancel
             </button>
             <button
-              className="px-4 py-2 rounded bg-[var(--primary-accent)] text-white font-semibold hover:bg-primary/90 transition"
+              className="px-4 py-2 rounded bg-(--primary-accent) text-white font-semibold hover:bg-primary/90 transition"
               onClick={handleSubmitAnyway}
               type="button"
               disabled={isSubmitting}
@@ -79,9 +95,13 @@ const SubmitButton = () => {
         </DialogContent>
       </Dialog>
       {error && <div className="text-red-500 mt-2 text-sm">{error}</div>}
-      {showSuccess && <div className="text-green-600 mt-2 text-sm">Submitted successfully!</div>}
+      {showSuccess && (
+        <div className="text-green-600 mt-2 text-sm">
+          Submitted successfully!
+        </div>
+      )}
     </>
   );
 };
 
-export default SubmitButton; 
+export default SubmitButton;

@@ -4,22 +4,14 @@ import {
   RemoteParticipant,
   LocalParticipant,
   Participant,
-  DataPacket_Kind,
   DisconnectReason,
   RemoteTrackPublication,
   LocalTrackPublication,
   Track,
   TrackPublication,
-  AudioPresets,
-  VideoPresets,
   RoomOptions,
   ConnectionState,
   ParticipantEvent,
-  TrackEvent,
-  AudioCaptureOptions,
-  VideoCaptureOptions,
-  ScreenShareCaptureOptions,
-  VideoCodec,
 } from "livekit-client";
 
 // Voice chat state
@@ -334,8 +326,8 @@ class LiveKitService {
       (
         payload: Uint8Array,
         participant?: RemoteParticipant,
-        kind?: any,
-        topic?: string
+        _kind?: unknown,
+        _topic?: string
       ) => {
         if (participant) {
           this.callbacks.onDataReceived?.(payload, participant);

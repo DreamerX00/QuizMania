@@ -3,16 +3,12 @@ const { withBundleAnalyzer } = pkg;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable standalone output for Vercel (uses its own optimization)
-  // output: process.env.NODE_ENV === "production" ? "standalone" : undefined,
-
-  // Ignore ESLint/TypeScript during builds (warnings are logged but don't block)
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
 
   typescript: {
-    ignoreBuildErrors: false, // Keep TypeScript checks strict
+    ignoreBuildErrors: false,
   },
 
   // Enable production optimizations

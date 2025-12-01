@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Question, QuizData } from "./types";
+import { Question } from "./types";
 import { nanoid } from "nanoid";
 
 const initialFormData = {

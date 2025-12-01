@@ -30,7 +30,7 @@ export function ProgressBar({
         <div className="flex items-center justify-between text-sm">
           {label && <span className="text-gray-400">{label}</span>}
           {showPercentage && (
-            <span className="font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="font-medium bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               {Math.round(clampedProgress)}%
             </span>
           )}
@@ -43,11 +43,11 @@ export function ProgressBar({
         )}
       >
         <div
-          className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 transition-all duration-500 ease-out relative overflow-hidden"
+          className="h-full bg-linear-to-r from-purple-500 via-pink-500 to-blue-500 transition-all duration-500 ease-out relative overflow-hidden"
           style={{ width: `${clampedProgress}%` }}
         >
           {/* Animated shine effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+          <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
         </div>
       </div>
     </div>

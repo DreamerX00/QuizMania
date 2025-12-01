@@ -1,108 +1,117 @@
-import React from 'react';
-import Sidebar from './Sidebar';
-import ReviewToggle from './ReviewToggle';
-import { useQuizStore } from './state/quizStore';
-import Timer from './Timer';
-import Navigation from './Navigation';
-import SubmitButton from './SubmitButton';
+import React from "react";
+import Sidebar from "./Sidebar";
+import ReviewToggle from "./ReviewToggle";
+import { useQuizStore } from "./state/quizStore";
+import Timer from "./Timer";
+import Navigation from "./Navigation";
+import SubmitButton from "./SubmitButton";
 // Production-ready violation rules (hardcoded for security)
-const rules = { 
-  tabSwitch: true, 
-  copy: true, 
-  paste: true, 
-  rightClick: true, 
-  printScreen: true, 
-  ctrlC: true, 
-  ctrlV: true, 
-  ctrlS: true, 
-  ctrlP: true 
+const _rules = {
+  tabSwitch: true,
+  copy: true,
+  paste: true,
+  rightClick: true,
+  printScreen: true,
+  ctrlC: true,
+  ctrlV: true,
+  ctrlS: true,
+  ctrlP: true,
 };
-import ScoreSummary from './ScoreSummary';
+import ScoreSummary from "./ScoreSummary";
 
-const QuizContainer = ({ children, sessionId }: { children: React.ReactNode; sessionId?: string }) => {
+const QuizContainer = ({
+  children,
+  sessionId,
+}: {
+  children: React.ReactNode;
+  sessionId?: string;
+}) => {
   const quiz = useQuizStore((s) => s.quiz);
   const currentIndex = useQuizStore((s) => s.currentIndex);
   const addViolation = useQuizStore((s) => s.addViolation);
   const total = quiz?.questions.length || 1;
   const percent = ((currentIndex + 1) / total) * 100;
   const [violationMsg, setViolationMsg] = React.useState<string | null>(null);
-  
+
   // Production-ready violation rules (hardcoded for security)
-  const rules = React.useMemo(() => ({
-    tabSwitch: true, 
-    copy: true, 
-    paste: true, 
-    rightClick: true, 
-    printScreen: true, 
-    ctrlC: true, 
-    ctrlV: true, 
-    ctrlS: true, 
-    ctrlP: true 
-  }), []);
+  const rules = React.useMemo(
+    () => ({
+      tabSwitch: true,
+      copy: true,
+      paste: true,
+      rightClick: true,
+      printScreen: true,
+      ctrlC: true,
+      ctrlV: true,
+      ctrlS: true,
+      ctrlP: true,
+    }),
+    []
+  );
   const submitted = useQuizStore((s) => s.submitted);
 
   React.useEffect(() => {
     function handleVisibilityChange() {
-      if (document.hidden && rules.tabSwitch) {
-        addViolation('tab-switch', 'User switched tabs or minimized window');
-        setViolationMsg('Tab switch detected! This is against quiz rules.');
+      if (document.hidden && _rules.tabSwitch) {
+        addViolation("tab-switch", "User switched tabs or minimized window");
+        setViolationMsg("Tab switch detected! This is against quiz rules.");
       }
     }
-    function handleCopy(e: ClipboardEvent) {
-      if (rules.copy) {
-        addViolation('copy', 'User copied content');
-        setViolationMsg('Copy action detected! This is against quiz rules.');
+    function handleCopy(_e: ClipboardEvent) {
+      if (_rules.copy) {
+        addViolation("copy", "User copied content");
+        setViolationMsg("Copy action detected! This is against quiz rules.");
       }
     }
-    function handlePaste(e: ClipboardEvent) {
-      if (rules.paste) {
-        addViolation('paste', 'User pasted content');
-        setViolationMsg('Paste action detected! This is against quiz rules.');
+    function handlePaste(_e: ClipboardEvent) {
+      if (_rules.paste) {
+        addViolation("paste", "User pasted content");
+        setViolationMsg("Paste action detected! This is against quiz rules.");
       }
     }
-    function handleContextMenu(e: MouseEvent) {
-      if (rules.rightClick) {
-        addViolation('right-click', 'User opened context menu');
-        setViolationMsg('Right-click detected! This is against quiz rules.');
+    function handleContextMenu(_e: MouseEvent) {
+      if (_rules.rightClick) {
+        addViolation("right-click", "User opened context menu");
+        setViolationMsg("Right-click detected! This is against quiz rules.");
       }
     }
     function handleKeyDown(e: KeyboardEvent) {
       // Print Screen
-      if (e.key === 'PrintScreen' && rules.printScreen) {
-        addViolation('print-screen', 'User pressed Print Screen');
-        setViolationMsg('Print Screen detected! This is against quiz rules.');
+      if (e.key === "PrintScreen" && rules.printScreen) {
+        addViolation("print-screen", "User pressed Print Screen");
+        setViolationMsg("Print Screen detected! This is against quiz rules.");
       }
       // Suspicious shortcuts
       if (e.ctrlKey) {
-        if (e.key.toLowerCase() === 'c' && rules.ctrlC) {
-          addViolation('ctrl-c', 'User pressed Ctrl+C');
-          setViolationMsg('Ctrl+C detected! This is against quiz rules.');
+        if (e.key.toLowerCase() === "c" && rules.ctrlC) {
+          addViolation("ctrl-c", "User pressed Ctrl+C");
+          setViolationMsg("Ctrl+C detected! This is against quiz rules.");
         }
-        if (e.key.toLowerCase() === 'v' && rules.ctrlV) {
-          addViolation('ctrl-v', 'User pressed Ctrl+V');
-          setViolationMsg('Ctrl+V detected! This is against quiz rules.');
+        if (e.key.toLowerCase() === "v" && rules.ctrlV) {
+          addViolation("ctrl-v", "User pressed Ctrl+V");
+          setViolationMsg("Ctrl+V detected! This is against quiz rules.");
         }
-        if (e.key.toLowerCase() === 's' && rules.ctrlS) {
-          addViolation('ctrl-s', 'User pressed Ctrl+S');
-          setViolationMsg('Ctrl+S detected! This is against quiz rules.');
+        if (e.key.toLowerCase() === "s" && rules.ctrlS) {
+          addViolation("ctrl-s", "User pressed Ctrl+S");
+          setViolationMsg("Ctrl+S detected! This is against quiz rules.");
         }
-        if (e.key.toLowerCase() === 'p' && rules.ctrlP) {
-          addViolation('ctrl-p', 'User pressed Ctrl+P');
-          setViolationMsg('Ctrl+P detected! This is against quiz rules.');
+        if (e.key.toLowerCase() === "p" && rules.ctrlP) {
+          addViolation("ctrl-p", "User pressed Ctrl+P");
+          setViolationMsg("Ctrl+P detected! This is against quiz rules.");
         }
       }
     }
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    document.addEventListener('copy', handleCopy);
-    document.addEventListener('paste', handlePaste);
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("copy", handleCopy);
+    document.addEventListener("paste", handlePaste);
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('copy', handleCopy);
-      document.removeEventListener('paste', handlePaste);
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("copy", handleCopy);
+      document.removeEventListener("paste", handlePaste);
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [addViolation, rules]);
 
@@ -118,8 +127,8 @@ const QuizContainer = ({ children, sessionId }: { children: React.ReactNode; ses
       // On unmount, invalidate the session if present
       if (sessionId) {
         fetch(`/api/quiz/invalidate-session`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sessionId }),
         });
       }
@@ -138,9 +147,13 @@ const QuizContainer = ({ children, sessionId }: { children: React.ReactNode; ses
       )}
       {/* Header: Fixed Top */}
       <header className="h-16 fixed top-0 left-0 right-0 z-50 bg-background/90 border-b border-border flex items-center px-6 backdrop-blur-md">
-        <div className="font-heading text-2xl tracking-widest flex-1">Neuron Arena</div>
+        <div className="font-heading text-2xl tracking-widest flex-1">
+          Neuron Arena
+        </div>
         <div className="flex items-center gap-6">
-          <span className="font-heading text-lg">Q{currentIndex + 1} / {total}</span>
+          <span className="font-heading text-lg">
+            Q{currentIndex + 1} / {total}
+          </span>
           <ReviewToggle />
           <Timer />
         </div>
@@ -176,7 +189,9 @@ const QuizContainer = ({ children, sessionId }: { children: React.ReactNode; ses
               className="rounded-lg px-6 py-3 bg-destructive/10 text-destructive font-bold border border-destructive/30 hover:bg-destructive/20 transition"
               aria-label="Cancel quiz and exit"
               tabIndex={0}
-              onClick={() => {/* TODO: Add cancel logic */}}
+              onClick={() => {
+                /* TODO: Add cancel logic */
+              }}
             >
               Cancel
             </button>
@@ -188,4 +203,4 @@ const QuizContainer = ({ children, sessionId }: { children: React.ReactNode; ses
   );
 };
 
-export default QuizContainer; 
+export default QuizContainer;

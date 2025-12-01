@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { liveKitService } from "@/lib/livekit";
+import { livekitService } from "@/services/livekitService";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if LiveKit is available
-    if (liveKitService.isFallbackActive()) {
+    if (livekitService.isFallbackActive()) {
       return NextResponse.json(
         {
           error: "LiveKit is currently unavailable, using WebRTC fallback",
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate LiveKit token
-    const token = await liveKitService.generateToken(userId, roomName, options);
+    const token = await livekitService.generateToken(userId, roomName, options);
 
     return NextResponse.json({
       token,

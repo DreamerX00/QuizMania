@@ -20,16 +20,16 @@ export interface ArenaSessionMeta {
 }
 
 const BASE_XP: Record<string, (a: ArenaAnswer) => number> = {
-  'mcq-single': () => 5,
-  'mcq-multiple': (a) => a.isCorrect ? 10 : 0, // partial XP logic can be added
-  'true-false': () => 3,
-  'match': (a) => a.isCorrect ? 12 : 0,
-  'matrix': (a) => a.isCorrect ? 15 : 0,
-  'poll': () => 0,
-  'fill-blanks': () => 8,
-  'drag-drop': (a) => a.isCorrect ? 10 : 0,
-  'image-based': (a) => a.isCorrect ? 12 : 0,
-  'ordering': (a) => a.isCorrect ? 10 : 0,
+  "mcq-single": () => 5,
+  "mcq-multiple": (a) => (a.isCorrect ? 10 : 0), // partial XP logic can be added
+  "true-false": () => 3,
+  match: (a) => (a.isCorrect ? 12 : 0),
+  matrix: (a) => (a.isCorrect ? 15 : 0),
+  poll: () => 0,
+  "fill-blanks": () => 8,
+  "drag-drop": (a) => (a.isCorrect ? 10 : 0),
+  "image-based": (a) => (a.isCorrect ? 12 : 0),
+  ordering: (a) => (a.isCorrect ? 10 : 0),
 };
 
 export function calculateArenaXP(
@@ -40,13 +40,13 @@ export function calculateArenaXP(
   let baseXP = 0;
   let allCorrect = true;
   let fastSolve = true;
-  let streak = meta.streak || 0;
-  let repeatedQuiz = !!meta.repeatedQuiz;
-  let skipped = !!meta.skipped;
-  let answerSpamming = !!meta.answerSpamming;
-  let idleDetected = !!meta.idleDetected;
-  let isFirstWinToday = !!meta.isFirstWinToday;
-  let noMistakes = answers.every(a => a.isCorrect);
+  const streak = meta.streak || 0;
+  const repeatedQuiz = !!meta.repeatedQuiz;
+  const skipped = !!meta.skipped;
+  const answerSpamming = !!meta.answerSpamming;
+  const idleDetected = !!meta.idleDetected;
+  const isFirstWinToday = !!meta.isFirstWinToday;
+  const noMistakes = answers.every((a) => a.isCorrect);
 
   for (const ans of answers) {
     if (!ans.isCorrect) allCorrect = false;
@@ -74,4 +74,4 @@ export function calculateArenaXP(
   let xp = Math.round(baseXP + bonus - penalty);
   if (xp < 0) xp = 0;
   return xp;
-} 
+}

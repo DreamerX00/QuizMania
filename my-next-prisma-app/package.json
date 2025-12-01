@@ -5,10 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "dev:turbo": "next dev --turbopack",
-    "build": "prisma generate && next build",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate --no-engine && next build",
+    "vercel-build": "prisma generate --no-engine && prisma migrate deploy && next build",
     "start": "next start",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate --no-engine",
     "lint": "next lint",
     "test": "vitest",
     "test:ci": "vitest --run",

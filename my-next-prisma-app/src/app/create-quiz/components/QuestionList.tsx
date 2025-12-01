@@ -32,7 +32,9 @@ export const QuestionList: React.FC<QuestionListProps> = ({
     return (
       <div className="text-center py-12 text-gray-500 dark:text-gray-400">
         <p className="text-lg">No questions added yet</p>
-        <p className="text-sm mt-2">Click "Add Question" to get started</p>
+        <p className="text-sm mt-2">
+          Click &quot;Add Question&quot; to get started
+        </p>
       </div>
     );
   }

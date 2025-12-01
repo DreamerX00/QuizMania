@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { RazorpayService } from "@/services/razorpayService";
@@ -11,7 +11,7 @@ const subscribeSchema = z.object({
 
 export const POST = withValidation(
   subscribeSchema,
-  async (request: { validated: { plan: string } }) => {
+  async (_request: NextRequest) => {
     try {
       const currentUser = await getCurrentUser();
       const userId = currentUser?.id;

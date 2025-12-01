@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getRankByXP } from "@/utils/rank";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60; // 1 minute cache for leaderboard
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     // Get top 20 users by XP
     const users = await prisma.user.findMany({

@@ -9,7 +9,38 @@ const fetchLogs = async () => {
   return data.logs || [];
 };
 
-const performAction = async (action: string, body: Record<string, unknown>) => {
+interface ModerationLog {
+  id: string;
+  action: string;
+  targetUserId?: string;
+  performedById?: string;
+  byId?: string;
+  reason?: string;
+  createdAt: string;
+  context?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface ModerationForm {
+  action: string;
+  roomId?: string;
+  userId?: string;
+  blockedId?: string;
+  targetId?: string;
+  byId?: string;
+  reason?: string;
+}
+
+interface ModerationResult {
+  success?: boolean;
+  error?: string;
+  message?: string;
+}
+
+const performAction = async (
+  action: string,
+  body: Omit<ModerationForm, "action">
+): Promise<ModerationResult> => {
   const res = await fetch(`/api/admin/moderation/${action}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -19,10 +50,10 @@ const performAction = async (action: string, body: Record<string, unknown>) => {
 };
 
 export default function ModerationDashboard() {
-  const [logs, setLogs] = useState<Record<string, unknown>[]>([]);
+  const [logs, setLogs] = useState<ModerationLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState<Record<string, unknown>>({ action: "mute" });
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [form, setForm] = useState<ModerationForm>({ action: "mute" });
+  const [result, setResult] = useState<ModerationResult | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -36,7 +67,7 @@ export default function ModerationDashboard() {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
-    setForm((f: Record<string, unknown>) => ({
+    setForm((f) => ({
       ...f,
       [e.target.name]: e.target.value,
     }));
@@ -47,7 +78,7 @@ export default function ModerationDashboard() {
     setActionLoading(true);
     setResult(null);
     const { action, ...body } = form;
-    const res = await performAction(action, body);
+    const res = await performAction(action as string, body);
     setResult(res);
     setActionLoading(false);
     if (res.success) {
@@ -85,21 +116,21 @@ export default function ModerationDashboard() {
             <input
               name="roomId"
               placeholder="Room ID"
-              value={form.roomId || ""}
+              value={(form.roomId as string) || ""}
               onChange={handleChange}
               className="border p-2 rounded"
             />
             <input
               name="userId"
               placeholder="User ID"
-              value={form.userId || ""}
+              value={(form.userId as string) || ""}
               onChange={handleChange}
               className="border p-2 rounded"
             />
             <input
               name="byId"
               placeholder="By (Admin) ID"
-              value={form.byId || ""}
+              value={(form.byId as string) || ""}
               onChange={handleChange}
               className="border p-2 rounded"
             />
@@ -110,21 +141,21 @@ export default function ModerationDashboard() {
             <input
               name="userId"
               placeholder="User ID"
-              value={form.userId || ""}
+              value={(form.userId as string) || ""}
               onChange={handleChange}
               className="border p-2 rounded"
             />
             <input
               name="blockedId"
               placeholder="Blocked ID"
-              value={form.blockedId || ""}
+              value={(form.blockedId as string) || ""}
               onChange={handleChange}
               className="border p-2 rounded"
             />
             <input
               name="byId"
               placeholder="By (Admin) ID"
-              value={form.byId || ""}
+              value={(form.byId as string) || ""}
               onChange={handleChange}
               className="border p-2 rounded"
             />
@@ -135,14 +166,14 @@ export default function ModerationDashboard() {
             <input
               name="targetId"
               placeholder="Target User ID"
-              value={form.targetId || ""}
+              value={(form.targetId as string) || ""}
               onChange={handleChange}
               className="border p-2 rounded"
             />
             <input
               name="byId"
               placeholder="By (Admin) ID"
-              value={form.byId || ""}
+              value={(form.byId as string) || ""}
               onChange={handleChange}
               className="border p-2 rounded"
             />
@@ -151,7 +182,7 @@ export default function ModerationDashboard() {
         <textarea
           name="reason"
           placeholder="Reason (optional)"
-          value={form.reason || ""}
+          value={(form.reason as string) || ""}
           onChange={handleChange}
           className="border p-2 rounded w-full"
         />

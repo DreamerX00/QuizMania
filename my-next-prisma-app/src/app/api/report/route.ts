@@ -17,7 +17,7 @@ export const POST = withValidation(reportSchema, async (req: any) => {
       },
     });
     return NextResponse.json({ success: true, report });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to submit report" },
       { status: 500 }
