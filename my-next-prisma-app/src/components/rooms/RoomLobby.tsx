@@ -6,7 +6,7 @@ import RoomHostControls from "./RoomHostControls";
 import { MessageCircle } from "lucide-react";
 import useSWR from "swr";
 
-function ParticleBurst({
+function _ParticleBurst({
   x,
   y,
   keyId,
@@ -152,7 +152,7 @@ export default function RoomLobby({
       {/* Right: Info/Controls/Chat */}
       <aside className="flex flex-col gap-6 max-w-[420px] w-full min-w-[320px] bg-linear-to-br from-[#23234d]/90 to-[#181a2a]/80 p-0 md:p-8 border-l-2 border-blue-500/20 shadow-xl relative overflow-y-auto">
         {/* Sticky Header */}
-        <div className="sticky top-0 z-20 bg-gradient-to-b from-[#23234d]/95 to-transparent rounded-t-2xl pb-2 mb-2 flex flex-col gap-2 border-b border-blue-500/10">
+        <div className="sticky top-0 z-20 bg-linear-to-b from-[#23234d]/95 to-transparent rounded-t-2xl pb-2 mb-2 flex flex-col gap-2 border-b border-blue-500/10">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl font-bold text-purple-300 drop-shadow-glow tracking-wide">
               {room.title}
@@ -227,7 +227,7 @@ export default function RoomLobby({
         </div>
         {/* Footer (host only, sticky) */}
         {isHost && (
-          <div className="sticky bottom-0 left-0 w-full bg-gradient-to-t from-blue-900/80 to-transparent p-4 flex items-center justify-end rounded-b-2xl border-t border-blue-500/10 mt-4">
+          <div className="sticky bottom-0 left-0 w-full bg-linear-to-t from-blue-900/80 to-transparent p-4 flex items-center justify-end rounded-b-2xl border-t border-blue-500/10 mt-4">
             <button
               className={`px-8 py-3 rounded-2xl font-bold text-lg shadow-lg transition-all duration-300 flex items-center gap-2
                 ${

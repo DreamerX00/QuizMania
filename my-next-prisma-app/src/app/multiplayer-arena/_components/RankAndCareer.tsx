@@ -58,6 +58,7 @@ const RankAndCareer = () => {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2000);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.rank?.name]);
 
   if (isLoading) {

@@ -140,6 +140,7 @@ export function useLazyLoadPerformance<T>(
         setError(err);
         setLoading(false);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [importFn, componentName]);
 
   return { Component, loading, error };

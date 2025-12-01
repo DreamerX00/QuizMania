@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shield, X } from "lucide-react";
+import { Shield, X, Crown, Swords } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ClanPanelTabs from "./ClanPanelTabs";
 
@@ -12,17 +12,17 @@ const _MemberCard = ({ member }: { member: Record<string, unknown> }) => (
   >
     <div className="flex items-center gap-3">
       <Avatar className="w-10 h-10 border-2 border-slate-300 dark:border-slate-700">
-        <AvatarImage src={member.avatar} />
+        <AvatarImage src={member.avatar as string} />
         <AvatarFallback className="bg-linear-to-br from-purple-500 to-blue-500 text-white font-semibold">
-          {member.username?.substring(0, 2)}
+          {(member.username as string)?.substring(0, 2)}
         </AvatarFallback>
       </Avatar>
       <div>
         <p className="font-semibold text-slate-700 dark:text-slate-200">
-          {member.username}
+          {member.username as string}
         </p>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          {member.role}
+          {member.role as string}
         </p>
       </div>
     </div>
@@ -30,7 +30,7 @@ const _MemberCard = ({ member }: { member: Record<string, unknown> }) => (
       {member.role === "Leader" && (
         <Crown size={18} className="text-yellow-500" />
       )}
-      {member.isMVP && (
+      {(member.isMVP as boolean) && (
         <Swords size={18} className="text-purple-600 dark:text-purple-400" />
       )}
       <Button

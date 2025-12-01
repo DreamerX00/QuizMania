@@ -243,7 +243,7 @@ function NavItems({ items }: { items: NavItem[] }) {
     tablet: { max: 1023, spacing: 0.24, fontSize: 0.045 },
     desktop: { max: Infinity, spacing: 0.3, fontSize: 0.045 },
   };
-  const getDevice = () => {
+  const getDevice = (): "mobile" | "tablet" | "desktop" => {
     const w = window.innerWidth;
     return w <= DEVICE.mobile.max
       ? "mobile"
@@ -252,13 +252,16 @@ function NavItems({ items }: { items: NavItem[] }) {
       : "desktop";
   };
 
-  const [device, setDevice] = useState<keyof typeof DEVICE>(getDevice());
+  const [device, setDevice] = useState<"mobile" | "tablet" | "desktop">(() =>
+    getDevice()
+  );
 
   useEffect(() => {
     const onResize = () => setDevice(getDevice());
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [getDevice]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getDevice is stable
+  }, []);
 
   const { spacing, fontSize } = DEVICE[device];
 

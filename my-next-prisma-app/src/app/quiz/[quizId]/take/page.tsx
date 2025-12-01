@@ -113,7 +113,6 @@ const QuizTakePage = () => {
         setHasStarted(true);
       })();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initOpen, quiz, hasStarted]);
 
   if (loading || isValidating) {

@@ -208,7 +208,7 @@ export function AccountSettings({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="block text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
+                <label className="text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
                   <FiGlobe /> Bio
                 </label>
                 <textarea
@@ -220,7 +220,7 @@ export function AccountSettings({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="block text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
+                <label className="text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
                   <FiImage /> Avatar URL
                 </label>
                 <input
@@ -232,7 +232,7 @@ export function AccountSettings({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="block text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
+                <label className="text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
                   <FiImage /> Banner URL
                 </label>
                 <input
@@ -244,7 +244,7 @@ export function AccountSettings({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="block text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
+                <label className="text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
                   <FiGlobe /> Region
                 </label>
                 <input
@@ -256,7 +256,7 @@ export function AccountSettings({
                 />
               </div>
               <div className="flex flex-col gap-2 md:col-span-2">
-                <label className="block text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
+                <label className="text-purple-700 dark:text-purple-300 font-semibold mb-1 flex items-center gap-2 drop-shadow-glow">
                   Socials
                 </label>
                 <div className="grid grid-cols-2 gap-2">

@@ -199,7 +199,7 @@ export default function TopTagsBar() {
     <div className="relative w-full flex justify-center">
       {/* Edge fade for scroll hint */}
       <div className="pointer-events-none absolute left-0 top-0 h-full w-10 z-10 hidden dark:block bg-linear-to-r from-[#181a2a] via-[#181a2a]/60 to-transparent" />
-      <div className="pointer-events-none absolute right-0 top-0 h-full w-10 z-10 hidden dark:block bg-gradient-to-l from-[#181a2a] via-[#181a2a]/60 to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-10 z-10 hidden dark:block bg-linear-to-l from-[#181a2a] via-[#181a2a]/60 to-transparent" />
       <div
         ref={scrollRef}
         className="max-w-5xl w-full mx-auto overflow-x-auto rounded-full custom-scrollbar"
@@ -226,7 +226,7 @@ export default function TopTagsBar() {
               </div>
               {/* Divider except after last group */}
               {gi !== TAG_GROUPS.length - 1 && (
-                <span className="mx-2 h-8 w-0.5 bg-gradient-to-b from-purple-400/40 to-blue-400/40 rounded-full opacity-60" />
+                <span className="mx-2 h-8 w-0.5 bg-linear-to-b from-purple-400/40 to-blue-400/40 rounded-full opacity-60" />
               )}
             </div>
           ))}

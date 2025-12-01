@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { useQuizStore } from '../state/quizStore';
-import type { Question } from '../types/quiz.types';
-import { isEqual } from 'lodash';
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { useQuizStore } from "../state/quizStore";
+import type { Question } from "../types/quiz.types";
+import { isEqual } from "lodash";
 
 const ImageBased = ({ question }: { question: Question }) => {
-  const responses = useQuizStore(s => s.responses);
-  const prev = responses.find(r => r.questionId === question.id)?.response;
-  const [selected, setSelected] = useState<string | null>(question.options ? (prev ?? null) : null);
-  const [input, setInput] = useState(question.options ? '' : (prev ?? ''));
+  const responses = useQuizStore((s) => s.responses);
+  const prev = responses.find((r) => r.questionId === question.id)?.response;
+  const [selected, setSelected] = useState<string | null>(
+    question.options ? prev ?? null : null
+  );
+  const [input, setInput] = useState(question.options ? "" : prev ?? "");
   useEffect(() => {
     if (question.options) {
       if (!isEqual(selected, prev)) setSelected(prev ?? null);
     } else {
-      if (!isEqual(input, prev)) setInput(prev ?? '');
+      if (!isEqual(input, prev)) setInput(prev ?? "");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prev, question.id, question.options]);
@@ -31,7 +34,14 @@ const ImageBased = ({ question }: { question: Question }) => {
         {question.question}
       </div>
       {question.imageUrl && (
-        <img src={question.imageUrl} alt="Question" className="rounded-xl w-full max-w-xs mx-auto object-cover aspect-square" />
+        <div className="relative w-full max-w-xs mx-auto aspect-square">
+          <Image
+            src={question.imageUrl}
+            alt="Question"
+            fill
+            className="rounded-xl object-cover"
+          />
+        </div>
       )}
       <div className="bg-muted/60 rounded-xl p-6 shadow-lg flex flex-col gap-3 mt-2">
         {question.options ? (
@@ -39,14 +49,18 @@ const ImageBased = ({ question }: { question: Question }) => {
             <button
               key={opt.id || i}
               className={`rounded-full px-6 py-3 font-bold flex items-center gap-3 transition
-                ${selected === (opt.id || i)
-                  ? 'bg-[var(--primary-accent)] text-white scale-105 shadow-lg'
-                  : 'bg-white/10 hover:bg-[var(--primary-accent)]/80 text-white'}
+                ${
+                  selected === (opt.id || i)
+                    ? "bg-[var(--primary-accent)] text-white scale-105 shadow-lg"
+                    : "bg-white/10 hover:bg-[var(--primary-accent)]/80 text-white"
+                }
               `}
               onClick={() => handleSelect(opt.id || i)}
               aria-pressed={selected === (opt.id || i)}
             >
-              <span className="rounded-full w-8 h-8 flex items-center justify-center bg-white/20 font-heading">{String.fromCharCode(65 + i)}</span>
+              <span className="rounded-full w-8 h-8 flex items-center justify-center bg-white/20 font-heading">
+                {String.fromCharCode(65 + i)}
+              </span>
               {opt.text}
             </button>
           ))
@@ -63,5 +77,4 @@ const ImageBased = ({ question }: { question: Question }) => {
   );
 };
 
-export default ImageBased; 
-
+export default ImageBased;

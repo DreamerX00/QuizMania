@@ -30,7 +30,7 @@ export const POST = async (request: NextRequest) => {
     let event;
     try {
       event = JSON.parse(body);
-    } catch (_e) {
+    } catch {
       return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
     // Validate event and payload

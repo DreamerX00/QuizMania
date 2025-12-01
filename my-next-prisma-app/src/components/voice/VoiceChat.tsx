@@ -78,6 +78,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
     if (isVoiceEnabled && !isConnected) {
       initializeVoiceChat();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVoiceEnabled, roomId]);
 
   // Update voice state
@@ -89,6 +90,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
 
     const interval = setInterval(updateState, 1000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getVoiceState]);
 
   // Setup LiveKit callbacks
@@ -132,6 +134,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
         toast("Voice chat disconnected");
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveKitService]);
 
   // Setup Socket.IO callbacks for voice
@@ -170,6 +173,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
         }
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socketService, connect]);
 
   const initializeVoiceChat = async () => {

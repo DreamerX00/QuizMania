@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { BookOpen, Edit, Trash2, X, Upload, Download } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import type { SWRResponse } from "swr";
@@ -218,12 +219,13 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
       </div>
       <div className="space-y-4 text-sm">
         {/* Image */}
-        <div className="w-full aspect-[16/9] mb-4 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+        <div className="relative w-full aspect-video mb-4 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
           {pkg.imageUrl ? (
-            <img
+            <Image
               src={form.imageUrl || pkg.imageUrl}
               alt={pkg.title}
-              className="object-cover w-full h-full"
+              fill
+              className="object-cover"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-5xl font-bold text-gray-300 dark:text-white/40">
@@ -259,7 +261,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
               className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 min-h-[60px]"
             />
           ) : (
-            <p className="text-gray-900 dark:text-white min-h-[40px]">
+            <p className="text-gray-900 dark:text-white min-h-10">
               {pkg.description || "No description provided."}
             </p>
           )}
@@ -356,12 +358,13 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
                 key={q.id}
                 className="flex items-center gap-3 bg-white/5 rounded-lg px-2 py-1"
               >
-                <div className="w-10 h-8 rounded-md overflow-hidden bg-white/10 flex items-center justify-center">
+                <div className="w-10 h-8 rounded-md overflow-hidden bg-white/10 flex items-center justify-center relative">
                   {q.imageUrl ? (
-                    <img
+                    <Image
                       src={q.imageUrl}
                       alt={q.title}
-                      className="object-cover w-full h-full"
+                      fill
+                      className="object-cover"
                     />
                   ) : (
                     <BookOpen
@@ -423,12 +426,13 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
                             }}
                             className="accent-blue-500 w-4 h-4"
                           />
-                          <div className="w-10 h-8 rounded-md overflow-hidden bg-white/10 flex items-center justify-center">
+                          <div className="w-10 h-8 rounded-md overflow-hidden bg-white/10 flex items-center justify-center relative">
                             {q.imageUrl ? (
-                              <img
+                              <Image
                                 src={q.imageUrl}
                                 alt={q.title}
-                                className="object-cover w-full h-full"
+                                fill
+                                className="object-cover"
                               />
                             ) : (
                               <BookOpen

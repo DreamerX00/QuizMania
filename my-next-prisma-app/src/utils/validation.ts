@@ -54,7 +54,7 @@ export function withValidation<T extends ZodTypeAny>(
         // For POST, PUT, PATCH, etc., use body
         data = await request.json();
       }
-    } catch (_e) {
+    } catch {
       return validationError([
         { field: "body", message: "Invalid JSON or query" },
       ]);
