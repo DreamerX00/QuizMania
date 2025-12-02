@@ -1,60 +1,284 @@
-# QuizMania - Next.js Quiz Platform
+<div align="center">
 
-A modern, scalable quiz platform built with Next.js 15, React 19, TypeScript, and Prisma. Features real-time multiplayer gameplay, voice chat, premium subscriptions, and comprehensive admin controls.
+# 🎯 QuizMania
 
-## 🚀 Key Features
+### _The Ultimate AI-Powered Quiz Platform_
 
-- **Real-time Multiplayer Arena** - Live quiz battles with WebSocket support
-- **Voice Chat Integration** - LiveKit-powered voice communication
-- **Premium Subscriptions** - Razorpay payment integration
-- **Admin Dashboard** - Comprehensive moderation and analytics
-- **Containerized Deployment** - Docker with production optimizations
-- **Security Hardened** - Enterprise-level security measures
-- **Production Ready** - Optimized for Vercel deployment
+[![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-6.19.0-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15.6-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Production%20Ready-success?style=flat-square" />
+  <img src="https://img.shields.io/badge/Deployment-Vercel-black?style=flat-square&logo=vercel" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker" />
+  <img src="https://img.shields.io/badge/Security-Hardened-red?style=flat-square&logo=security" />
+</p>
+
+[Live Demo](https://quiz-mania-flame.vercel.app/) • [Documentation](./docs) • [Report Bug](https://github.com/DreamerX00/QuizMania/issues) • [Request Feature](https://github.com/DreamerX00/QuizMania/issues)
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" />
+
+</div>
+
+## 🌟 Why QuizMania?
+
+QuizMania is not just another quiz platform—it's a **complete learning ecosystem** powered by cutting-edge AI technology and real-time collaboration features. Built with modern web technologies, it offers an unparalleled experience for quiz creators, learners, and communities.
+
+### ✨ Key Highlights
+
+<table>
+<tr>
+<td width="50%">
+
+#### 🎮 **Real-Time Multiplayer**
+
+- Live quiz battles with WebSocket sync
+- Voice chat integration via LiveKit
+- ELO-based matchmaking system
+- Live spectator mode
+
+</td>
+<td width="50%">
+
+#### 🤖 **AI-Powered Intelligence**
+
+- Auto-generate quizzes from any topic
+- Smart difficulty adjustment
+- Personalized learning paths
+- Content recommendations
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+#### 💎 **Premium Features**
+
+- Razorpay payment integration
+- Subscription management
+- Premium quiz marketplace
+- Ad-free experience
+
+</td>
+<td width="50%">
+
+#### 🛡️ **Enterprise Security**
+
+- Role-based access control
+- End-to-end encryption
+- Rate limiting & DDoS protection
+- Comprehensive audit logs
+
+</td>
+</tr>
+</table>
+
+---
 
 ## 🏗️ Tech Stack
 
-- **Frontend**: Next.js 15.3.4, React 19, TypeScript 5
-- **Database**: PostgreSQL 15.6 with Prisma 6.19.0 ORM + **Prisma Accelerate** (caching & connection pooling)
-- **Authentication**: Clerk with role-based access control
-- **Real-time**: WebSocket server with LiveKit voice integration
-- **Caching**: Redis 7.2 for session management + Prisma Accelerate for query caching
-- **Payments**: Razorpay integration
-- **Deployment**: Docker containerization & Vercel support
-- **Monitoring**: Cloud-native monitoring ready (Vercel Analytics, Sentry)
+<div align="center">
 
-## 🐳 Quick Start with Docker
+### Frontend Arsenal 💻
 
-### Production Deployment (Recommended)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Framer](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)
+![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
 
-```bash
-# Clone and setup
-git clone <repository-url>
-cd my-next-prisma-app
+### Backend Powerhouse ⚙️
 
-# Copy environment file
-cp env.example .env.local
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socket.io&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
 
-# Deploy with Docker
-docker-compose up -d
+### AI & Analytics 🧠
 
-# Access application
-# - App: http://localhost:3000
-# - Admin: http://localhost:3000/admin
+![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+![DeepSeek](https://img.shields.io/badge/DeepSeek-000000?style=for-the-badge&logo=deepmind&logoColor=white)
+![Anthropic Claude](https://img.shields.io/badge/Claude-181818?style=for-the-badge&logo=anthropic&logoColor=white)
+
+### DevOps & Infrastructure 🚀
+
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
+
+### Authentication & Payments 💳
+
+![NextAuth](https://img.shields.io/badge/NextAuth-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![Razorpay](https://img.shields.io/badge/Razorpay-02042B?style=for-the-badge&logo=razorpay&logoColor=3395FF)
+![OAuth](https://img.shields.io/badge/OAuth-EB5424?style=for-the-badge&logo=auth0&logoColor=white)
+
+</div>
+
+<details>
+<summary>📦 <b>Complete Technology Breakdown</b></summary>
+
+```yaml
+Frontend:
+  Framework: Next.js 15.3.4 (App Router)
+  UI Library: React 19
+  Language: TypeScript 5.0
+  Styling: TailwindCSS + Shadcn/ui
+  Animation: Framer Motion + GSAP
+  3D Graphics: Three.js
+  State: Zustand + React Context
+
+Backend:
+  Runtime: Node.js 20+
+  Database: PostgreSQL 15.6
+  ORM: Prisma 6.19.0 + Prisma Accelerate
+  Cache: Redis 7.2 + Upstash
+  Real-time: WebSocket + Socket.io
+  Voice: LiveKit
+
+AI Integration:
+  Primary: Google Gemini 1.5 Pro
+  Fallback: DeepSeek, OpenAI GPT-4, Claude 3.5
+
+Authentication:
+  Provider: NextAuth.js
+  OAuth: Google, GitHub, LinkedIn
+  Authorization: Role-based access control (RBAC)
+
+Payment Processing:
+  Gateway: Razorpay
+  Features: Subscriptions, One-time payments, Webhooks
+
+File Storage:
+  Images: Cloudinary
+  Documents: UploadThing
+  Assets: Vercel Blob
+
+Deployment:
+  Platform: Vercel (Serverless)
+  Containers: Docker + Docker Compose
+  CDN: Vercel Edge Network
+  DNS: Cloudflare
+
+Monitoring:
+  Analytics: Vercel Analytics
+  Errors: Sentry (Optional)
+  Logs: Vercel Logs
+  Performance: Lighthouse CI
 ```
 
-### Development Setup
+</details>
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- ![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=node.js) Node.js 20 or higher
+- ![npm](https://img.shields.io/badge/npm-10+-CB3837?style=flat-square&logo=npm) npm 10+ or yarn
+- ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=flat-square&logo=postgresql) PostgreSQL 15+
+- ![Redis](https://img.shields.io/badge/Redis-7.2+-DC382D?style=flat-square&logo=redis) Redis 7.2+ (optional, for caching)
+
+### 🎯 Installation Methods
+
+<details open>
+<summary><b>⚡ Quick Start (Recommended)</b></summary>
 
 ```bash
-# Install dependencies
+# 1️⃣ Clone the repository
+git clone https://github.com/DreamerX00/QuizMania.git
+cd QuizMania
+
+# 2️⃣ Install dependencies
 npm install
 
-# Setup database
+# 3️⃣ Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your credentials
+
+# 4️⃣ Initialize database
+npx prisma generate
 npx prisma migrate dev
 
-# Start development server
+# 5️⃣ Seed the database (optional)
+npm run seed
+
+# 6️⃣ Start development server
 npm run dev
 ```
+
+🎉 **That's it!** Visit [http://localhost:3000](http://localhost:3000) to see your app.
+
+</details>
+
+<details>
+<summary><b>🐳 Docker Deployment</b></summary>
+
+```bash
+# 1️⃣ Clone and navigate
+git clone https://github.com/DreamerX00/QuizMania.git
+cd QuizMania
+
+# 2️⃣ Configure environment
+cp .env.example .env.local
+# Edit .env.local with production values
+
+# 3️⃣ Build and run with Docker Compose
+docker-compose up -d
+
+# 4️⃣ Check container status
+docker-compose ps
+
+# 5️⃣ View logs
+docker-compose logs -f app
+```
+
+**Access Points:**
+
+- 🌐 **App**: http://localhost:3000
+- 👨‍💼 **Admin**: http://localhost:3000/admin
+- 🔌 **WebSocket**: ws://localhost:3001
+- 🗄️ **Database**: localhost:5432
+- 💾 **Redis**: localhost:6379
+
+</details>
+
+<details>
+<summary><b>☁️ Vercel Deployment (One-Click)</b></summary>
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/DreamerX00/QuizMania)
+
+**Manual Deployment:**
+
+```bash
+# 1️⃣ Install Vercel CLI
+npm i -g vercel
+
+# 2️⃣ Login to Vercel
+vercel login
+
+# 3️⃣ Deploy
+vercel --prod
+```
+
+**Required Environment Variables on Vercel:**
+
+- `DATABASE_URL` - Neon/Supabase PostgreSQL URL
+- `REDIS_URL` - Upstash Redis URL
+- `NEXTAUTH_SECRET` - Generate with: `openssl rand -base64 32`
+- `NEXTAUTH_URL` - Your production URL
+
+</details>
 
 ## 🔧 Environment Configuration
 
@@ -127,28 +351,135 @@ NEXT_PUBLIC_APP_URL=https://your-domain.com
 - ✅ **Input validation** - All user inputs sanitized and validated
 - ✅ **Environment hardening** - Production-only security configurations
 
-## 🎮 Core Features
+---
 
-### Multiplayer Arena
+## 🎮 Feature Showcase
 
-- Real-time quiz battles with WebSocket synchronization
-- Voice chat integration with LiveKit
-- Ranking system with ELO-based matchmaking
-- Live spectator mode
+<div align="center">
 
-### Quiz Management
+### 🏆 What Makes QuizMania Special
 
-- Dynamic quiz creation with AI assistance
-- Template system for reusable content
-- Premium quiz marketplace
-- Advanced analytics and reporting
+</div>
 
-### User Experience
+<table>
+<tr>
+<td width="33%" align="center">
 
-- Responsive design for all devices
-- Dark/light theme support
-- Progressive Web App (PWA) capabilities
-- Offline mode for quiz taking
+### 🎯 Quiz Features
+
+![Quiz](https://img.shields.io/badge/Quiz_Types-10+-success?style=flat-square)
+
+- ✅ **Multiple Choice** - Classic format
+- ✅ **True/False** - Quick testing
+- ✅ **Fill in Blanks** - Text input
+- ✅ **Matching** - Pair items
+- ✅ **Ordering** - Sequence questions
+- ✅ **Image-based** - Visual learning
+- ✅ **Code Challenges** - Programming
+- ✅ **Timed Tests** - Pressure mode
+- ✅ **Adaptive Difficulty** - Smart AI
+- ✅ **Custom Templates** - Your style
+
+</td>
+<td width="33%" align="center">
+
+### 🎮 Multiplayer Arena
+
+![Players](https://img.shields.io/badge/Max_Players-100+-blue?style=flat-square)
+
+- 🔥 **Live Battles** - Real-time PvP
+- 🎙️ **Voice Chat** - Team coordination
+- 🏅 **ELO System** - Fair matchmaking
+- 👥 **Clans** - Team battles
+- 📊 **Leaderboards** - Global ranks
+- 🎬 **Spectator Mode** - Watch pros
+- 🎁 **Rewards** - Earn badges
+- ⚡ **Quick Match** - Instant play
+- 🔔 **Notifications** - Stay updated
+- 📈 **Stats Tracking** - Progress view
+
+</td>
+<td width="33%" align="center">
+
+### 🤖 AI Powered
+
+![AI](https://img.shields.io/badge/AI_Models-4+-purple?style=flat-square)
+
+- 🧠 **Auto-Generate** - Topic to quiz
+- 📝 **Smart Questions** - Quality control
+- 🎯 **Difficulty Adjust** - Perfect level
+- 💡 **Hints System** - Learn better
+- 📊 **Analytics** - Deep insights
+- 🔍 **Similar Quizzes** - Discovery
+- 🎨 **Style Transfer** - Custom themes
+- 🌐 **Multi-language** - 50+ langs
+- 🎓 **Learning Path** - Personalized
+- 📚 **Content Curation** - Best picks
+
+</td>
+</tr>
+</table>
+
+<div align="center">
+
+### 💎 Premium Features
+
+</div>
+
+```mermaid
+graph LR
+    A[Free User] -->|Subscribe| B[Premium User]
+    B --> C[Ad-Free Experience]
+    B --> D[Unlimited Quizzes]
+    B --> E[Advanced Analytics]
+    B --> F[Priority Support]
+    B --> G[Custom Themes]
+    B --> H[API Access]
+    B --> I[Export Data]
+    B --> J[Private Rooms]
+
+    style B fill:#ffd700,stroke:#333,stroke-width:4px
+    style C fill:#90EE90
+    style D fill:#90EE90
+    style E fill:#90EE90
+    style F fill:#90EE90
+    style G fill:#90EE90
+    style H fill:#90EE90
+    style I fill:#90EE90
+    style J fill:#90EE90
+```
+
+<details>
+<summary><b>🎨 UI/UX Features</b></summary>
+
+- 🌓 **Dark/Light Mode** - Eye comfort
+- 📱 **Responsive Design** - All devices
+- ⚡ **Fast Loading** - Optimized performance
+- 🎭 **Smooth Animations** - Framer Motion
+- 🎨 **Custom Themes** - Personalization
+- ♿ **Accessibility** - WCAG compliant
+- 🌍 **Internationalization** - Multi-language
+- 📴 **Offline Mode** - PWA support
+- 🔔 **Push Notifications** - Real-time alerts
+- 🎯 **Keyboard Shortcuts** - Power users
+
+</details>
+
+<details>
+<summary><b>📊 Analytics & Reporting</b></summary>
+
+- 📈 **Performance Metrics** - Track progress
+- 🎯 **Accuracy Stats** - Know your strengths
+- ⏱️ **Time Analysis** - Speed insights
+- 📊 **Topic Breakdown** - Weak areas
+- 🏆 **Achievement System** - Gamification
+- 📅 **History Tracking** - View past results
+- 📉 **Trend Analysis** - Long-term view
+- 🎓 **Skill Assessment** - Level evaluation
+- 📋 **Export Reports** - PDF/CSV download
+- 🔍 **Detailed Insights** - Deep dive
+
+</details>
 
 ## 📊 Monitoring & Analytics
 
@@ -336,36 +667,224 @@ my-next-prisma-app/
 - [Performance Guide](./docs/PERFORMANCE.md) - Optimization strategies
 - [Development Guide](./docs/DEVELOPMENT_GUIDE.md) - Developer workflow
 
-## 🤝 Contributing
+---
 
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open Pull Request
+## 📸 Screenshots
 
-## 📄 License
+<div align="center">
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### 🏠 Home Page
 
-## 🆘 Support
+<img src="https://via.placeholder.com/800x450/667eea/ffffff?text=Beautiful+Landing+Page" width="80%" />
 
-- **Documentation**: Check the `/docs` directory
-- **Issues**: GitHub Issues for bug reports
-- **Discussions**: GitHub Discussions for questions
-- **Security**: Email security@your-domain.com for security issues
+### 🎮 Quiz Arena
+
+<img src="https://via.placeholder.com/800x450/764ba2/ffffff?text=Real-time+Multiplayer" width="80%" />
+
+### 📊 Analytics Dashboard
+
+<img src="https://via.placeholder.com/800x450/f093fb/ffffff?text=Advanced+Analytics" width="80%" />
+
+</div>
 
 ---
 
-**Built with ❤️ using Next.js 15, React 19, and modern web technologies.**
+## 🗺️ Roadmap
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+<details open>
+<summary><b>📅 2025 Q1-Q2</b></summary>
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [x] ✅ Core quiz functionality
+- [x] ✅ Real-time multiplayer
+- [x] ✅ AI quiz generation
+- [x] ✅ Payment integration
+- [x] ✅ Voice chat
+- [ ] 🚧 Mobile app (React Native)
+- [ ] 🚧 Advanced analytics dashboard
+- [ ] 📋 Blockchain certificates
+- [ ] 📋 AR/VR quiz mode
+- [ ] 📋 Live streaming integration
 
-## Deploy on Vercel
+</details>
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+<details>
+<summary><b>🔮 Future Plans</b></summary>
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] 🎯 Marketplace for quiz templates
+- [ ] 🎓 Integration with LMS platforms
+- [ ] 🏫 School/Enterprise plans
+- [ ] 🤝 Collaborative quiz creation
+- [ ] 🎨 Advanced customization
+- [ ] 📱 Native mobile apps
+- [ ] 🌐 Metaverse integration
+- [ ] 🤖 Advanced AI tutor
+- [ ] 🎮 Gamification 2.0
+- [ ] 🌍 Global tournaments
+
+</details>
+
+---
+
+## 🤝 Contributing
+
+We love contributions! 🎉 Here's how you can help:
+
+<div align="center">
+
+[![Contributors](https://img.shields.io/github/contributors/DreamerX00/QuizMania?style=for-the-badge)](https://github.com/DreamerX00/QuizMania/graphs/contributors)
+[![Forks](https://img.shields.io/github/forks/DreamerX00/QuizMania?style=for-the-badge)](https://github.com/DreamerX00/QuizMania/network/members)
+[![Stars](https://img.shields.io/github/stars/DreamerX00/QuizMania?style=for-the-badge)](https://github.com/DreamerX00/QuizMania/stargazers)
+[![Issues](https://img.shields.io/github/issues/DreamerX00/QuizMania?style=for-the-badge)](https://github.com/DreamerX00/QuizMania/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/DreamerX00/QuizMania?style=for-the-badge)](https://github.com/DreamerX00/QuizMania/pulls)
+
+</div>
+
+### 🎯 Contribution Steps
+
+1. **🍴 Fork** the repository
+2. **🌿 Create** your feature branch
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+3. **💾 Commit** your changes
+   ```bash
+   git commit -m '✨ Add some AmazingFeature'
+   ```
+4. **📤 Push** to the branch
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
+5. **🔀 Open** a Pull Request
+
+### 📋 Contribution Guidelines
+
+- ✅ Follow the existing code style
+- ✅ Write meaningful commit messages
+- ✅ Add tests for new features
+- ✅ Update documentation
+- ✅ Be respectful and collaborative
+
+<details>
+<summary><b>🏆 Top Contributors</b></summary>
+
+<a href="https://github.com/DreamerX00/QuizMania/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=DreamerX00/QuizMania" />
+</a>
+
+</details>
+
+---
+
+## 📄 License
+
+<div align="center">
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+**QuizMania** is open source software licensed under the [MIT License](LICENSE).
+
+```
+MIT License - Copyright (c) 2025 Akash Singh (DreamerX00)
+```
+
+</div>
+
+---
+
+## 🆘 Support & Community
+
+<div align="center">
+
+### 💬 Get Help
+
+[![Discord](https://img.shields.io/badge/Discord-Join_Server-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/QJWmh3hVdu)
+[![Telegram](https://img.shields.io/badge/Telegram-Join_Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/DreamerBros)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-Join_Community-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://whatsapp.com/channel/0029VaAIhmSHwXbFP8mSGy2R)
+
+### 📚 Resources
+
+| Resource                | Link                                                                                              |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| 📖 **Documentation**    | [View Docs](./docs)                                                                               |
+| 🐛 **Bug Reports**      | [Create Issue](https://github.com/DreamerX00/QuizMania/issues/new?template=bug_report.md)         |
+| 💡 **Feature Requests** | [Request Feature](https://github.com/DreamerX00/QuizMania/issues/new?template=feature_request.md) |
+| 💬 **Discussions**      | [GitHub Discussions](https://github.com/DreamerX00/QuizMania/discussions)                         |
+| 🔐 **Security Issues**  | [Report Privately](mailto:akash@quizmania.com)                                                    |
+| 📧 **Email Support**    | [support@quizmania.com](mailto:support@quizmania.com)                                             |
+
+</div>
+
+---
+
+## 🌟 Show Your Support
+
+<div align="center">
+
+If you find this project useful, please consider:
+
+⭐ **Starring** the repository
+🐦 **Sharing** on social media
+💖 **Sponsoring** the development
+🤝 **Contributing** to the codebase
+
+[![GitHub Stars](https://img.shields.io/github/stars/DreamerX00/QuizMania?style=social)](https://github.com/DreamerX00/QuizMania/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/DreamerX00/QuizMania?style=social)](https://github.com/DreamerX00/QuizMania/network/members)
+[![Twitter Follow](https://img.shields.io/twitter/follow/XDreamer0?style=social)](https://twitter.com/XDreamer0)
+
+</div>
+
+---
+
+## 👨‍💻 Author
+
+<div align="center">
+
+### **Akash Singh** (@DreamerX00)
+
+[![Portfolio](https://img.shields.io/badge/Portfolio-quiz--mania--flame.vercel.app-black?style=for-the-badge&logo=vercel)](https://quiz-mania-flame.vercel.app/about)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-akashs08-0077B5?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/akashs08)
+[![GitHub](https://img.shields.io/badge/GitHub-DreamerX00-181717?style=for-the-badge&logo=github)](https://github.com/DreamerX00)
+[![Twitter](https://img.shields.io/badge/Twitter-@XDreamer0-1DA1F2?style=for-the-badge&logo=twitter)](https://twitter.com/XDreamer0)
+
+_Full-Stack Developer • AI Enthusiast • Open Source Contributor_
+
+</div>
+
+---
+
+## 🙏 Acknowledgments
+
+<div align="center">
+
+Special thanks to:
+
+- [Next.js Team](https://nextjs.org/) for the amazing framework
+- [Vercel](https://vercel.com/) for hosting and deployment
+- [Prisma](https://www.prisma.io/) for the incredible ORM
+- [Shadcn/ui](https://ui.shadcn.com/) for beautiful components
+- All [Contributors](https://github.com/DreamerX00/QuizMania/graphs/contributors) who helped improve this project
+
+</div>
+
+---
+
+<div align="center">
+
+### 💝 Made with Love and Code
+
+**QuizMania** • Built with ❤️ by [Akash Singh](https://github.com/DreamerX00)
+
+⭐ Star this repo if you find it helpful!
+
+![Made with Love](https://img.shields.io/badge/Made%20with-Love-red?style=for-the-badge&logo=heart)
+![Powered by Coffee](https://img.shields.io/badge/Powered%20by-Coffee-brown?style=for-the-badge&logo=buy-me-a-coffee)
+
+---
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" />
+
+**© 2025 QuizMania. All rights reserved.**
+
+[🔝 Back to Top](#-quizmania)
+
+</div>
