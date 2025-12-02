@@ -8,7 +8,8 @@ const quizIdParamSchema = z.object({ quizId: z.string().min(1) });
 
 export const PATCH = withValidation(
   quizIdParamSchema,
-  async (request: any, { params }: { params: { quizId: string } }) => {
+  async (request, ...args) => {
+    const { params } = args[0] as { params: { quizId: string } };
     try {
       const currentUser = await getCurrentUser();
       const userId = currentUser?.id;

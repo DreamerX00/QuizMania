@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const revalidate = 300; // 5 minutes cache
 
-export async function GET(request: Request, context: any) {
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
   const { id } = await context.params;
   // TODO: Replace with real DB query if PremiumSummary table exists
   // For now, return mock data

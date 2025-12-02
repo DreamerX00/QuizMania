@@ -15,7 +15,7 @@ interface PackageCardProps {
     isPublished?: boolean;
     price?: number;
   };
-  onSelect: (pkg: any) => void;
+  onSelect: (pkg: { id: string; [key: string]: unknown }) => void;
   hideImage?: boolean;
 }
 
@@ -107,4 +107,3 @@ const PackageCard = memo(function PackageCard({
 });
 
 export default PackageCard;
-

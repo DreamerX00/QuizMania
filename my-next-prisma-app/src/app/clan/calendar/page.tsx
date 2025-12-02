@@ -83,7 +83,7 @@ export default function ClanCalendarPage() {
     duration: 60,
     location: "",
     maxParticipants: 10,
-    eventType: "practice" as const,
+    eventType: "practice" as "tournament" | "practice" | "social" | "meeting",
   });
 
   useEffect(() => {
@@ -108,10 +108,14 @@ export default function ClanCalendarPage() {
       if (eventsResponse.ok) {
         const eventsData = await eventsResponse.json();
         setEvents(
-          eventsData.map((event: any) => ({
+          (eventsData as ClanEvent[]).map((event) => ({
             ...event,
             date: new Date(event.date),
-          }))
+            respondedAt: event.rsvpList?.map((rsvp) => ({
+              ...rsvp,
+              respondedAt: new Date(rsvp.respondedAt),
+            })),
+          })) as ClanEvent[]
         );
       }
     } catch (error) {
@@ -413,7 +417,11 @@ export default function ClanCalendarPage() {
                   onValueChange={(value) =>
                     setNewEvent((prev) => ({
                       ...prev,
-                      eventType: value as any,
+                      eventType: value as
+                        | "tournament"
+                        | "practice"
+                        | "social"
+                        | "meeting",
                     }))
                   }
                 >

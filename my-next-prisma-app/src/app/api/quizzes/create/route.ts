@@ -22,7 +22,7 @@ const createQuizSchema = z.object({
   difficultyLevel: z.string().optional(),
 });
 
-export const POST = withValidation(createQuizSchema, async (req: any) => {
+export const POST = withValidation(createQuizSchema, async (req) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
   if (!userId) {

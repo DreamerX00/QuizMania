@@ -14,7 +14,10 @@ import {
 } from "postprocessing";
 
 interface Distortion {
-  uniforms: Record<string, { value: any }>;
+  uniforms: Record<
+    string,
+    { value: number | THREE.Vector2 | THREE.Color | unknown }
+  >;
   getDistortion: string;
   getJS?: (progress: number, time: number) => THREE.Vector3;
 }
@@ -822,7 +825,10 @@ class Road {
       segments
     );
 
-    let uniforms: Record<string, { value: any }> = {
+    let uniforms: Record<
+      string,
+      { value: number | THREE.Vector2 | THREE.Color | unknown }
+    > = {
       uTravelLength: { value: options.length },
       uColor: {
         value: new THREE.Color(
@@ -994,13 +1000,16 @@ class App {
   renderPass!: RenderPass;
   bloomPass!: EffectPass;
   clock: THREE.Clock;
-  assets: Record<string, any>;
+  assets: Record<string, unknown>;
   disposed: boolean;
   road: Road;
   leftCarLights: CarLights;
   rightCarLights: CarLights;
   leftSticks: LightsSticks;
-  fogUniforms: Record<string, { value: any }>;
+  fogUniforms: Record<
+    string,
+    { value: number | THREE.Vector2 | THREE.Color | unknown }
+  >;
   fovTarget: number;
   speedUpTarget: number;
   speedUp: number;
@@ -1133,12 +1142,12 @@ class App {
       assets.smaa = {};
 
       searchImage.addEventListener("load", function () {
-        assets.smaa.search = this;
+        (assets.smaa as any).search = this;
         manager.itemEnd("smaa-search");
       });
 
       areaImage.addEventListener("load", function () {
-        assets.smaa.area = this;
+        (assets.smaa as any).area = this;
         manager.itemEnd("smaa-area");
       });
 

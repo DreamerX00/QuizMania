@@ -1,17 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useQuizStore } from '../state/quizStore';
-import type { Question } from '../types/quiz.types';
-import { isEqual } from 'lodash';
+import React, { useState, useEffect } from "react";
+import { useQuizStore } from "../state/quizStore";
+import type { Question } from "../types/quiz.types";
+import { isEqual } from "lodash";
 
 const DragDrop = ({ question }: { question: Question }) => {
   const items = question.draggableItems || [];
   const zones = question.dropZones || [];
-  const responses = useQuizStore(s => s.responses);
-  const prev = responses.find(r => r.questionId === question.id)?.response ?? Object.fromEntries(zones.map((z: any) => [z.id, null]));
-  const [positions, setPositions] = useState<{ [zoneId: string]: string | null }>(prev);
+  const responses = useQuizStore((s) => s.responses);
+  const defaultPositions = Object.fromEntries(
+    (zones as Array<{ id: string }>).map((z) => [z.id, null])
+  );
+  const prev =
+    responses.find((r) => r.questionId === question.id)?.response ??
+    defaultPositions;
+  const [positions, setPositions] = useState<{
+    [zoneId: string]: string | null;
+  }>(prev as { [zoneId: string]: string | null });
   useEffect(() => {
     if (!isEqual(positions, prev)) {
-      setPositions(prev);
+      setPositions(prev as { [zoneId: string]: string | null });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prev, question.id]);
@@ -24,7 +31,7 @@ const DragDrop = ({ question }: { question: Question }) => {
     if (!selectedItem) return;
     const next = { ...positions };
     // Remove from any previous zone
-    Object.keys(next).forEach(zid => {
+    Object.keys(next).forEach((zid) => {
       if (next[zid] === selectedItem) next[zid] = null;
     });
     next[zoneId] = selectedItem;
@@ -39,24 +46,49 @@ const DragDrop = ({ question }: { question: Question }) => {
       </div>
       <div className="bg-muted/60 rounded-xl p-6 shadow-lg flex flex-col gap-6">
         <div className="flex gap-4 flex-wrap">
-          {items.map((item: any) => (
+          {(
+            items as Array<{ id: string; text?: string; content?: string }>
+          ).map((item) => (
             <div
               key={item.id}
-              className={`rounded-lg bg-white/10 px-4 py-2 shadow cursor-pointer ${selectedItem === item.id ? 'ring-2 ring-[var(--primary-accent)]' : ''}`}
+              className={`rounded-lg bg-white/10 px-4 py-2 shadow cursor-pointer ${
+                selectedItem === item.id
+                  ? "ring-2 ring-[var(--primary-accent)]"
+                  : ""
+              }`}
               onClick={() => handleItemClick(item.id)}
             >
-              {item.text}
+              {item.text || item.content}
             </div>
           ))}
         </div>
         <div className="flex gap-4 mt-4 flex-wrap">
-          {zones.map((zone: any) => (
+          {(
+            zones as Array<{ id: string; text?: string; content?: string }>
+          ).map((zone) => (
             <div
               key={zone.id}
-              className={`rounded-lg bg-white/5 border-2 border-dashed border-[var(--primary-accent)] w-32 h-16 flex items-center justify-center cursor-pointer ${positions[zone.id] ? 'bg-[var(--primary-accent)]/20' : ''}`}
+              className={`rounded-lg bg-white/5 border-2 border-dashed border-[var(--primary-accent)] w-32 h-16 flex items-center justify-center cursor-pointer ${
+                positions[zone.id] ? "bg-[var(--primary-accent)]/20" : ""
+              }`}
               onClick={() => handleZoneClick(zone.id)}
             >
-              {positions[zone.id] ? items.find((it: any) => it.id === positions[zone.id])?.text : zone.text}
+              {positions[zone.id]
+                ? (
+                    items as Array<{
+                      id: string;
+                      text?: string;
+                      content?: string;
+                    }>
+                  ).find((it) => it.id === positions[zone.id])?.text ||
+                  (
+                    items as Array<{
+                      id: string;
+                      text?: string;
+                      content?: string;
+                    }>
+                  ).find((it) => it.id === positions[zone.id])?.content
+                : zone.text || zone.content}
             </div>
           ))}
         </div>
@@ -65,5 +97,4 @@ const DragDrop = ({ question }: { question: Question }) => {
   );
 };
 
-export default DragDrop; 
-
+export default DragDrop;

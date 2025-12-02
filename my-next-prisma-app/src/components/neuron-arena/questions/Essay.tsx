@@ -4,25 +4,18 @@ import MDEditor from "@uiw/react-md-editor";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { isEqual } from "lodash";
+import type { Question } from "../types/quiz.types";
 
 const LOCAL_KEY = "essay-draft";
-
-interface Question {
-  id: string;
-  type: string;
-  question?: string;
-  minWordCount?: number;
-  maxWordCount?: number;
-}
 
 const Essay = ({ question }: { question: Question }) => {
   const responses = useQuizStore((s) => s.responses);
   const prev =
     responses.find((r) => r.questionId === question.id)?.response ?? "";
-  const [value, setValue] = useState(prev);
+  const [value, setValue] = useState(String(prev));
   useEffect(() => {
     if (!isEqual(value, prev)) {
-      setValue(prev);
+      setValue(String(prev));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prev, question.id]);
@@ -134,4 +127,3 @@ const Essay = ({ question }: { question: Question }) => {
 };
 
 export default Essay;
-

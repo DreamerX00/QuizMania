@@ -4,8 +4,30 @@ import { FiImage, FiTag, FiDollarSign } from "react-icons/fi";
 import { academicFields, DIFFICULTY_LEVELS } from "../types";
 
 interface QuizBasicInfoProps {
-  formData: any;
-  onUpdate: (field: string, value: any) => void;
+  formData: {
+    title?: string;
+    description?: string;
+    category?: string;
+    subcategory?: string;
+    difficultyLevel?: string;
+    estimatedTime?: number;
+    passingScore?: number;
+    imageUrl?: string;
+    isPremium?: boolean;
+    price?: number;
+    tags?: string[];
+    randomizeQuestions?: boolean;
+    randomizeOptions?: boolean;
+    showCorrectAnswers?: boolean;
+    showResults?: boolean;
+    allowRetakes?: boolean;
+    allowReview?: boolean;
+    [key: string]: unknown;
+  };
+  onUpdate: (
+    field: string,
+    value: string | number | boolean | string[] | unknown
+  ) => void;
 }
 
 export const QuizBasicInfo: React.FC<QuizBasicInfoProps> = ({
@@ -140,7 +162,7 @@ export const QuizBasicInfo: React.FC<QuizBasicInfoProps> = ({
         </label>
         <input
           type="text"
-          value={formData.tags.join(", ")}
+          value={(formData.tags || []).join(", ")}
           onChange={(e) =>
             onUpdate(
               "tags",
@@ -243,4 +265,3 @@ export const QuizBasicInfo: React.FC<QuizBasicInfoProps> = ({
     </div>
   );
 };
-

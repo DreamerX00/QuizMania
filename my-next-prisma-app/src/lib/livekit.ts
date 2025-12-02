@@ -182,7 +182,7 @@ class LiveKitService {
     try {
       await this.room.localParticipant.publishData(payload, {
         topic,
-      } as any);
+      } as { topic?: string });
     } catch (error) {
       console.error("Failed to send data:", error);
       this.callbacks.onError?.(
@@ -198,7 +198,7 @@ class LiveKitService {
     return {
       participants: this.state.participants.size,
       localParticipant: this.room.localParticipant.identity,
-      connectionState: (this.room as any).state || "unknown",
+      connectionState: (this.room as { state?: string }).state || "unknown",
       isConnected: this.state.isConnected,
       mode: this.state.mode,
     };

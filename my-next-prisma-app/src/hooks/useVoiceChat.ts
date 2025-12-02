@@ -86,7 +86,13 @@ export function useVoiceChat({
 
     socket.on(
       "voice:user-joined",
-      ({ user, mode }: { user: any; mode: string }) => {
+      ({
+        user,
+        mode,
+      }: {
+        user: { id: string; name: string };
+        mode: string;
+      }) => {
         setState((prev) => ({
           ...prev,
           mode: mode as "livekit" | "webrtc-fallback",
@@ -104,7 +110,7 @@ export function useVoiceChat({
       }
     );
 
-    socket.on("voice:user-left", ({ user }: { user: any }) => {
+    socket.on("voice:user-left", ({ user }: { user: { id: string } }) => {
       setState((prev) => ({
         ...prev,
         participants: prev.participants.filter((p) => p.userId !== user.id),
@@ -113,7 +119,7 @@ export function useVoiceChat({
 
     socket.on(
       "voice:user-muted",
-      ({ user, muted }: { user: any; muted: boolean }) => {
+      ({ user, muted }: { user: { id: string }; muted: boolean }) => {
         setState((prev) => ({
           ...prev,
           participants: prev.participants.map((p) =>
@@ -125,7 +131,7 @@ export function useVoiceChat({
 
     socket.on(
       "voice:user-speaking",
-      ({ user, speaking }: { user: any; speaking: boolean }) => {
+      ({ user, speaking }: { user: { id: string }; speaking: boolean }) => {
         setState((prev) => ({
           ...prev,
           participants: prev.participants.map((p) =>
@@ -233,11 +239,15 @@ export function useVoiceChat({
         localStreamRef.current = stream;
 
         // Join voice room
-        socketRef.current.emit("voice:join", { roomId }, (response: any) => {
-          if (!response.success) {
-            onError?.(response.error || "Failed to join voice room");
+        socketRef.current.emit(
+          "voice:join",
+          { roomId },
+          (response: { success: boolean; error?: string }) => {
+            if (!response.success) {
+              onError?.(response.error || "Failed to join voice room");
+            }
           }
-        });
+        );
 
         return true;
       } catch (error) {
@@ -321,13 +331,16 @@ export function useVoiceChat({
   const checkHealth = useCallback(() => {
     if (!socketRef.current) return;
 
-    socketRef.current.emit("voice:health-check", (response: any) => {
-      if (response.success) {
-        console.log("Voice health:", response);
-      } else {
-        onError?.(response.error || "Health check failed");
+    socketRef.current.emit(
+      "voice:health-check",
+      (response: { success: boolean; error?: string }) => {
+        if (response.success) {
+          console.log("Voice health:", response);
+        } else {
+          onError?.(response.error || "Health check failed");
+        }
       }
-    });
+    );
   }, [onError]);
 
   return {

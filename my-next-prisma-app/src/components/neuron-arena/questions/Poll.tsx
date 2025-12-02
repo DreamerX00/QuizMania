@@ -3,6 +3,7 @@ import { useQuizStore } from "../state/quizStore";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { isEqual } from "lodash";
+import type { Question } from "../types/quiz.types";
 
 interface PollOption {
   id: string;
@@ -10,13 +11,6 @@ interface PollOption {
   percent?: number;
   text?: string;
   label?: string;
-}
-
-interface Question {
-  id: string;
-  type: string;
-  question?: string;
-  options?: PollOption[];
 }
 
 // Simulate poll results for demo
@@ -45,10 +39,10 @@ const Poll = ({ question }: { question: Question }) => {
   const responses = useQuizStore((s) => s.responses);
   const prev =
     responses.find((r) => r.questionId === question.id)?.response ?? "";
-  const [selected, setSelected] = useState(prev);
+  const [selected, setSelected] = useState(String(prev));
   useEffect(() => {
     if (!isEqual(selected, prev)) {
-      setSelected(prev);
+      setSelected(String(prev));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prev, question.id]);
@@ -69,7 +63,8 @@ const Poll = ({ question }: { question: Question }) => {
   }
 
   // Simulate poll results (replace with real data in production)
-  const results = fakeResults(question.options || [], selected);
+  const options = (question.options || []) as unknown as PollOption[];
+  const results = fakeResults(options, selected);
 
   return (
     <section
@@ -92,7 +87,7 @@ const Poll = ({ question }: { question: Question }) => {
       </div>
       {!submitted ? (
         <div className="flex flex-col gap-2">
-          {question.options?.map((opt: PollOption) => (
+          {options.map((opt: PollOption) => (
             <label
               key={opt.id}
               className={`flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition ${
@@ -118,13 +113,7 @@ const Poll = ({ question }: { question: Question }) => {
         <div className="flex flex-col gap-2 mt-2">
           <div className="mb-2 text-sm text-blue-300">
             Your choice:{" "}
-            <b>
-              {
-                question.options?.find((o: PollOption) => o.id === selected)
-                  ?.text
-              }
-            </b>{" "}
-            ✅
+            <b>{options.find((o: PollOption) => o.id === selected)?.text}</b> ✅
           </div>
           {results.map((opt: PollOption) => (
             <div key={opt.id} className="flex items-center gap-2">

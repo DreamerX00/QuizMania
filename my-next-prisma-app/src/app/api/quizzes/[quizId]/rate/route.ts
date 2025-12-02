@@ -13,10 +13,7 @@ const rateQuizSchema = z.object({
 
 export const POST = withValidation(
   rateQuizSchema,
-  async (
-    request: any,
-    { params: _params }: { params: Promise<{ quizId: string }> }
-  ) => {
+  async (request, ..._args) => {
     try {
       const currentUser = await getCurrentUser();
       const userId = currentUser?.id;

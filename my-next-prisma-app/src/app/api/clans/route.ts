@@ -79,8 +79,7 @@ const deleteClanSchema = z.object({
   clanId: z.string().min(1),
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const POST = withValidation(createClanSchema, async (req: any) => {
+export const POST = withValidation(createClanSchema, async (req) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
   if (!userId)
@@ -106,8 +105,7 @@ export const POST = withValidation(createClanSchema, async (req: any) => {
   return NextResponse.json({ clan });
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const DELETE = withValidation(deleteClanSchema, async (request: any) => {
+export const DELETE = withValidation(deleteClanSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser?.id) {

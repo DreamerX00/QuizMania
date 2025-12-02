@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { QuizAttemptService } from "@/services/quizAttemptService";
 import { updatePackageStatsForQuiz } from "@/services/updatePackageStats";
@@ -32,10 +32,8 @@ const structuredSchema = z.object({
 
 export const POST = withValidation(
   structuredSchema,
-  async (
-    request: NextRequest & { validated?: z.infer<typeof structuredSchema> },
-    { params }: { params: Promise<{ quizId: string }> }
-  ) => {
+  async (request, ...args) => {
+    const { params } = args[0] as { params: Promise<{ quizId: string }> };
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
     if (!userId) {
@@ -158,10 +156,8 @@ export const POST = withValidation(
 const quizIdParamSchema = z.object({ quizId: z.string().min(1) });
 export const GET = withValidation(
   quizIdParamSchema,
-  async (
-    request: NextRequest & { validated?: z.infer<typeof quizIdParamSchema> },
-    { params }: { params: Promise<{ quizId: string }> }
-  ) => {
+  async (request, ...args) => {
+    const { params } = args[0] as { params: Promise<{ quizId: string }> };
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
     if (!userId) {

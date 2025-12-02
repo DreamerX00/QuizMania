@@ -57,7 +57,7 @@ const createRoomSchema = z.object({
   password: z.string().max(100).optional().nullable(),
 });
 
-export const POST = withValidation(createRoomSchema, async (request: any) => {
+export const POST = withValidation(createRoomSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
@@ -104,7 +104,7 @@ const deleteRoomSchema = z.object({
   roomId: z.string().min(1),
 });
 
-export const DELETE = withValidation(deleteRoomSchema, async (request: any) => {
+export const DELETE = withValidation(deleteRoomSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;

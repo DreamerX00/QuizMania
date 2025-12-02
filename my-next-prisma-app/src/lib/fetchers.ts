@@ -14,8 +14,9 @@ export const jsonFetcher = async (url: string) => {
   if (!res.ok) {
     const error = new Error("API request failed");
     // Attach extra info to the error object
-    (error as any).info = await res.json();
-    (error as any).status = res.status;
+    (error as Error & { info?: unknown; status?: number }).info =
+      await res.json();
+    (error as Error & { info?: unknown; status?: number }).status = res.status;
     throw error;
   }
   return res.json();
@@ -45,7 +46,7 @@ export const authFetcher = async (url: string, token: string) => {
  * @param data - Request body data
  * @returns Parsed JSON response
  */
-export const postFetcher = async (url: string, data: any) => {
+export const postFetcher = async (url: string, data: unknown) => {
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -65,7 +66,7 @@ export const postFetcher = async (url: string, data: any) => {
  * @param data - Request body data
  * @returns Parsed JSON response
  */
-export const putFetcher = async (url: string, data: any) => {
+export const putFetcher = async (url: string, data: unknown) => {
   const res = await fetch(url, {
     method: "PUT",
     headers: {
@@ -170,7 +171,7 @@ export const swrConfig = {
  * @param params - Key-value pairs for query parameters
  * @returns Query string (e.g., "?key1=value1&key2=value2")
  */
-export const buildQueryString = (params: Record<string, any>): string => {
+export const buildQueryString = (params: Record<string, unknown>): string => {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {

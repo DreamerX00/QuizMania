@@ -112,7 +112,7 @@ class WebRTCFallbackService {
     data: {
       type: "offer" | "answer" | "ice-candidate";
       targetSocketId: string;
-      payload: any;
+      payload: Record<string, unknown>;
     }
   ): void {
     const room = this.rooms.get(roomId);

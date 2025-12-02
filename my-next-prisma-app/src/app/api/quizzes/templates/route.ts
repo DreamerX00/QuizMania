@@ -24,7 +24,16 @@ export async function GET(request: Request) {
 
   const maxPrice = maxPriceParam ? parseInt(maxPriceParam, 10) : 999;
 
-  const where: any = {
+  const where: {
+    creatorId: string;
+    isPublished: boolean;
+    OR?: Array<{
+      title?: { contains: string; mode: "insensitive" };
+      tags?: { has: string };
+    }>;
+    price?: { gte?: number; lte?: number };
+    createdAt?: { gte?: Date; lte?: Date };
+  } = {
     creatorId: userId,
     isPublished: false,
   };
@@ -53,7 +62,7 @@ export async function GET(request: Request) {
     where.createdAt = { ...where.createdAt, lte: new Date(toDate) };
   }
 
-  const orderBy: any = {
+  const orderBy: { createdAt?: "asc" | "desc"; price?: "asc" | "desc" } = {
     [sortBy]: sortOrder,
   };
 

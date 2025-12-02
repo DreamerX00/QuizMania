@@ -10,7 +10,7 @@ const syncUserSchema = z.object({
   avatarUrl: z.string().url().optional(),
 });
 
-export const POST = withValidation(syncUserSchema, async (request: any) => {
+export const POST = withValidation(syncUserSchema, async (request) => {
   const { id, email, name, avatarUrl } = request.validated;
   try {
     const user = await prisma.user.upsert({

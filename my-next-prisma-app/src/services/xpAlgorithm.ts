@@ -5,7 +5,7 @@ export interface ArenaAnswer {
   type: string;
   isCorrect: boolean;
   timeTaken: number;
-  answer: any;
+  answer: string | number | boolean | string[] | unknown;
 }
 
 export interface ArenaSessionMeta {

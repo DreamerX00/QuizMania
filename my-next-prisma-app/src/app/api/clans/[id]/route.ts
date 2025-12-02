@@ -51,11 +51,9 @@ const updateClanSchema = z.object({
 
 export const PATCH = withValidation(
   updateClanSchema,
-  async (
-    request: NextRequest,
-    context: { params: Promise<{ id: string }> }
-  ) => {
+  async (request, ...args) => {
     try {
+      const context = args[0] as { params: Promise<{ id: string }> };
       const currentUser = await getCurrentUser();
       const userId = currentUser?.id;
       if (!userId) {

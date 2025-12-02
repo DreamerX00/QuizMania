@@ -17,7 +17,12 @@ const roomTypes = ["Public", "Friends Only", "Invite", "Private"];
 export default function CreateRoomForm({
   onCreate,
 }: {
-  onCreate: (room: any) => void;
+  onCreate: (room: {
+    id: string;
+    name: string;
+    maxPlayers: number;
+    [key: string]: unknown;
+  }) => void | Promise<void>;
 }) {
   const [title, setTitle] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(8);
@@ -60,6 +65,7 @@ export default function CreateRoomForm({
       const data = await response.json();
       const room = {
         id: data.room.id,
+        name: data.room.name,
         title: data.room.name,
         code: data.room.code,
         host: "You",

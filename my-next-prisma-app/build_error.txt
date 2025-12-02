@@ -1,0 +1,32 @@
+
+> my-next-prisma-app@0.1.0 build
+> prisma generate --no-engine && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+Γ£ö Generated Prisma Client (v6.19.0, engine=none) to .\node_modules\@prisma\client in 304ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+   Γû▓ Next.js 15.3.4
+   - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully in 19.0s
+   Linting and checking validity of types ...
+Failed to compile.
+
+./src/app/api/premium/subscribe/route.ts:49:11
+Type error: Type 'unknown' is not assignable to type 'number'.
+
+  47 |           userId: user.id,
+  48 |           razorpayOrderId: order.id,
+> 49 |           amount: order.amount, // Use amount from the created order (in paise)
+     |           ^
+  50 |           currency: "INR",
+  51 |           status: "PENDING",
+  52 |           type: "PREMIUM_SUBSCRIPTION",
+Next.js build worker exited with code: 1 and signal: null

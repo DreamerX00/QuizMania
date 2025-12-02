@@ -2,7 +2,26 @@ import { useState, useCallback } from "react";
 import { Question } from "./types";
 import { nanoid } from "nanoid";
 
-const initialFormData = {
+interface QuizFormData {
+  title: string;
+  description: string;
+  difficultyLevel: string;
+  estimatedTime: number;
+  passingScore: number;
+  tags: string[];
+  category: string;
+  subcategory: string;
+  imageUrl: string;
+  isPremium: boolean;
+  price: number;
+  questions: Question[];
+  randomizeQuestions: boolean;
+  randomizeOptions: boolean;
+  showResults: boolean;
+  allowReview: boolean;
+}
+
+const initialFormData: QuizFormData = {
   title: "",
   description: "",
   difficultyLevel: "",
@@ -22,13 +41,13 @@ const initialFormData = {
 };
 
 export const useQuizForm = (initialQuestions: Question[] = []) => {
-  const [formData, setFormData] = useState<any>(initialFormData);
+  const [formData, setFormData] = useState<QuizFormData>(initialFormData);
   const [questions, setQuestions] = useState<Question[]>(initialQuestions);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [editingIndex, setEditingIndex] = useState<number>(-1);
 
-  const updateFormData = useCallback((field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+  const updateFormData = useCallback((field: string, value: unknown) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
 
   const addQuestion = useCallback((question: Question) => {
@@ -96,7 +115,7 @@ export const useQuizForm = (initialQuestions: Question[] = []) => {
     [editingIndex, updateQuestion, addQuestion, cancelEditingQuestion]
   );
 
-  const loadQuizData = useCallback((data: any) => {
+  const loadQuizData = useCallback((data: Partial<QuizFormData>) => {
     setFormData({
       ...initialFormData,
       ...data,

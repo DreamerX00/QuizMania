@@ -9,7 +9,9 @@ const LoadingSpinner = () => (
 );
 
 // Generic dynamic import helper
-export function createDynamicImport<T extends React.ComponentType<any>>(
+export function createDynamicImport<
+  T extends React.ComponentType<Record<string, unknown>>
+>(
   importFn: () => Promise<{ default: T }>,
   options: {
     ssr?: boolean;
@@ -23,4 +25,3 @@ export function createDynamicImport<T extends React.ComponentType<any>>(
       : () => <LoadingSpinner />,
   });
 }
-

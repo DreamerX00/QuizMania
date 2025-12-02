@@ -1,12 +1,24 @@
-import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Clock, TrendingUp, PieChartIcon, Trophy, Crown, Target, X, Star, Zap, Flame } from 'lucide-react';
-import useSWR from 'swr';
-import toast from 'react-hot-toast';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Brain,
+  Clock,
+  TrendingUp,
+  PieChartIcon,
+  Trophy,
+  Crown,
+  Target,
+  X,
+  Star,
+  Zap,
+  Flame,
+} from "lucide-react";
+import useSWR from "swr";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface RankPanelOverlayProps {
   open: boolean;
@@ -14,26 +26,53 @@ interface RankPanelOverlayProps {
   xp?: number;
 }
 
-const StatCard = ({ icon, label, value, color = "purple" }: { icon: React.ReactNode, label: string, value: string | number, color?: string }) => (
-  <motion.div 
+const StatCard = ({
+  icon,
+  label,
+  value,
+  color = "purple",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  color?: string;
+}) => (
+  <motion.div
     whileHover={{ scale: 1.02, y: -2 }}
     className={`bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 flex items-center gap-4 shadow-lg hover:shadow-xl transition-all duration-300`}
   >
-    <div className={`w-12 h-12 rounded-xl bg-linear-to-br from-${color}-500/10 to-${color}-600/10 border border-${color}-500/30 flex items-center justify-center`}>
+    <div
+      className={`w-12 h-12 rounded-xl bg-linear-to-br from-${color}-500/10 to-${color}-600/10 border border-${color}-500/30 flex items-center justify-center`}
+    >
       <div className={`text-${color}-600 dark:text-${color}-400`}>{icon}</div>
     </div>
     <div>
       <p className="text-sm text-slate-600 dark:text-slate-400">{label}</p>
-      <p className="text-lg font-bold text-slate-700 dark:text-slate-200">{value}</p>
+      <p className="text-lg font-bold text-slate-700 dark:text-slate-200">
+        {value}
+      </p>
     </div>
   </motion.div>
 );
 
 const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
-  const { data, error, isLoading } = useSWR(open ? '/api/multiplayer-arena/history' : null, fetcher);
-  const { data: rankHistoryData } = useSWR(open ? '/api/multiplayer-arena/rank-history' : null, fetcher);
+  const { data, error, isLoading } = useSWR(
+    open ? "/api/multiplayer-arena/history" : null,
+    fetcher
+  );
+  const { data: rankHistoryData } = useSWR(
+    open ? "/api/multiplayer-arena/rank-history" : null,
+    fetcher
+  );
   const xp = data?.xp || 0;
-  const rankInfo = data?.rank || { name: '', emoji: '', description: '', xpMin: 0, xpMax: 0, colorScheme: ["#000", "#fff"] };
+  const rankInfo = data?.rank || {
+    name: "",
+    emoji: "",
+    description: "",
+    xpMin: 0,
+    xpMax: 0,
+    colorScheme: ["#000", "#fff"],
+  };
   const matchHistory = data?.history || [];
   const rankHistory = rankHistoryData?.history || [];
 
@@ -42,13 +81,15 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading rank data...</p>
+          <p className="text-slate-600 dark:text-slate-400">
+            Loading rank data...
+          </p>
         </div>
       </div>
     );
   }
   if (error) {
-    toast.error('Failed to load rank panel.');
+    toast.error("Failed to load rank panel.");
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center text-red-500">
@@ -76,7 +117,7 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           />
-          
+
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -88,7 +129,7 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
           >
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10"></div>
-            
+
             {/* Header */}
             <div className="relative z-10 p-6 pb-4 bg-linear-to-r from-purple-600/10 to-blue-600/10 border-b border-slate-200/50 dark:border-slate-700/50">
               <div className="flex items-center justify-between">
@@ -115,23 +156,34 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                   <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </div>
-              
+
               {/* Rank Summary */}
               <div className="flex items-center gap-4 mt-4 p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-600/50">
-                <span className="text-4xl sm:text-5xl" role="img" aria-label={rankInfo.name}>{rankInfo.emoji}</span>
+                <span
+                  className="text-4xl sm:text-5xl"
+                  role="img"
+                  aria-label={rankInfo.name}
+                >
+                  {rankInfo.emoji}
+                </span>
                 <div className="flex-1">
                   <div className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-slate-700 dark:text-slate-200">
                     {rankInfo.name}
-                    <span className="text-sm sm:text-base text-slate-500 dark:text-slate-400">({xp.toLocaleString()} XP)</span>
+                    <span className="text-sm sm:text-base text-slate-500 dark:text-slate-400">
+                      ({xp.toLocaleString()} XP)
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm mt-1 text-slate-600 dark:text-slate-400">
                     <span>Next:</span>
                     {data?.nextRank ? (
                       <span className="flex items-center gap-1 font-semibold">
-                        <span className="text-lg">{data.nextRank.emoji}</span> {data.nextRank.name}
+                        <span className="text-lg">{data.nextRank.emoji}</span>{" "}
+                        {data.nextRank.name}
                       </span>
                     ) : (
-                      <span className="font-semibold text-yellow-600 dark:text-yellow-400">Max Rank Achieved!</span>
+                      <span className="font-semibold text-yellow-600 dark:text-yellow-400">
+                        Max Rank Achieved!
+                      </span>
                     )}
                   </div>
                   <div className="w-full mt-2">
@@ -152,36 +204,36 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
             <div className="relative z-10 flex-1 overflow-y-auto max-h-[calc(90vh-200px)]">
               <Tabs defaultValue="overview" className="h-full flex flex-col">
                 <TabsList className="mx-6 mt-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-600/50 rounded-xl p-1">
-                  <TabsTrigger 
-                    value="overview" 
+                  <TabsTrigger
+                    value="overview"
                     className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <Target className="w-4 h-4 mr-2" />
                     Overview
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="history" 
+                  <TabsTrigger
+                    value="history"
                     className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <Clock className="w-4 h-4 mr-2" />
                     Battles
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="rank-history" 
+                  <TabsTrigger
+                    value="rank-history"
                     className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <Trophy className="w-4 h-4 mr-2" />
                     Progression
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="performance" 
+                  <TabsTrigger
+                    value="performance"
                     className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
                   >
                     <TrendingUp className="w-4 h-4 mr-2" />
                     Analytics
                   </TabsTrigger>
                 </TabsList>
-                
+
                 <div className="flex-1 overflow-y-auto p-6">
                   <TabsContent value="overview" className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -193,27 +245,48 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                         </h3>
                         <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-slate-600/50">
                           <div className="flex items-center gap-3 mb-3">
-                            <span className="text-3xl" role="img" aria-label={rankInfo.name}>{rankInfo.emoji}</span>
-                            <span className="font-bold text-lg text-slate-700 dark:text-slate-200">{rankInfo.name}</span>
+                            <span
+                              className="text-3xl"
+                              role="img"
+                              aria-label={rankInfo.name}
+                            >
+                              {rankInfo.emoji}
+                            </span>
+                            <span className="font-bold text-lg text-slate-700 dark:text-slate-200">
+                              {rankInfo.name}
+                            </span>
                           </div>
-                          <div className="text-sm text-slate-600 dark:text-slate-400 mb-3">{rankInfo.description}</div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                            {rankInfo.description}
+                          </div>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-slate-500 dark:text-slate-400">Current XP:</span>
-                              <span className="font-bold text-slate-700 dark:text-slate-200">{xp.toLocaleString()}</span>
+                              <span className="text-slate-500 dark:text-slate-400">
+                                Current XP:
+                              </span>
+                              <span className="font-bold text-slate-700 dark:text-slate-200">
+                                {xp.toLocaleString()}
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-slate-500 dark:text-slate-400">To Next Rank:</span>
+                              <span className="text-slate-500 dark:text-slate-400">
+                                To Next Rank:
+                              </span>
                               {data?.nextRank ? (
-                                <span className="font-bold text-green-600 dark:text-green-400">{(data.nextRank.xpMin - xp).toLocaleString()} XP</span>
+                                <span className="font-bold text-green-600 dark:text-green-400">
+                                  {(data.nextRank.xpMin - xp).toLocaleString()}{" "}
+                                  XP
+                                </span>
                               ) : (
-                                <span className="font-bold text-yellow-500 dark:text-yellow-400">--</span>
+                                <span className="font-bold text-yellow-500 dark:text-yellow-400">
+                                  --
+                                </span>
                               )}
                             </div>
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Middle Column: Core Stats */}
                       <div className="lg:col-span-1 space-y-4">
                         <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-2">
@@ -221,13 +294,33 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                           Core Stats
                         </h3>
                         <div className="space-y-3">
-                          <StatCard icon={<Clock size={24} />} label="Time Played" value={'--'} color="blue" />
-                          <StatCard icon={<TrendingUp size={24} />} label="Current Streak" value={'--'} color="green" />
-                          <StatCard icon={<Brain size={24} />} label="IQ Score" value={'--'} color="purple" />
-                          <StatCard icon={<PieChartIcon size={24} />} label="Best Category" value={'--'} color="orange" />
+                          <StatCard
+                            icon={<Clock size={24} />}
+                            label="Time Played"
+                            value={"--"}
+                            color="blue"
+                          />
+                          <StatCard
+                            icon={<TrendingUp size={24} />}
+                            label="Current Streak"
+                            value={"--"}
+                            color="green"
+                          />
+                          <StatCard
+                            icon={<Brain size={24} />}
+                            label="IQ Score"
+                            value={"--"}
+                            color="purple"
+                          />
+                          <StatCard
+                            icon={<PieChartIcon size={24} />}
+                            label="Best Category"
+                            value={"--"}
+                            color="orange"
+                          />
                         </div>
                       </div>
-                      
+
                       {/* Right Column: Visuals */}
                       <div className="md:col-span-2 lg:col-span-1 space-y-4">
                         <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-2">
@@ -245,7 +338,7 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                       </div>
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="history" className="space-y-4">
                     <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-2">
                       <Clock className="w-5 h-5" />
@@ -255,11 +348,20 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                       {matchHistory.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-slate-500 dark:text-slate-400">
                           <Target className="w-12 h-12 mb-3 opacity-50" />
-                          <p className="text-lg font-semibold mb-2">No Battles Yet</p>
-                          <p className="text-sm text-center">Start your journey by joining your first battle!</p>
+                          <p className="text-lg font-semibold mb-2">
+                            No Battles Yet
+                          </p>
+                          <p className="text-sm text-center">
+                            Start your journey by joining your first battle!
+                          </p>
                         </div>
                       ) : (
-                        matchHistory.map((match: any, index: number) => (
+                        (
+                          matchHistory as Array<{
+                            id: string;
+                            [key: string]: unknown;
+                          }>
+                        ).map((match, index: number) => (
                           <motion.div
                             key={match.id}
                             initial={{ opacity: 0, y: 10 }}
@@ -268,19 +370,30 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                             className="flex justify-between items-center p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-lg hover:shadow-xl transition-all duration-300"
                           >
                             <div>
-                              <p className="font-bold text-slate-700 dark:text-slate-200">{match.quizTitle}</p>
-                              <p className="text-sm text-slate-500 dark:text-slate-400">{new Date(match.dateTaken).toLocaleString()}</p>
+                              <p className="font-bold text-slate-700 dark:text-slate-200">
+                                {String(match.quizTitle)}
+                              </p>
+                              <p className="text-sm text-slate-500 dark:text-slate-400">
+                                {new Date(
+                                  match.dateTaken as string | number | Date
+                                ).toLocaleString()}
+                              </p>
                             </div>
                             <div className="text-right">
-                              <p className="font-semibold text-slate-700 dark:text-slate-200">{match.earnedPoints} XP</p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">Score: {match.score}/{match.totalQuestions}</p>
+                              <p className="font-semibold text-slate-700 dark:text-slate-200">
+                                {String(match.earnedPoints)} XP
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Score: {String(match.score)}/
+                                {String(match.totalQuestions)}
+                              </p>
                             </div>
                           </motion.div>
                         ))
                       )}
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="rank-history" className="space-y-4">
                     <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-2">
                       <Trophy className="w-5 h-5" />
@@ -290,35 +403,70 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                       {rankHistory.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-slate-500 dark:text-slate-400">
                           <Trophy className="w-12 h-12 mb-3 opacity-50" />
-                          <p className="text-lg font-semibold mb-2">No Rank Changes Yet</p>
-                          <p className="text-sm text-center">Keep battling to climb the ranks!</p>
+                          <p className="text-lg font-semibold mb-2">
+                            No Rank Changes Yet
+                          </p>
+                          <p className="text-sm text-center">
+                            Keep battling to climb the ranks!
+                          </p>
                         </div>
                       ) : (
-                        rankHistory.map((entry: any, idx: number) => (
+                        (
+                          rankHistory as Array<{
+                            rank: string;
+                            date: string;
+                            [key: string]: unknown;
+                          }>
+                        ).map((entry, idx: number) => (
                           <motion.div
-                            key={entry.id}
+                            key={String(entry.id)}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
                             className="flex justify-between items-center p-4 bg-linear-to-r from-purple-50/80 to-blue-50/80 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm rounded-2xl border border-purple-200/50 dark:border-purple-700/50 shadow-lg hover:shadow-xl transition-all duration-300"
                           >
                             <div className="flex items-center gap-3">
-                              <span className="text-2xl" role="img" aria-label="Old Rank">{entry.oldRankEmoji}</span>
-                              <span className="font-semibold text-slate-700 dark:text-slate-200">{entry.oldRankName}</span>
-                              <span className="mx-2 text-purple-500 font-bold">→</span>
-                              <span className="text-2xl" role="img" aria-label="New Rank">{entry.newRankEmoji}</span>
-                              <span className="font-semibold text-purple-700 dark:text-purple-300">{entry.newRankName}</span>
+                              <span
+                                className="text-2xl"
+                                role="img"
+                                aria-label="Old Rank"
+                              >
+                                {String(entry.oldRankEmoji)}
+                              </span>
+                              <span className="font-semibold text-slate-700 dark:text-slate-200">
+                                {String(entry.oldRankName)}
+                              </span>
+                              <span className="mx-2 text-purple-500 font-bold">
+                                →
+                              </span>
+                              <span
+                                className="text-2xl"
+                                role="img"
+                                aria-label="New Rank"
+                              >
+                                {String(entry.newRankEmoji)}
+                              </span>
+                              <span className="font-semibold text-purple-700 dark:text-purple-300">
+                                {String(entry.newRankName)}
+                              </span>
                             </div>
                             <div className="text-right">
-                              <p className="text-xs text-slate-500 dark:text-slate-400">{new Date(entry.changedAt).toLocaleString()}</p>
-                              <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{entry.oldXp} XP → {entry.newXp} XP</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {new Date(
+                                  entry.changedAt as string | number | Date
+                                ).toLocaleString()}
+                              </p>
+                              <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                {String(entry.oldXp)} XP → {String(entry.newXp)}{" "}
+                                XP
+                              </p>
                             </div>
                           </motion.div>
                         ))
                       )}
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="performance" className="space-y-4">
                     <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-2">
                       <TrendingUp className="w-5 h-5" />
@@ -326,36 +474,64 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-6 rounded-2xl border border-slate-200/50 dark:border-slate-600/50">
-                        <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-4">Performance Metrics</h4>
+                        <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-4">
+                          Performance Metrics
+                        </h4>
                         <div className="space-y-3">
                           <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Win Rate</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">--%</span>
+                            <span className="text-slate-600 dark:text-slate-400">
+                              Win Rate
+                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-200">
+                              --%
+                            </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Average Score</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">--%</span>
+                            <span className="text-slate-600 dark:text-slate-400">
+                              Average Score
+                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-200">
+                              --%
+                            </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Best Streak</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">--</span>
+                            <span className="text-slate-600 dark:text-slate-400">
+                              Best Streak
+                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-200">
+                              --
+                            </span>
                           </div>
                         </div>
                       </div>
                       <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-6 rounded-2xl border border-slate-200/50 dark:border-slate-600/50">
-                        <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-4">Category Performance</h4>
+                        <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-4">
+                          Category Performance
+                        </h4>
                         <div className="space-y-3">
                           <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Science</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">--%</span>
+                            <span className="text-slate-600 dark:text-slate-400">
+                              Science
+                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-200">
+                              --%
+                            </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">History</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">--%</span>
+                            <span className="text-slate-600 dark:text-slate-400">
+                              History
+                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-200">
+                              --%
+                            </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Geography</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">--%</span>
+                            <span className="text-slate-600 dark:text-slate-400">
+                              Geography
+                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-200">
+                              --%
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -371,4 +547,4 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
   );
 };
 
-export default RankPanelOverlay; 
+export default RankPanelOverlay;

@@ -1,17 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { useQuizStore } from '../state/quizStore';
-import type { Question } from '../types/quiz.types';
-import { isEqual } from 'lodash';
+import React, { useState, useEffect } from "react";
+import { useQuizStore } from "../state/quizStore";
+import type { Question } from "../types/quiz.types";
+import { isEqual } from "lodash";
 
 const Matrix = ({ question }: { question: Question }) => {
   const rows = question.matrixOptions?.rows || [];
   const cols = question.matrixOptions?.cols || [];
-  const responses = useQuizStore(s => s.responses);
-  const prev = responses.find(r => r.questionId === question.id)?.response ?? {};
-  const [selected, setSelected] = useState<{ [rowId: string]: string }>(prev);
+  const responses = useQuizStore((s) => s.responses);
+  const defaultSelected = {};
+  const prev =
+    responses.find((r) => r.questionId === question.id)?.response ??
+    defaultSelected;
+  const [selected, setSelected] = useState<{ [rowId: string]: string }>(
+    typeof prev === "object" && prev !== null && !Array.isArray(prev)
+      ? (prev as { [rowId: string]: string })
+      : defaultSelected
+  );
   useEffect(() => {
     if (!isEqual(selected, prev)) {
-      setSelected(prev);
+      setSelected(
+        typeof prev === "object" && prev !== null && !Array.isArray(prev)
+          ? (prev as { [rowId: string]: string })
+          : defaultSelected
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prev, question.id]);
@@ -31,27 +42,48 @@ const Matrix = ({ question }: { question: Question }) => {
           <thead>
             <tr>
               <th></th>
-              {cols.map((col: any) => (
-                <th key={col.id} className="text-center font-heading font-semibold text-base">{col.text}</th>
-              ))}
+              {(cols as Array<{ id?: string; text?: string }> | string[]).map(
+                (col, idx) => (
+                  <th
+                    key={typeof col === "string" ? col : col.id || String(idx)}
+                    className="text-center font-heading font-semibold text-base"
+                  >
+                    {typeof col === "string" ? col : col.text}
+                  </th>
+                )
+              )}
             </tr>
           </thead>
           <tbody>
-            {rows.map((row: any) => (
-              <tr key={row.id}>
-                <td className="font-medium pr-2">{row.text}</td>
-                {cols.map((col: any) => (
-                  <td key={col.id} className="text-center">
-                    <input
-                      type="radio"
-                      name={row.id}
-                      checked={selected[row.id] === col.id}
-                      onChange={() => handleSelect(row.id, col.id)}
-                    />
+            {(rows as Array<{ id?: string; text?: string }> | string[]).map(
+              (row, ridx) => (
+                <tr
+                  key={typeof row === "string" ? row : row.id || String(ridx)}
+                >
+                  <td className="font-medium pr-2">
+                    {typeof row === "string" ? row : row.text}
                   </td>
-                ))}
-              </tr>
-            ))}
+                  {(
+                    cols as Array<{ id?: string; text?: string }> | string[]
+                  ).map((col, cidx) => {
+                    const colId =
+                      typeof col === "string" ? col : col.id || String(cidx);
+                    const rowId =
+                      typeof row === "string" ? row : row.id || String(ridx);
+                    return (
+                      <td key={colId} className="text-center">
+                        <input
+                          type="radio"
+                          name={rowId}
+                          checked={selected[rowId] === colId}
+                          onChange={() => handleSelect(rowId, colId)}
+                        />
+                      </td>
+                    );
+                  })}
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       </div>
@@ -59,5 +91,4 @@ const Matrix = ({ question }: { question: Question }) => {
   );
 };
 
-export default Matrix; 
-
+export default Matrix;

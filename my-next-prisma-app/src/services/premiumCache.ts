@@ -70,7 +70,7 @@ export async function getPremiumFeatures(
 }
 
 export async function handlePremiumWebhook(
-  _payload: any,
+  _payload: Record<string, unknown>,
   _signature?: string
 ): Promise<boolean> {
   return false;

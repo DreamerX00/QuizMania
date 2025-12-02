@@ -10,7 +10,8 @@ const lockRoomSchema = z.object({
 
 export const PATCH = withValidation(
   lockRoomSchema,
-  async (request: any, { params }: { params: { id: string } }) => {
+  async (request, ...args) => {
+    const { params } = args[0] as { params: { id: string } };
     try {
       const currentUser = await getCurrentUser();
       const userId = currentUser?.id;

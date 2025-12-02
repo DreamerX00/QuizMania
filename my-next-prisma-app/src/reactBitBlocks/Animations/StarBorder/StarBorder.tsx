@@ -31,7 +31,7 @@ const StarBorder = <T extends React.ElementType = "button">({
       {...(rest as any)}
       style={{
         padding: `${thickness}px 0`,
-        ...(rest as any).style,
+        ...((rest as any).style || {}),
       }}
     >
       <div
@@ -78,4 +78,3 @@ export default StarBorder;
 //     },
 //   }
 // }
-

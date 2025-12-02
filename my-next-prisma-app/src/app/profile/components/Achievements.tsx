@@ -38,7 +38,13 @@ export function Achievements() {
             No achievements unlocked yet.
           </div>
         ) : (
-          achievements.map((ach: any, _i: number) => (
+          (
+            achievements as Array<{
+              id: string;
+              isLocked?: boolean;
+              [key: string]: unknown;
+            }>
+          ).map((ach, _i: number) => (
             <motion.div
               key={ach.id}
               className={`flex flex-col items-center p-2 md:p-3 rounded-xl shadow-lg relative transition-all duration-300 ${
@@ -55,7 +61,7 @@ export function Achievements() {
                   !ach.isLocked ? "animate-pulse" : "opacity-40"
                 }`}
               >
-                {ach.icon || "🏆"}
+                {String(ach.icon || "🏆")}
               </span>
               <span
                 className={`font-semibold text-xs md:text-sm text-center ${
@@ -64,7 +70,7 @@ export function Achievements() {
                     : "text-gray-500 dark:text-gray-500"
                 }`}
               >
-                {ach.name}
+                {String(ach.name)}
               </span>
               {ach.isLocked && (
                 <span className="absolute inset-0 bg-linear-to-br from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-900 opacity-60 rounded-xl animate-pulse" />

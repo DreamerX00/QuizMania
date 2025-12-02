@@ -23,7 +23,11 @@ const ClanModule = () => {
     isLoading: _membersLoading,
   } = useSWR(myClan ? `/api/clans/members?clanId=${myClan.id}` : null, fetcher);
   const myMembership =
-    membersData?.members?.find((m: any) => m.userId === myClan?.id) || null;
+    (
+      membersData?.members as
+        | Array<{ userId: string; [key: string]: unknown }>
+        | undefined
+    )?.find((m) => m.userId === myClan?.id) || null;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (clansLoading)
@@ -76,7 +80,7 @@ const ClanModule = () => {
               {myClan.motto}
             </p>
             <div className="mt-2 text-purple-400 font-semibold bg-purple-500/10 border border-purple-500/30 rounded-full px-4 py-1">
-              Your Role: {myMembership?.role || "Member"}
+              Your Role: {String(myMembership?.role || "Member")}
             </div>
           </div>
 

@@ -950,7 +950,7 @@ export default function FactoryDialog({ onClose }: { onClose: () => void }) {
                           createdAt: pkg.createdAt.toISOString(),
                           quizThumbnails: quizThumbs,
                         }}
-                        onSelect={setSelectedPackage}
+                        onSelect={(_selectedPkg) => setSelectedPackage(pkg)}
                         hideImage={viewMode === "list"}
                       />
                     </div>

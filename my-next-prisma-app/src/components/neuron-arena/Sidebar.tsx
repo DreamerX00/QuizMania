@@ -3,8 +3,15 @@ import { useQuizStore } from "./state/quizStore";
 import { motion } from "framer-motion";
 
 // Realistic state logic for question badges
-function getQuestionState(i: number, responses: any[], quiz: any) {
+function getQuestionState(
+  i: number,
+  responses: Array<{ questionId: string; response: unknown }>,
+  quiz: {
+    questions: Array<{ id: string; type?: string; correctAnswer?: unknown }>;
+  }
+) {
   const q = quiz.questions[i];
+  if (!q) return "unanswered";
   const resp = responses.find((r) => r.questionId === q.id);
   if (!resp) return "unanswered";
   if (
@@ -42,7 +49,7 @@ const Sidebar = () => {
           const isMarked = markedForReview.includes(q.id);
           const resp = responses.find((r) => r.questionId === q.id);
           // Only count as answered if response is non-empty
-          function isNonEmptyResponse(r: any) {
+          function isNonEmptyResponse(r: { response: unknown }) {
             if (!r) return false;
             const val = r.response;
             if (val === undefined || val === null) return false;
@@ -62,7 +69,7 @@ const Sidebar = () => {
               );
             return true;
           }
-          const hasResponse = isNonEmptyResponse(resp);
+          const hasResponse = resp ? isNonEmptyResponse(resp) : false;
           const state = submitted
             ? getQuestionState(i, responses, quiz)
             : hasResponse
@@ -141,4 +148,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useQuizStore } from "../state/quizStore";
+import type { Question } from "../types/quiz.types";
 import MDEditor from "@uiw/react-md-editor";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -7,22 +8,14 @@ import { isEqual } from "lodash";
 
 const LOCAL_KEY = "paragraph-draft";
 
-interface Question {
-  id: string;
-  type: string;
-  question?: string;
-  minWordCount?: number;
-  maxWordCount?: number;
-}
-
 const Paragraph = ({ question }: { question: Question }) => {
   const responses = useQuizStore((s) => s.responses);
   const prev =
     responses.find((r) => r.questionId === question.id)?.response ?? "";
-  const [value, setValue] = useState(prev);
+  const [value, setValue] = useState(String(prev));
   useEffect(() => {
     if (!isEqual(value, prev)) {
-      setValue(prev);
+      setValue(String(prev));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prev, question.id]);
@@ -135,4 +128,3 @@ const Paragraph = ({ question }: { question: Question }) => {
 };
 
 export default Paragraph;
-

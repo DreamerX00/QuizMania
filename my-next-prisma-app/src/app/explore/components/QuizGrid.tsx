@@ -3,10 +3,32 @@ import { useRef, useEffect, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import QuizCard from "./QuizCard";
 
+type QuizItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  tags: string[];
+  imageUrl: string | null;
+  rating: number;
+  likeCount: number;
+  usersTaken: number;
+  createdAt: string;
+  creator: {
+    name: string | null;
+    avatarUrl: string | null;
+  } | null;
+  durationInSeconds?: number;
+  isLocked?: boolean;
+  difficultyLevel?: string;
+  pricePerAttempt?: number;
+  pointPerAttempt?: number;
+  slug?: string;
+};
+
 type QuizGridProps = {
-  quizzes: any[];
+  quizzes: QuizItem[];
   isLoading: boolean;
-  onQuizClick: (quiz: any) => void;
+  onQuizClick: (quiz: QuizItem & { [key: string]: unknown }) => void;
 };
 
 export default function QuizGrid({
@@ -125,4 +147,3 @@ export default function QuizGrid({
     </div>
   );
 }
-

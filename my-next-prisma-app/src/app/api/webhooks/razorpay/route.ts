@@ -72,7 +72,11 @@ export const POST = async (request: NextRequest) => {
   }
 };
 
-async function handlePaymentCaptured(payment: any) {
+async function handlePaymentCaptured(payment: {
+  id: string;
+  amount: number;
+  [key: string]: unknown;
+}) {
   try {
     // Update payment transaction status
     await prisma.paymentTransaction.updateMany({
@@ -118,7 +122,10 @@ async function handlePaymentCaptured(payment: any) {
   }
 }
 
-async function handlePaymentFailed(payment: any) {
+async function handlePaymentFailed(payment: {
+  id: string;
+  [key: string]: unknown;
+}) {
   try {
     // Update payment transaction status
     await prisma.paymentTransaction.updateMany({
@@ -132,7 +139,7 @@ async function handlePaymentFailed(payment: any) {
   }
 }
 
-async function handleOrderPaid(order: any) {
+async function handleOrderPaid(order: { id: string; [key: string]: unknown }) {
   try {
     // Update payment transaction status
     await prisma.paymentTransaction.updateMany({

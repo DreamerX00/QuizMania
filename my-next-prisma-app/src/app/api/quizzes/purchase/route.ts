@@ -16,7 +16,7 @@ const purchaseQuizSchema = z.object({
   quizId: z.string().min(1),
 });
 
-export const POST = withValidation(purchaseQuizSchema, async (request: any) => {
+export const POST = withValidation(purchaseQuizSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;

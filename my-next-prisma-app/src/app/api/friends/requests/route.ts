@@ -62,8 +62,7 @@ const friendRequestActionSchema = z.object({
 
 export const POST = withValidation(
   friendRequestActionSchema,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async (request: any) => {
+  async (request) => {
     try {
       const currentUser = await getCurrentUser();
       const userId = currentUser?.id;

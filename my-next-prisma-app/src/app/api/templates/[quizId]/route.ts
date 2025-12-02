@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 import prisma from "@/lib/prisma";
@@ -11,10 +11,8 @@ const updateTemplateSchema = z.object({
 
 export const PUT = withValidation(
   updateTemplateSchema,
-  async (
-    request: NextRequest,
-    context: { params: Promise<{ quizId: string }> }
-  ) => {
+  async (request, ...args) => {
+    const context = args[0] as { params: Promise<{ quizId: string }> };
     const { quizId } = await context.params;
     if (!quizId) {
       return NextResponse.json(
@@ -56,10 +54,8 @@ export const PUT = withValidation(
 
 export const DELETE = withValidation(
   quizIdParamSchema,
-  async (
-    request: NextRequest,
-    context: { params: Promise<{ quizId: string }> }
-  ) => {
+  async (request, ...args) => {
+    const context = args[0] as { params: Promise<{ quizId: string }> };
     const { quizId } = await context.params;
     if (!quizId) {
       return NextResponse.json(

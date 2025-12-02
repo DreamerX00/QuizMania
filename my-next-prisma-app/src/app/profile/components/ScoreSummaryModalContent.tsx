@@ -27,7 +27,21 @@ export default function ScoreSummaryModalContent({
 }: ScoreSummaryModalContentProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{
+    score?: number;
+    totalScore?: number;
+    answers?: Array<Record<string, unknown>>;
+    attempt?: {
+      quizTitle?: string;
+      dateTaken?: string;
+      autoMarks?: number;
+      revisedMarks?: number;
+      allReviewed?: boolean;
+      [key: string]: unknown;
+    };
+    manualReviews?: ManualReview[];
+    [key: string]: unknown;
+  } | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [pdfTooltip, setPdfTooltip] = useState(false);
   const [page, setPage] = useState(1);
@@ -69,7 +83,7 @@ export default function ScoreSummaryModalContent({
           data?.attempt?.allReviewed ? "Reviewed" : "Pending manual review"
         }`;
         content += `\n\n## Per-Question Breakdown\n`;
-        data?.manualReviews?.forEach((r: ManualReview, i: number) => {
+        (data?.manualReviews || []).forEach((r: ManualReview, i: number) => {
           content += `\n### Q${i + 1}`;
           content += `\n- Marks Awarded: ${r.marksAwarded ?? "N/A"}`;
           content += `\n- Reviewed: ${r.reviewed ? "Yes" : "No"}`;
@@ -104,7 +118,7 @@ export default function ScoreSummaryModalContent({
     );
   if (!data) return null;
 
-  const { attempt, manualReviews } = data;
+  const { attempt = {}, manualReviews = [] } = data;
   const totalQuestions = manualReviews.length;
   const totalPages = Math.max(
     1,
@@ -175,7 +189,8 @@ export default function ScoreSummaryModalContent({
             <span className="font-bold">{sanitize(attempt.quizTitle)}</span>
           </div>
           <div className="text-white/70 mb-1">
-            Attempt ID: <span className="font-mono">{attempt.id}</span>
+            Attempt ID:{" "}
+            <span className="font-mono">{String(attempt.id || "")}</span>
           </div>
           <div className="text-white/70 mb-1">
             Date:{" "}
@@ -186,13 +201,13 @@ export default function ScoreSummaryModalContent({
           <div className="text-white/70 mb-1">
             Auto-evaluated Marks:{" "}
             <span className="font-bold text-green-400">
-              {attempt.autoMarks}
+              {String(attempt.autoMarks || 0)}
             </span>
           </div>
           <div className="text-white/70 mb-1">
             Revised Marks:{" "}
             <span className="font-bold text-yellow-300">
-              {attempt.revisedMarks}
+              {String(attempt.revisedMarks || 0)}
             </span>
           </div>
           <div className="text-white/70 mb-1">

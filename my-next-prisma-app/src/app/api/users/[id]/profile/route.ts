@@ -94,13 +94,10 @@ const updateProfileSchema = z.object({
   region: z.string().max(100).optional(),
 });
 
-interface ValidatedRequest extends Request {
-  validated?: z.infer<typeof updateProfileSchema>;
-}
-
 export const PATCH = withValidation(
   updateProfileSchema,
-  async (request: ValidatedRequest, context: RouteContext) => {
+  async (request, ...args) => {
+    const context = args[0] as RouteContext;
     const { id } = await context.params;
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;

@@ -65,7 +65,15 @@ export class RazorpayService {
   /**
    * Create a new Razorpay order for premium subscription
    */
-  static async createOrder(userId: string, amount: number): Promise<any> {
+  static async createOrder(
+    userId: string,
+    amount: number
+  ): Promise<{
+    id: string;
+    amount: number;
+    currency: string;
+    [key: string]: unknown;
+  }> {
     try {
       const orderData: RazorpayOrderData = {
         amount: amount * 100, // Convert to paise
@@ -80,7 +88,12 @@ export class RazorpayService {
       };
 
       const order = await razorpay.orders.create(orderData);
-      return order;
+      return order as unknown as {
+        id: string;
+        amount: number;
+        currency: string;
+        [key: string]: unknown;
+      };
     } catch (error) {
       console.error("Error creating Razorpay order:", error);
       throw new Error("Failed to create payment order");
@@ -93,10 +106,26 @@ export class RazorpayService {
   static async createOrderWithTransfers(
     userId: string,
     amount: number,
-    transfers: any[]
-  ): Promise<any> {
+    transfers: Array<{
+      account: string;
+      amount: number;
+      currency: string;
+      [key: string]: unknown;
+    }>
+  ): Promise<{
+    id: string;
+    amount: number;
+    currency: string;
+    [key: string]: unknown;
+  }> {
     try {
-      const orderData: any = {
+      const orderData: {
+        amount: number;
+        currency: string;
+        receipt: string;
+        notes: { userId: string; type: string; testMode: string };
+        transfers: unknown[];
+      } = {
         amount: amount * 100, // Convert to paise
         currency: "INR",
         receipt: `quiz_sale_${Date.now()}`,
@@ -119,10 +148,19 @@ export class RazorpayService {
   /**
    * Create a Razorpay Contact
    */
-  static async createContact(name: string, email: string): Promise<any> {
+  static async createContact(
+    name: string,
+    email: string
+  ): Promise<{ id: string; [key: string]: unknown }> {
     try {
       // Type assertion to access contacts API which may not be in type definitions
-      const contact = await (razorpay as any).contacts.create({
+      const contact = await (
+        razorpay as {
+          contacts: {
+            create: (data: Record<string, unknown>) => Promise<{ id: string }>;
+          };
+        }
+      ).contacts.create({
         name: name,
         email: email,
         type: "vendor", // 'vendor' is more appropriate for marketplace creators
@@ -140,7 +178,7 @@ export class RazorpayService {
   static async createUpiFundAccount(
     contactId: string,
     upiId: string
-  ): Promise<any> {
+  ): Promise<{ id: string; [key: string]: unknown }> {
     try {
       // Type assertion for contact_id which may not be in type definitions
       const fundAccount = await razorpay.fundAccount.create({
@@ -149,7 +187,7 @@ export class RazorpayService {
         vpa: {
           address: upiId,
         },
-      } as any);
+      } as { contact_id: string; account_type: string; bank_account: Record<string, string> });
       return fundAccount;
     } catch (error) {
       console.error("Error creating UPI fund account:", error);
@@ -182,7 +220,9 @@ export class RazorpayService {
   /**
    * Fetch payment details from Razorpay
    */
-  static async getPaymentDetails(paymentId: string): Promise<any> {
+  static async getPaymentDetails(
+    paymentId: string
+  ): Promise<{ id: string; [key: string]: unknown }> {
     try {
       const payment = await razorpay.payments.fetch(paymentId);
       return payment;
@@ -195,7 +235,9 @@ export class RazorpayService {
   /**
    * Fetch order details from Razorpay
    */
-  static async getOrderDetails(orderId: string): Promise<any> {
+  static async getOrderDetails(
+    orderId: string
+  ): Promise<{ id: string; [key: string]: unknown }> {
     try {
       const order = await razorpay.orders.fetch(orderId);
       return order;
@@ -208,9 +250,12 @@ export class RazorpayService {
   /**
    * Refund a payment
    */
-  static async refundPayment(paymentId: string, amount?: number): Promise<any> {
+  static async refundPayment(
+    paymentId: string,
+    amount?: number
+  ): Promise<{ id: string; [key: string]: unknown }> {
     try {
-      const refundData: any = {};
+      const refundData: { amount?: number } = {};
       if (amount) {
         refundData.amount = amount * 100; // Convert to paise
       }

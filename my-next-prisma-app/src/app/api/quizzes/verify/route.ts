@@ -11,7 +11,7 @@ const verifyQuizSchema = z.object({
   signature: z.string().min(1),
 });
 
-export const POST = withValidation(verifyQuizSchema, async (request: any) => {
+export const POST = withValidation(verifyQuizSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
@@ -68,7 +68,8 @@ export const POST = withValidation(verifyQuizSchema, async (request: any) => {
     });
 
     // 4. Grant user access to the quiz by creating a QuizUnlock record
-    const quizId = (transaction.metadata as any)?.quizId;
+    const quizId = (transaction.metadata as Record<string, unknown> | null)
+      ?.quizId as string | undefined;
     if (!quizId) {
       console.error(
         `Could not find quizId in transaction metadata for order ${orderId}`

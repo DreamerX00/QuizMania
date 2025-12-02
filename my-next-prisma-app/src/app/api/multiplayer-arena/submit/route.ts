@@ -6,12 +6,12 @@ import { withValidation } from "@/utils/validation";
 
 const submitArenaSchema = z.object({
   quizRecordId: z.string().min(1),
-  answers: z.array(z.any()), // You may want to further validate the structure
+  answers: z.array(z.unknown()),
   duration: z.number().min(0),
   status: z.string().min(1),
 });
 
-export const POST = withValidation(submitArenaSchema, async (request: any) => {
+export const POST = withValidation(submitArenaSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;

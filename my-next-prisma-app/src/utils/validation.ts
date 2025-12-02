@@ -3,27 +3,30 @@ import validator from "validator";
 import { NextRequest, NextResponse } from "next/server";
 
 // Recursively sanitize all string fields in an object
-export function sanitizeObject(obj: any, parentKey: string | null = null): any {
+export function sanitizeObject<T>(obj: T, parentKey: string | null = null): T {
   if (typeof obj === "string") {
     // Do not escape if the key is avatarUrl or bannerUrl
     if (parentKey === "avatarUrl" || parentKey === "bannerUrl") {
-      return obj;
+      return obj as T;
     }
-    return validator.escape(obj);
+    return validator.escape(obj) as T;
   } else if (Array.isArray(obj)) {
-    return obj.map((item) => sanitizeObject(item, parentKey));
+    return obj.map((item) => sanitizeObject(item, parentKey)) as T;
   } else if (typeof obj === "object" && obj !== null) {
-    const sanitized: any = {};
+    const sanitized: Record<string, unknown> = {};
     for (const key in obj) {
-      sanitized[key] = sanitizeObject(obj[key], key);
+      sanitized[key] = sanitizeObject(
+        (obj as Record<string, unknown>)[key],
+        key
+      );
     }
-    return sanitized;
+    return sanitized as T;
   }
   return obj;
 }
 
 // Standardized error response
-function validationError(details: any[]) {
+function validationError(details: Array<{ field: string; message: string }>) {
   return NextResponse.json(
     {
       status: "error",
@@ -39,12 +42,15 @@ function validationError(details: any[]) {
 export function withValidation<T extends ZodTypeAny>(
   schema: T,
   handler: (
-    request: NextRequest,
-    ...args: any[]
+    request: NextRequest & { validated: z.infer<T> },
+    ...args: unknown[]
   ) => Promise<Response> | Response
 ) {
-  return async (request: NextRequest, ...args: any[]) => {
-    let data: any = {};
+  return async (
+    request: NextRequest,
+    ...args: unknown[]
+  ): Promise<Response> => {
+    let data: Record<string, unknown> = {};
     try {
       if (request.method === "GET") {
         // For GET, use query params
@@ -71,7 +77,10 @@ export function withValidation<T extends ZodTypeAny>(
     // Sanitize
     const sanitized = sanitizeObject(result.data);
     // Attach sanitized data to request (for handler)
-    (request as any).validated = sanitized;
-    return handler(request, ...args);
+    const requestWithValidation = request as NextRequest & {
+      validated: z.infer<T>;
+    };
+    requestWithValidation.validated = sanitized as z.infer<T>;
+    return handler(requestWithValidation, ...args);
   };
 }

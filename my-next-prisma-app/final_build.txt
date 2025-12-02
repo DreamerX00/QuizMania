@@ -1,0 +1,32 @@
+
+> my-next-prisma-app@0.1.0 build
+> prisma generate --no-engine && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+Γ£ö Generated Prisma Client (v6.19.0, engine=none) to .\node_modules\@prisma\client in 289ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
+
+   Γû▓ Next.js 15.3.4
+   - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully in 21.0s
+   Linting and checking validity of types ...
+Failed to compile.
+
+./src/app/api/quizzes/templates/route.ts:58:11
+Type error: Property 'createdAt' does not exist on type '{ creatorId: string; isPublished: boolean; OR?: { title?: { contains: string; mode: "insensitive"; } | undefined; tags?: { has: string; } | undefined; }[] | undefined; price?: { gte?: number | undefined; lte?: number | undefined; } | undefined; }'.
+
+  56 |
+  57 |   if (fromDate) {
+> 58 |     where.createdAt = { ...where.createdAt, gte: new Date(fromDate) };
+     |           ^
+  59 |   }
+  60 |   if (toDate) {
+  61 |     where.createdAt = { ...where.createdAt, lte: new Date(toDate) };
+Next.js build worker exited with code: 1 and signal: null

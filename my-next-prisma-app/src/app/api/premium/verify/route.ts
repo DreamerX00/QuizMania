@@ -11,7 +11,7 @@ const verifySchema = z.object({
   signature: z.string().min(1),
 });
 
-export const POST = withValidation(verifySchema, async (request: any) => {
+export const POST = withValidation(verifySchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
@@ -70,7 +70,7 @@ export const POST = withValidation(verifySchema, async (request: any) => {
     }
 
     // Ensure metadata is an object
-    let existingMetadata: Record<string, any> = {};
+    let existingMetadata: Record<string, unknown> = {};
     if (typeof paymentTransaction.metadata === "string") {
       try {
         existingMetadata = JSON.parse(paymentTransaction.metadata);
@@ -79,9 +79,10 @@ export const POST = withValidation(verifySchema, async (request: any) => {
       }
     } else if (
       typeof paymentTransaction.metadata === "object" &&
-      paymentTransaction.metadata !== null
+      paymentTransaction.metadata !== null &&
+      !Array.isArray(paymentTransaction.metadata)
     ) {
-      existingMetadata = paymentTransaction.metadata;
+      existingMetadata = paymentTransaction.metadata as Record<string, unknown>;
     }
     // Update payment transaction
     await prisma.paymentTransaction.update({

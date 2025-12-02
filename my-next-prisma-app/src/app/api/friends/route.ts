@@ -63,87 +63,76 @@ const friendDeleteSchema = z.object({
   otherUserId: z.string().min(1),
 });
 
-export const POST = withValidation(
-  friendRequestSchema,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async (request: any) => {
-    try {
-      const currentUser = await getCurrentUser();
-      const userId = currentUser?.id;
-      if (!userId) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-      const { addresseeId } = request.validated;
-      if (addresseeId === userId) {
-        return NextResponse.json(
-          { error: "Invalid addressee" },
-          { status: 400 }
-        );
-      }
-      // Check for existing relationship
-      const existing = await prisma.friend.findFirst({
-        where: {
-          OR: [
-            { requesterId: userId, addresseeId },
-            { requesterId: addresseeId, addresseeId: userId },
-          ],
-        },
-      });
-      if (existing) {
-        return NextResponse.json(
-          { error: "Friend request already exists or you are already friends" },
-          { status: 409 }
-        );
-      }
-      // Create friend request
-      const requestRecord = await prisma.friend.create({
-        data: {
-          requesterId: userId,
-          addresseeId,
-          status: "PENDING",
-        },
-      });
-      return NextResponse.json({ success: true, request: requestRecord });
-    } catch (error) {
-      console.error("Error sending friend request:", error);
+export const POST = withValidation(friendRequestSchema, async (request) => {
+  try {
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { addresseeId } = request.validated;
+    if (addresseeId === userId) {
+      return NextResponse.json({ error: "Invalid addressee" }, { status: 400 });
+    }
+    // Check for existing relationship
+    const existing = await prisma.friend.findFirst({
+      where: {
+        OR: [
+          { requesterId: userId, addresseeId },
+          { requesterId: addresseeId, addresseeId: userId },
+        ],
+      },
+    });
+    if (existing) {
       return NextResponse.json(
-        { error: "Failed to send friend request" },
-        { status: 500 }
+        { error: "Friend request already exists or you are already friends" },
+        { status: 409 }
       );
     }
+    // Create friend request
+    const requestRecord = await prisma.friend.create({
+      data: {
+        requesterId: userId,
+        addresseeId,
+        status: "PENDING",
+      },
+    });
+    return NextResponse.json({ success: true, request: requestRecord });
+  } catch (error) {
+    console.error("Error sending friend request:", error);
+    return NextResponse.json(
+      { error: "Failed to send friend request" },
+      { status: 500 }
+    );
   }
-);
+});
 
-export const DELETE = withValidation(
-  friendDeleteSchema,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async (request: any) => {
-    try {
-      const currentUser = await getCurrentUser();
-      const userId = currentUser?.id;
-      if (!userId) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-      const { otherUserId } = request.validated;
-      if (otherUserId === userId) {
-        return NextResponse.json({ error: "Invalid user" }, { status: 400 });
-      }
-      // Remove any friend relationship (bidirectional)
-      await prisma.friend.deleteMany({
-        where: {
-          OR: [
-            { requesterId: userId, addresseeId: otherUserId },
-            { requesterId: otherUserId, addresseeId: userId },
-          ],
-        },
-      });
-      return NextResponse.json({ success: true });
-    } catch (error) {
-      console.error("Error removing friend:", error);
-      return NextResponse.json(
-        { error: "Failed to remove friend" },
-        { status: 500 }
-      );
+export const DELETE = withValidation(friendDeleteSchema, async (request) => {
+  try {
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const { otherUserId } = request.validated;
+    if (otherUserId === userId) {
+      return NextResponse.json({ error: "Invalid user" }, { status: 400 });
+    }
+    // Remove any friend relationship (bidirectional)
+    await prisma.friend.deleteMany({
+      where: {
+        OR: [
+          { requesterId: userId, addresseeId: otherUserId },
+          { requesterId: otherUserId, addresseeId: userId },
+        ],
+      },
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error removing friend:", error);
+    return NextResponse.json(
+      { error: "Failed to remove friend" },
+      { status: 500 }
+    );
   }
-);
+});

@@ -152,11 +152,15 @@ const QuizTakePage = () => {
       }
     : undefined;
 
-  const quizAny = quiz as any;
+  const quizWithRules = quiz as typeof quiz & {
+    rules?: string;
+    guide?: string;
+  };
   const rules =
-    quizAny.rules || "1. No cheating.\n2. No tab switching.\n3. Good luck!";
+    quizWithRules.rules ||
+    "1. No cheating.\n2. No tab switching.\n3. Good luck!";
   const guide =
-    quizAny.guide || "Answer all questions to the best of your ability.";
+    quizWithRules.guide || "Answer all questions to the best of your ability.";
 
   return (
     <>

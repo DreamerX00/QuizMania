@@ -11,11 +11,13 @@ export default function WebVitals() {
       const reportLCP = () => {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          const lastEntry = entries[entries.length - 1] as any;
+          const lastEntry = entries[entries.length - 1] as PerformanceEntry & {
+            processingStart?: number;
+          };
           reportWebVitals({
             name: "LCP",
             value: lastEntry.startTime,
-            id: lastEntry.id || "lcp-observer",
+            id: (lastEntry as any).id || "lcp-observer",
           });
         });
         observer.observe({ entryTypes: ["largest-contentful-paint"] });
@@ -26,11 +28,11 @@ export default function WebVitals() {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries();
           entries.forEach((entry) => {
-            const eventEntry = entry as any;
+            const eventEntry = entry as PerformanceEventTiming;
             reportWebVitals({
               name: "FID",
               value: (eventEntry.processingStart || 0) - entry.startTime,
-              id: eventEntry.id || "fid-observer",
+              id: (eventEntry as any).id || "fid-observer",
             });
           });
         });
@@ -41,8 +43,13 @@ export default function WebVitals() {
       const reportCLS = () => {
         let clsValue = 0;
         const observer = new PerformanceObserver((list) => {
-          const entries = list.getEntries();
-          entries.forEach((entry: any) => {
+          const entries = list.getEntries() as Array<
+            PerformanceEntry & {
+              hadRecentInput?: boolean;
+              value: number;
+            }
+          >;
+          entries.forEach((entry) => {
             if (!entry.hadRecentInput) {
               clsValue += entry.value;
             }
@@ -60,11 +67,11 @@ export default function WebVitals() {
       const reportFCP = () => {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          const firstEntry = entries[0] as any;
+          const firstEntry = entries[0] as PerformanceNavigationTiming;
           reportWebVitals({
             name: "FCP",
             value: firstEntry.startTime,
-            id: firstEntry.id || "fcp-observer",
+            id: (firstEntry as any).id || "fcp-observer",
           });
         });
         observer.observe({ entryTypes: ["paint"] });
@@ -73,13 +80,13 @@ export default function WebVitals() {
       // Report TTFB (Time to First Byte)
       const reportTTFB = () => {
         const observer = new PerformanceObserver((list) => {
-          const entries = list.getEntries();
-          entries.forEach((entry: any) => {
+          const entries = list.getEntries() as PerformanceNavigationTiming[];
+          entries.forEach((entry) => {
             if (entry.entryType === "navigation") {
               reportWebVitals({
                 name: "TTFB",
                 value: entry.responseStart - entry.requestStart,
-                id: entry.id,
+                id: (entry as any).id,
               });
             }
           });
@@ -102,4 +109,3 @@ export default function WebVitals() {
 
   return null; // This component doesn't render anything
 }
-

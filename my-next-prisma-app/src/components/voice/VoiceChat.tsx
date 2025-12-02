@@ -210,7 +210,9 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
         avatar: participant.metadata
           ? JSON.parse(participant.metadata).avatar
           : undefined,
-        isMuted: (participant as any).isMicrophoneMuted ?? false,
+        isMuted:
+          (participant as { isMicrophoneMuted?: boolean }).isMicrophoneMuted ??
+          false,
         isSpeaking: participant.isSpeaking,
         isLocal: participant === liveKitService.getLocalParticipant(),
         volume: 100, // Default volume

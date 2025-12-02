@@ -1,18 +1,18 @@
 export type QuestionType =
-  | 'mcq-single'
-  | 'mcq-multiple'
-  | 'true-false'
-  | 'fill-blanks'
-  | 'ordering'
-  | 'code-output'
-  | 'image-based'
-  | 'matrix'
-  | 'drag-drop'
-  | 'essay'
-  | 'paragraph'
-  | 'audio'
-  | 'video'
-  | 'poll';
+  | "mcq-single"
+  | "mcq-multiple"
+  | "true-false"
+  | "fill-blanks"
+  | "ordering"
+  | "code-output"
+  | "image-based"
+  | "matrix"
+  | "drag-drop"
+  | "essay"
+  | "paragraph"
+  | "audio"
+  | "video"
+  | "poll";
 
 export interface Quiz {
   id: string;
@@ -26,8 +26,8 @@ export interface Question {
   id: string;
   type: QuestionType;
   question: string; // changed from 'text' to 'question' for consistency
-  options?: any[]; // for MCQ, poll, image-based, etc.
-  correctAnswer?: any;
+  options?: Array<string | { label: string; value: unknown }>; // for MCQ, poll, image-based, etc.
+  correctAnswer?: string | number | boolean | string[] | unknown;
   explanation?: string;
   // Advanced fields for specific types
   minWordCount?: number; // essay, paragraph
@@ -35,16 +35,16 @@ export interface Question {
   fileSizeLimitMB?: number; // audio, video
   maxDurationSeconds?: number; // audio, video
   imageUrl?: string; // image-based
-  matrixOptions?: { rows: any[]; cols: any[] }; // matrix
-  draggableItems?: any[]; // drag-drop
-  dropZones?: any[]; // drag-drop
-  fillBlanksAnswers?: any[]; // fill-blanks
+  matrixOptions?: { rows: string[]; cols: string[] }; // matrix
+  draggableItems?: Array<{ id: string; content: string }>; // drag-drop
+  dropZones?: Array<{ id: string; content: string }>; // drag-drop
+  fillBlanksAnswers?: string[]; // fill-blanks
   // Add more fields as needed for each type
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface UserResponse {
   questionId: string;
-  response: any;
+  response: string | number | boolean | string[] | unknown;
   markedForReview?: boolean;
 }

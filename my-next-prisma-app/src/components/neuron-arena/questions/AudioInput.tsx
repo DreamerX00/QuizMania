@@ -4,13 +4,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import WaveSurfer from "wavesurfer.js";
 import { isEqual } from "lodash";
-
-interface Question {
-  id: string;
-  question?: string;
-  fileSizeLimitMB?: number;
-  maxDurationSeconds?: number;
-}
+import type { Question } from "../types/quiz.types";
 
 const AudioInput = ({ question }: { question: Question }) => {
   const responses = useQuizStore((s) => s.responses);
@@ -20,10 +14,10 @@ const AudioInput = ({ question }: { question: Question }) => {
   const [error, setError] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
   const [waveform, setWaveform] = useState<WaveSurfer | null>(null);
-  const [audioUrl, setAudioUrl] = useState(prev);
+  const [audioUrl, setAudioUrl] = useState(String(prev));
   useEffect(() => {
     if (!isEqual(audioUrl, prev)) {
-      setAudioUrl(prev);
+      setAudioUrl(String(prev));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prev, question.id]);
@@ -188,4 +182,3 @@ const AudioInput = ({ question }: { question: Question }) => {
 };
 
 export default AudioInput;
-

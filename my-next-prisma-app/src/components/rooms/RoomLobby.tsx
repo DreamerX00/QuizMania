@@ -85,12 +85,12 @@ export default function RoomLobby({
   members,
   currentUser,
 }: {
-  room: any;
-  members: any[];
-  currentUser: any;
+  room: { id: string; [key: string]: unknown };
+  members: Array<{ role?: string; userId: string; [key: string]: unknown }>;
+  currentUser: { userId: string; [key: string]: unknown };
 }) {
   const isHost = members.find(
-    (m: any) => m.role === "HOST" && m.userId === currentUser.userId
+    (m) => m.role === "HOST" && m.userId === currentUser.userId
   );
   const [chatInput, setChatInput] = useState("");
   const {
@@ -133,17 +133,24 @@ export default function RoomLobby({
             Lobby
           </h2>
           <RoomAvatarGrid
-            players={members.map((m) => ({
-              ...m.user,
-              id: m.user.id,
-              role: m.role,
-              avatar:
-                m.user.avatarUrl ||
-                getRandomAvatar(
-                  m.user.id || m.user.name || Math.random().toString()
-                ),
-            }))}
-            hostId={members.find((m) => m.role === "HOST")?.user.id}
+            players={members.map((m) => {
+              const user =
+                typeof m.user === "object" && m.user !== null
+                  ? (m.user as any)
+                  : {};
+              return {
+                ...user,
+                id: user.id,
+                name: user.name || "Unknown",
+                role: m.role,
+                avatar:
+                  user.avatarUrl ||
+                  getRandomAvatar(
+                    user.id || user.name || Math.random().toString()
+                  ),
+              };
+            })}
+            hostId={(members.find((m) => m.role === "HOST")?.user as any)?.id}
             teamMode={room.type === "Squad" || room.type === "Custom"}
             user={currentUser}
           />
@@ -155,24 +162,27 @@ export default function RoomLobby({
         <div className="sticky top-0 z-20 bg-linear-to-b from-[#23234d]/95 to-transparent rounded-t-2xl pb-2 mb-2 flex flex-col gap-2 border-b border-blue-500/10">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl font-bold text-purple-300 drop-shadow-glow tracking-wide">
-              {room.title}
+              {String(room.title || room.name || "Room")}
             </span>
             <span className="ml-auto flex items-center gap-2 text-blue-400 font-mono text-lg">
-              {members.length}/{room.maxPlayers}
+              {members.length}/{String(room.maxPlayers || 0)}
             </span>
           </div>
           <div className="flex items-center gap-4 text-slate-300 text-sm flex-wrap">
             <span className="flex items-center gap-1">
               <span className="font-semibold text-white">Host:</span>{" "}
-              {members.find((m) => m.role === "HOST")?.user.name}
+              {String(
+                (members.find((m) => m.role === "HOST")?.user as any)?.name ||
+                  ""
+              )}
             </span>
             <span className="flex items-center gap-1">
               <span className="font-semibold text-white">Type:</span>{" "}
-              {room.type}
+              {String(room.type || "")}
             </span>
             <span className="flex items-center gap-1">
               <span className="font-semibold text-white">Quiz:</span>{" "}
-              {room.quizTypes && room.quizTypes.length > 0
+              {Array.isArray(room.quizTypes) && room.quizTypes.length > 0
                 ? room.quizTypes.join(", ")
                 : "—"}
             </span>
@@ -181,7 +191,7 @@ export default function RoomLobby({
         <RoomInfoPanel room={room} isHost={!!isHost} />
         {isHost && (
           <RoomHostControls
-            room={room}
+            room={room as any}
             onInvite={handleInvite}
             onStartMatch={handleStartMatch}
           />
@@ -196,15 +206,19 @@ export default function RoomLobby({
             ) : chatData?.messages?.length === 0 ? (
               <div className="text-slate-400">No messages yet.</div>
             ) : (
-              chatData?.messages?.map((msg: any, _i: number) => (
+              (
+                chatData?.messages as
+                  | Array<{ id: string; [key: string]: unknown }>
+                  | undefined
+              )?.map((msg, _i: number) => (
                 <div
                   key={msg.id}
                   className="bg-slate-800/80 rounded-lg px-3 py-2 text-white w-fit flex items-center gap-2 animate-fade-in"
                 >
                   <span className="font-bold text-blue-400">
-                    {msg.user.name}:
+                    {String((msg.user as any)?.name || "")}:
                   </span>{" "}
-                  {msg.message}
+                  {String(msg.message || "")}
                 </div>
               ))
             )}

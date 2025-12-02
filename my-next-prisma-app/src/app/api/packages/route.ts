@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const isPublishedParam = req.nextUrl.searchParams.get("isPublished");
-  const where: any = { userId };
+  const where: { userId: string; isPublished?: boolean } = { userId };
   if (isPublishedParam === "true") where.isPublished = true;
   if (isPublishedParam === "false") where.isPublished = false;
   const packages = await prisma.quizPackage.findMany({
@@ -47,7 +47,7 @@ const deletePackageSchema = z.object({
   id: z.string().min(1),
 });
 
-export const POST = withValidation(createPackageSchema, async (req: any) => {
+export const POST = withValidation(createPackageSchema, async (req) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
   if (!userId)
@@ -68,7 +68,7 @@ export const POST = withValidation(createPackageSchema, async (req: any) => {
   return NextResponse.json(pkg);
 });
 
-export const PUT = withValidation(updatePackageSchema, async (req: any) => {
+export const PUT = withValidation(updatePackageSchema, async (req) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
   if (!userId)
@@ -95,7 +95,7 @@ export const PUT = withValidation(updatePackageSchema, async (req: any) => {
   return NextResponse.json(updated);
 });
 
-export const DELETE = withValidation(deletePackageSchema, async (req: any) => {
+export const DELETE = withValidation(deletePackageSchema, async (req) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
   if (!userId)

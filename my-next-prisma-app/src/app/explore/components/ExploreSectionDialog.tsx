@@ -6,20 +6,40 @@ interface ExploreSectionDialogProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  quizzes: any[];
+  quizzes: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    tags: string[];
+    imageUrl: string | null;
+    rating: number;
+    likeCount: number;
+    usersTaken: number;
+    createdAt: string;
+    creator: {
+      name: string | null;
+      avatarUrl: string | null;
+    } | null;
+    durationInSeconds?: number;
+    isLocked?: boolean;
+    difficultyLevel?: string;
+    pricePerAttempt?: number;
+    pointPerAttempt?: number;
+    slug?: string;
+  }>;
   isPremiumUser?: boolean;
   unlockedQuizIds?: Set<string>;
 }
 
 const PAGE_SIZE = 16;
 
-export default function ExploreSectionDialog({ 
-  open, 
-  onClose, 
-  title, 
-  quizzes, 
-  isPremiumUser = false, 
-  unlockedQuizIds = new Set() 
+export default function ExploreSectionDialog({
+  open,
+  onClose,
+  title,
+  quizzes,
+  isPremiumUser = false,
+  unlockedQuizIds = new Set(),
 }: ExploreSectionDialogProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,7 +68,11 @@ export default function ExploreSectionDialog({
           <h2 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent animate-gradient-move">
             {title}
           </h2>
-          <button onClick={onClose} className="text-white/70 hover:text-white hover:scale-110 transition-transform" aria-label="Close">
+          <button
+            onClick={onClose}
+            className="text-white/70 hover:text-white hover:scale-110 transition-transform"
+            aria-label="Close"
+          >
             <FiX size={32} />
           </button>
         </div>
@@ -58,9 +82,9 @@ export default function ExploreSectionDialog({
           onScroll={handleScroll}
         >
           {quizzes.slice(0, visibleCount).map((quiz) => (
-            <QuizCard 
-              key={quiz.id} 
-              quiz={quiz} 
+            <QuizCard
+              key={quiz.id}
+              quiz={quiz}
               onClick={() => {}} // No action needed in dialog view
               isPremiumUser={isPremiumUser}
               isUnlocked={unlockedQuizIds.has(quiz.id)}
@@ -68,11 +92,13 @@ export default function ExploreSectionDialog({
           ))}
           {visibleCount < quizzes.length && (
             <div className="col-span-full flex justify-center py-8">
-              <span className="text-white/60 animate-pulse">Loading more...</span>
+              <span className="text-white/60 animate-pulse">
+                Loading more...
+              </span>
             </div>
           )}
         </div>
       </div>
     </div>
   );
-} 
+}

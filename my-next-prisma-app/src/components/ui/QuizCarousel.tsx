@@ -2,9 +2,35 @@ import React, { useRef } from "react";
 import QuizCard from "@/app/explore/components/QuizCard";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
+type Quiz = {
+  id: string;
+  title: string;
+  description: string | null;
+  tags: string[];
+  imageUrl: string | null;
+  rating: number;
+  likeCount: number;
+  usersTaken: number;
+  createdAt: string;
+  creator: {
+    name: string | null;
+    avatarUrl: string | null;
+  } | null;
+  durationInSeconds?: number;
+  isLocked?: boolean;
+  difficultyLevel?: string;
+  pricePerAttempt?: number;
+  pointPerAttempt?: number;
+  slug?: string;
+  price: number;
+  field: string | null;
+  subject: string | null;
+  [key: string]: unknown;
+};
+
 interface QuizCarouselProps {
-  quizzes: any[];
-  onQuizClick: (quiz: any) => void;
+  quizzes: Quiz[];
+  onQuizClick: (quiz: Quiz) => void;
   isPremiumUser?: boolean;
   unlockedQuizIds?: Set<string>;
 }
@@ -13,11 +39,11 @@ const CARD_WIDTH = 280; // px
 const CARD_GAP = 24; // px
 const VISIBLE_CARDS = 3; // default, responsive via Tailwind
 
-export default function QuizCarousel({ 
-  quizzes, 
-  onQuizClick, 
-  isPremiumUser = false, 
-  unlockedQuizIds = new Set() 
+export default function QuizCarousel({
+  quizzes,
+  onQuizClick,
+  isPremiumUser = false,
+  unlockedQuizIds = new Set(),
 }: QuizCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -52,8 +78,8 @@ export default function QuizCarousel({
             className="min-w-[260px] max-w-[320px] w-[90vw] sm:w-[260px] md:w-[280px] snap-start shrink-0"
             onClick={() => onQuizClick(quiz)}
           >
-            <QuizCard 
-              quiz={quiz} 
+            <QuizCard
+              quiz={quiz}
               onClick={() => onQuizClick(quiz)}
               isPremiumUser={isPremiumUser}
               isUnlocked={unlockedQuizIds.has(quiz.id)}
@@ -71,4 +97,4 @@ export default function QuizCarousel({
       </button>
     </div>
   );
-} 
+}

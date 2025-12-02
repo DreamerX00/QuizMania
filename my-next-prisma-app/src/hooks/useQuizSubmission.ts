@@ -40,13 +40,13 @@ export function useQuizSubmission() {
       ].includes(q.type);
       let isCorrect = false;
       if (isManual) {
-        pendingManualMarks += q.marks || 0;
+        pendingManualMarks += (q.marks as number) || 0;
       } else {
         // Auto-evaluate
         if (JSON.stringify(resp.response) === JSON.stringify(q.correctAnswer)) {
           isCorrect = true;
           correct++;
-          obtainedMarks += q.marks || 0;
+          obtainedMarks += (q.marks as number) || 0;
         } else {
           incorrect++;
         }

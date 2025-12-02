@@ -25,8 +25,7 @@ const gameSetupSchema = z.object({
   region: z.string().min(1).max(50),
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const POST = withValidation(gameSetupSchema, async (req: any) => {
+export const POST = withValidation(gameSetupSchema, async (req) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
   if (!userId)

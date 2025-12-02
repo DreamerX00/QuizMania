@@ -7,7 +7,7 @@ const reportSchema = z.object({
   description: z.string().min(1).max(2000),
 });
 
-export const POST = withValidation(reportSchema, async (req: any) => {
+export const POST = withValidation(reportSchema, async (req) => {
   try {
     const { description } = req.validated;
     const report = await prisma.reports.create({

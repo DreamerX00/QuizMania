@@ -22,8 +22,7 @@ const publicChatSchema = z.object({
   message: z.string().min(1).max(1000),
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const POST = withValidation(publicChatSchema, async (req: any) => {
+export const POST = withValidation(publicChatSchema, async (req) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
   if (!userId)

@@ -84,7 +84,14 @@ export const validateQuestion = (
 };
 
 export const validateQuizData = (
-  formData: any,
+  formData: {
+    title?: string;
+    description?: string;
+    category?: string;
+    subcategory?: string;
+    difficultyLevel?: string;
+    [key: string]: unknown;
+  },
   questions: Question[]
 ): string | null => {
   if (!formData.title?.trim()) return "Quiz title is required";
@@ -128,7 +135,10 @@ export const calculateEstimatedTime = (questions: Question[]): number => {
   return questions.reduce((sum, q) => sum + (q.timeLimit || 60), 0);
 };
 
-export const exportQuiz = (formData: any, questions: Question[]) => {
+export const exportQuiz = (
+  formData: { title?: string; [key: string]: unknown },
+  questions: Question[]
+) => {
   const quizJson = {
     ...formData,
     questions: questions,

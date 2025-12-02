@@ -1,16 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useQuizStore } from "../state/quizStore";
+import type { Question } from "../types/quiz.types";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { isEqual } from "lodash";
-
-interface Question {
-  id: string;
-  question?: string;
-  type?: string;
-  fileSizeLimitMB?: number;
-  maxDurationSeconds?: number;
-}
 
 const VideoInput = ({ question }: { question: Question }) => {
   const responses = useQuizStore((s) => s.responses);
@@ -19,7 +12,7 @@ const VideoInput = ({ question }: { question: Question }) => {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
-  const [videoUrl, setVideoUrl] = useState(prev);
+  const [videoUrl, setVideoUrl] = useState(String(prev));
   const [thumbnail, setThumbnail] = useState("");
   const setResponse = useQuizStore((s) => s.setResponse);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -28,7 +21,7 @@ const VideoInput = ({ question }: { question: Question }) => {
 
   useEffect(() => {
     if (!isEqual(videoUrl, prev)) {
-      setVideoUrl(prev);
+      setVideoUrl(String(prev));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prev, question.id]);
@@ -201,4 +194,3 @@ const VideoInput = ({ question }: { question: Question }) => {
 };
 
 export default VideoInput;
-

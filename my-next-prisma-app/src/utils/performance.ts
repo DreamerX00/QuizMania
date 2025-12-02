@@ -54,7 +54,12 @@ export class PerformanceMonitor {
 }
 
 // Web Vitals monitoring
-export function reportWebVitals(metric: any) {
+export function reportWebVitals(metric: {
+  name: string;
+  value: number;
+  id: string;
+  [key: string]: unknown;
+}) {
   if (typeof window !== "undefined") {
     // Send to analytics service
     console.log("Web Vital:", metric);
@@ -71,7 +76,11 @@ export function getMemoryUsage(): {
   percentage: number;
 } | null {
   if (typeof window !== "undefined" && "memory" in performance) {
-    const memory = (performance as any).memory;
+    const memory = (
+      performance as {
+        memory?: { usedJSHeapSize: number; jsHeapSizeLimit: number };
+      }
+    ).memory;
     return {
       used: memory.usedJSHeapSize,
       total: memory.totalJSHeapSize,

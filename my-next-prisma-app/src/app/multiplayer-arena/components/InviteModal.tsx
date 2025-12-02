@@ -71,24 +71,30 @@ const InviteModal = ({ isOpen, onClose, roomId }: InviteModalProps) => {
             ) : friendsData?.friends?.length === 0 ? (
               <div className="text-slate-400">No friends found.</div>
             ) : (
-              friendsData?.friends?.map((friend: any) => (
+              (
+                friendsData?.friends as Array<{
+                  userId: string;
+                  name?: string;
+                  [key: string]: unknown;
+                }>
+              )?.map((friend) => (
                 <div
                   key={friend.userId}
                   className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src={friend.avatar} />
+                      <AvatarImage src={String(friend.avatar)} />
                       <AvatarFallback>
                         {friend.name?.substring(0, 2)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {friend.name}
+                        {String(friend.name)}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {friend.status}
+                        {String(friend.status)}
                       </p>
                     </div>
                   </div>
