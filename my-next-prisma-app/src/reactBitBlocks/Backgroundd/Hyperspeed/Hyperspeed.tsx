@@ -493,9 +493,9 @@ class CarLights {
     );
     const geometry = new THREE.TubeGeometry(curve, 40, 1, 8, false);
 
-    const instanced = new THREE.InstancedBufferGeometry().copy(
-      geometry as any
-    ) as THREE.InstancedBufferGeometry;
+    const instanced = new THREE.InstancedBufferGeometry();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    instanced.copy(geometry as any);
     instanced.instanceCount = options.lightPairsPerRoadWay * 2;
 
     const laneWidth = options.roadWidth / options.lanesPerRoad;
@@ -666,9 +666,9 @@ class LightsSticks {
   init() {
     const options = this.options;
     const geometry = new THREE.PlaneGeometry(1, 1);
-    const instanced = new THREE.InstancedBufferGeometry().copy(
-      geometry as any
-    ) as THREE.InstancedBufferGeometry;
+    const instanced = new THREE.InstancedBufferGeometry();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    instanced.copy(geometry as any);
     const totalSticks = options.totalSideLightSticks;
     instanced.instanceCount = totalSticks;
 
@@ -1142,12 +1142,12 @@ class App {
       assets.smaa = {};
 
       searchImage.addEventListener("load", function () {
-        (assets.smaa as any).search = this;
+        (assets.smaa as Record<string, unknown>).search = this;
         manager.itemEnd("smaa-search");
       });
 
       areaImage.addEventListener("load", function () {
-        (assets.smaa as any).area = this;
+        (assets.smaa as Record<string, unknown>).area = this;
         manager.itemEnd("smaa-area");
       });
 

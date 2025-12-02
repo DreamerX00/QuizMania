@@ -136,21 +136,28 @@ export default function RoomLobby({
             players={members.map((m) => {
               const user =
                 typeof m.user === "object" && m.user !== null
-                  ? (m.user as any)
+                  ? (m.user as Record<string, unknown>)
                   : {};
               return {
                 ...user,
-                id: user.id,
-                name: user.name || "Unknown",
-                role: m.role,
-                avatar:
+                id: String(user.id || ""),
+                name: String(user.name || "Unknown"),
+                role: String(m.role || ""),
+                avatar: String(
                   user.avatarUrl ||
-                  getRandomAvatar(
-                    user.id || user.name || Math.random().toString()
-                  ),
+                    getRandomAvatar(
+                      String(user.id || user.name || Math.random().toString())
+                    )
+                ),
               };
             })}
-            hostId={(members.find((m) => m.role === "HOST")?.user as any)?.id}
+            hostId={String(
+              (
+                members.find((m) => m.role === "HOST")?.user as
+                  | Record<string, unknown>
+                  | undefined
+              )?.id || ""
+            )}
             teamMode={room.type === "Squad" || room.type === "Custom"}
             user={currentUser}
           />
@@ -172,8 +179,11 @@ export default function RoomLobby({
             <span className="flex items-center gap-1">
               <span className="font-semibold text-white">Host:</span>{" "}
               {String(
-                (members.find((m) => m.role === "HOST")?.user as any)?.name ||
-                  ""
+                (
+                  members.find((m) => m.role === "HOST")?.user as
+                    | Record<string, unknown>
+                    | undefined
+                )?.name || ""
               )}
             </span>
             <span className="flex items-center gap-1">
@@ -191,7 +201,17 @@ export default function RoomLobby({
         <RoomInfoPanel room={room} isHost={!!isHost} />
         {isHost && (
           <RoomHostControls
-            room={room as any}
+            room={{
+              ...room,
+              id: String(room.id || ""),
+              name: String(room.name || ""),
+              code: String(room.code || ""),
+              type: String(room.type || ""),
+              maxParticipants: Number(room.maxParticipants || 0),
+              quizTypes: Array.isArray(room.quizTypes)
+                ? room.quizTypes.map(String)
+                : [],
+            }}
             onInvite={handleInvite}
             onStartMatch={handleStartMatch}
           />
@@ -216,7 +236,10 @@ export default function RoomLobby({
                   className="bg-slate-800/80 rounded-lg px-3 py-2 text-white w-fit flex items-center gap-2 animate-fade-in"
                 >
                   <span className="font-bold text-blue-400">
-                    {String((msg.user as any)?.name || "")}:
+                    {String(
+                      (msg.user as Record<string, unknown> | undefined)?.name ||
+                        ""
+                    )}
                   </span>{" "}
                   {String(msg.message || "")}
                 </div>

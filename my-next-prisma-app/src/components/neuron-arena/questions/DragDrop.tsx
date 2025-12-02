@@ -53,7 +53,7 @@ const DragDrop = ({ question }: { question: Question }) => {
               key={item.id}
               className={`rounded-lg bg-white/10 px-4 py-2 shadow cursor-pointer ${
                 selectedItem === item.id
-                  ? "ring-2 ring-[var(--primary-accent)]"
+                  ? "ring-2 ring-(--primary-accent)"
                   : ""
               }`}
               onClick={() => handleItemClick(item.id)}
@@ -68,8 +68,8 @@ const DragDrop = ({ question }: { question: Question }) => {
           ).map((zone) => (
             <div
               key={zone.id}
-              className={`rounded-lg bg-white/5 border-2 border-dashed border-[var(--primary-accent)] w-32 h-16 flex items-center justify-center cursor-pointer ${
-                positions[zone.id] ? "bg-[var(--primary-accent)]/20" : ""
+              className={`rounded-lg bg-white/5 border-2 border-dashed border-(--primary-accent) w-32 h-16 flex items-center justify-center cursor-pointer ${
+                positions[zone.id] ? "bg-(--primary-accent)/20" : ""
               }`}
               onClick={() => handleZoneClick(zone.id)}
             >

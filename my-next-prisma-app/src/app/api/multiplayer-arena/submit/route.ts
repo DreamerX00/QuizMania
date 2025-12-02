@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { QuizAttemptService } from "@/services/quizAttemptService";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
+import { Prisma, QuizStatus } from "@prisma/client";
 
 const submitArenaSchema = z.object({
   quizRecordId: z.string().min(1),
@@ -23,9 +24,15 @@ export const POST = withValidation(submitArenaSchema, async (request) => {
     const result = await QuizAttemptService.submitArenaAttempt(
       userId,
       quizRecordId,
-      answers,
+      answers as Array<{
+        questionId: string;
+        type: string;
+        isCorrect: boolean;
+        timeTaken: number;
+        answer: Prisma.InputJsonValue;
+      }>,
       duration,
-      status
+      status as QuizStatus
     );
     return NextResponse.json(result);
   } catch (error) {

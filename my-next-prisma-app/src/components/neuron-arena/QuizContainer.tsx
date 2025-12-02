@@ -141,7 +141,7 @@ const QuizContainer = ({
       {/* Development components removed for production */}
       {/* Violation Banner */}
       {violationMsg && (
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-red-600 text-white text-center py-2 font-bold animate-pulse">
+        <div className="fixed top-0 left-0 right-0 z-100 bg-red-600 text-white text-center py-2 font-bold animate-pulse">
           {violationMsg}
         </div>
       )}
@@ -162,7 +162,7 @@ const QuizContainer = ({
       <div className="fixed top-16 left-0 right-0 z-40 px-6 bg-transparent">
         <div className="h-2 rounded-full bg-muted overflow-hidden">
           <div
-            className="h-full bg-[var(--primary-accent)] transition-all duration-500"
+            className="h-full bg-(--primary-accent) transition-all duration-500"
             style={{ width: `${percent}%` }}
           />
         </div>

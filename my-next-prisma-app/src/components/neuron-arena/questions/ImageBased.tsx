@@ -60,8 +60,8 @@ const ImageBased = ({ question }: { question: Question }) => {
               className={`rounded-full px-6 py-3 font-bold flex items-center gap-3 transition
                 ${
                   selected === (opt.id || String(i))
-                    ? "bg-[var(--primary-accent)] text-white scale-105 shadow-lg"
-                    : "bg-white/10 hover:bg-[var(--primary-accent)]/80 text-white"
+                    ? "bg-(--primary-accent) text-white scale-105 shadow-lg"
+                    : "bg-white/10 hover:bg-(--primary-accent)/80 text-white"
                 }
               `}
               onClick={() => handleSelect(opt.id || String(i))}
@@ -75,7 +75,7 @@ const ImageBased = ({ question }: { question: Question }) => {
           ))
         ) : (
           <input
-            className="w-full px-2 py-2 rounded bg-white/10 border-b-2 border-[var(--primary-accent)] text-white focus:outline-none font-mono"
+            className="w-full px-2 py-2 rounded bg-white/10 border-b-2 border-(--primary-accent) text-white focus:outline-none font-mono"
             placeholder="Your Answer"
             value={input}
             onChange={handleInput}

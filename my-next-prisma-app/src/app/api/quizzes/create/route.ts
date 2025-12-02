@@ -5,6 +5,7 @@ import slugify from "slugify";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 import prisma from "@/lib/prisma";
+import { DifficultyLevel } from "@prisma/client";
 
 const createQuizSchema = z.object({
   title: z.string().min(3).max(100),
@@ -50,7 +51,9 @@ export const POST = withValidation(createQuizSchema, async (req) => {
     let pricePerAttempt = 0;
     let pointPerAttempt = 0;
     if (difficultyLevel) {
-      const pricingConfig = getPricingConfig(difficultyLevel);
+      const pricingConfig = getPricingConfig(
+        difficultyLevel as DifficultyLevel
+      );
       pricePerAttempt = pricingConfig.pricePerAttempt;
       pointPerAttempt = pricingConfig.pointPerAttempt;
     }
@@ -82,7 +85,8 @@ export const POST = withValidation(createQuizSchema, async (req) => {
           typeof durationInSeconds === "number" ? durationInSeconds : 0,
         isLocked: !!isLocked,
         lockPassword: isLocked && lockPassword ? lockPassword : undefined,
-        difficultyLevel: difficultyLevel || undefined,
+        difficultyLevel:
+          (difficultyLevel as DifficultyLevel | undefined) || undefined,
       },
     });
 

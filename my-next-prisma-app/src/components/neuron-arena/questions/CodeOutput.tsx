@@ -29,7 +29,7 @@ const CodeOutput = ({ question }: { question: Question }) => {
           {String(question.codeSnippet || "")}
         </pre>
         <input
-          className="w-40 px-2 py-2 rounded bg-white/10 border-b-2 border-[var(--primary-accent)] text-white focus:outline-none font-mono"
+          className="w-40 px-2 py-2 rounded bg-white/10 border-b-2 border-(--primary-accent) text-white focus:outline-none font-mono"
           placeholder="Expected Output"
           value={value}
           onChange={handleChange}

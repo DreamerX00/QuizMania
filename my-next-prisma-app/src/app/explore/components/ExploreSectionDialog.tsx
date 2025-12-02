@@ -61,7 +61,7 @@ export default function ExploreSectionDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-lg pt-16 sm:pt-16">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-lg pt-16 sm:pt-16">
       <div className="absolute inset-0" onClick={onClose} />
       <div className="relative z-10 w-full max-w-6xl h-[calc(90vh-4rem)] bg-linear-to-br from-[#181a2a]/90 to-[#23234d]/90 border border-purple-500/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden mt-0">
         <div className="flex items-center justify-between px-8 py-6 border-b border-white/10">

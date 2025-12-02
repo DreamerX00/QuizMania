@@ -39,8 +39,8 @@ const MCQSingle = ({ question }: { question: Question }) => {
               className={`rounded-full px-6 py-3 font-bold flex items-center gap-3 transition
                 ${
                   selected === optId
-                    ? "bg-[var(--primary-accent)] text-white scale-105 shadow-lg"
-                    : "bg-white/10 hover:bg-[var(--primary-accent)]/80 text-white"
+                    ? "bg-(--primary-accent) text-white scale-105 shadow-lg"
+                    : "bg-white/10 hover:bg-(--primary-accent)/80 text-white"
                 }
               `}
               onClick={() => handleSelect(optId)}

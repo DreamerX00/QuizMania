@@ -56,7 +56,7 @@ export default function RoomInfoPanel({
       style={{ boxShadow: "0 0 32px 4px #3b82f655, 0 0 0 1.5px #a78bfa55" }}
     >
       {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-gradient-to-b from-[#23234d]/90 to-transparent rounded-t-2xl pb-2 mb-2 flex flex-col gap-2">
+      <div className="sticky top-0 z-10 bg-linear-to-b from-[#23234d]/90 to-transparent rounded-t-2xl pb-2 mb-2 flex flex-col gap-2">
         <div className="flex items-center gap-4">
           <span className="text-2xl font-bold text-purple-300 drop-shadow-glow">
             {String(room.title || room.name || "Room")}

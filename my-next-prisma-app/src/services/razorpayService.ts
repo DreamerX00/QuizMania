@@ -192,6 +192,7 @@ export class RazorpayService {
         vpa: {
           address: upiId,
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
       return fundAccount as unknown as { id: string; [key: string]: unknown };
     } catch (error) {

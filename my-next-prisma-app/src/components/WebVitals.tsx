@@ -17,7 +17,9 @@ export default function WebVitals() {
           reportWebVitals({
             name: "LCP",
             value: lastEntry.startTime,
-            id: (lastEntry as any).id || "lcp-observer",
+            id:
+              ((lastEntry as unknown as Record<string, unknown>)
+                .id as string) || "lcp-observer",
           });
         });
         observer.observe({ entryTypes: ["largest-contentful-paint"] });
@@ -31,8 +33,10 @@ export default function WebVitals() {
             const eventEntry = entry as PerformanceEventTiming;
             reportWebVitals({
               name: "FID",
-              value: (eventEntry.processingStart || 0) - entry.startTime,
-              id: (eventEntry as any).id || "fid-observer",
+              value: eventEntry.processingStart - eventEntry.startTime,
+              id:
+                ((eventEntry as unknown as Record<string, unknown>)
+                  .id as string) || "fid-observer",
             });
           });
         });
@@ -71,7 +75,9 @@ export default function WebVitals() {
           reportWebVitals({
             name: "FCP",
             value: firstEntry.startTime,
-            id: (firstEntry as any).id || "fcp-observer",
+            id:
+              ((firstEntry as unknown as Record<string, unknown>)
+                .id as string) || "fcp-observer",
           });
         });
         observer.observe({ entryTypes: ["paint"] });
@@ -86,7 +92,7 @@ export default function WebVitals() {
               reportWebVitals({
                 name: "TTFB",
                 value: entry.responseStart - entry.requestStart,
-                id: (entry as any).id,
+                id: (entry as unknown as Record<string, unknown>).id as string,
               });
             }
           });
