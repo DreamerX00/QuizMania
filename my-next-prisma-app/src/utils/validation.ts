@@ -1,4 +1,4 @@
-import { ZodTypeAny } from "zod";
+import { ZodTypeAny, z } from "zod";
 import validator from "validator";
 import { NextRequest, NextResponse } from "next/server";
 

@@ -138,7 +138,12 @@ export class RazorpayService {
       };
 
       const order = await razorpay.orders.create(orderData);
-      return order;
+      return order as unknown as {
+        id: string;
+        amount: number;
+        currency: string;
+        [key: string]: unknown;
+      };
     } catch (error) {
       console.error("Error creating Razorpay order with transfers:", error);
       throw new Error("Failed to create split payment order");
@@ -155,7 +160,7 @@ export class RazorpayService {
     try {
       // Type assertion to access contacts API which may not be in type definitions
       const contact = await (
-        razorpay as {
+        razorpay as unknown as {
           contacts: {
             create: (data: Record<string, unknown>) => Promise<{ id: string }>;
           };
@@ -187,8 +192,8 @@ export class RazorpayService {
         vpa: {
           address: upiId,
         },
-      } as { contact_id: string; account_type: string; bank_account: Record<string, string> });
-      return fundAccount;
+      } as any);
+      return fundAccount as unknown as { id: string; [key: string]: unknown };
     } catch (error) {
       console.error("Error creating UPI fund account:", error);
       throw new Error("Failed to create UPI fund account");
@@ -225,7 +230,7 @@ export class RazorpayService {
   ): Promise<{ id: string; [key: string]: unknown }> {
     try {
       const payment = await razorpay.payments.fetch(paymentId);
-      return payment;
+      return payment as unknown as { id: string; [key: string]: unknown };
     } catch (error) {
       console.error("Error fetching payment details:", error);
       throw new Error("Failed to fetch payment details");
@@ -240,7 +245,7 @@ export class RazorpayService {
   ): Promise<{ id: string; [key: string]: unknown }> {
     try {
       const order = await razorpay.orders.fetch(orderId);
-      return order;
+      return order as unknown as { id: string; [key: string]: unknown };
     } catch (error) {
       console.error("Error fetching order details:", error);
       throw new Error("Failed to fetch order details");
@@ -261,7 +266,7 @@ export class RazorpayService {
       }
 
       const refund = await razorpay.payments.refund(paymentId, refundData);
-      return refund;
+      return refund as unknown as { id: string; [key: string]: unknown };
     } catch (error) {
       console.error("Error refunding payment:", error);
       throw new Error("Failed to refund payment");

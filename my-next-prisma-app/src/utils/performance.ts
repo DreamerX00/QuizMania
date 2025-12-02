@@ -78,14 +78,20 @@ export function getMemoryUsage(): {
   if (typeof window !== "undefined" && "memory" in performance) {
     const memory = (
       performance as {
-        memory?: { usedJSHeapSize: number; jsHeapSizeLimit: number };
+        memory?: {
+          usedJSHeapSize: number;
+          totalJSHeapSize: number;
+          jsHeapSizeLimit: number;
+        };
       }
     ).memory;
-    return {
-      used: memory.usedJSHeapSize,
-      total: memory.totalJSHeapSize,
-      percentage: (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100,
-    };
+    if (memory) {
+      return {
+        used: memory.usedJSHeapSize,
+        total: memory.totalJSHeapSize,
+        percentage: (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100,
+      };
+    }
   }
   return null;
 }

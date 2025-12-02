@@ -248,7 +248,7 @@ export const useMultiplayerStore = create<MultiplayerState>()(
         const room: Room = {
           id: roomId,
           name: `Room ${roomId}`,
-          type: roomType as "NORMAL" | "RANKED" | "FRIEND" | "CUSTOM",
+          type: roomType as "match" | "custom" | "clan",
           participants: [],
           maxParticipants: 10,
           isPrivate: false,
