@@ -82,7 +82,16 @@ class AudioManager {
     const audio = new Audio();
     audio.src = src;
     audio.volume = this.volumes[type];
-    audio.preload = "auto";
+    audio.preload = "metadata";
+
+    // Add error handling
+    audio.addEventListener("error", (e) => {
+      console.error(`Failed to load audio "${key}" from ${src}:`, e);
+    });
+
+    audio.addEventListener("canplaythrough", () => {
+      console.log(`Audio "${key}" loaded successfully`);
+    });
 
     this.audioCache.set(key, audio);
   }
@@ -98,9 +107,17 @@ class AudioManager {
 
       if (!audio && config?.src) {
         // Lazy load if not cached
-        audio = new Audio(config.src);
+        audio = new Audio();
+        audio.src = config.src;
         audio.volume = config.volume ?? this.volumes[config.type ?? "sfx"];
         audio.loop = config.loop ?? false;
+        audio.preload = "metadata";
+
+        // Add error handling
+        audio.addEventListener("error", (e) => {
+          console.error(`Failed to load audio "${key}" from ${config.src}:`, e);
+        });
+
         this.audioCache.set(key, audio);
       }
 

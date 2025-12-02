@@ -1,17 +1,8 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
-import dynamic from "next/dynamic";
-
-const LottiePlayer = dynamic(() => import("lottie-react"), { ssr: false });
-
-const LOTTIE_URLS: Record<string, string> = {
-  "401": "https://assets2.lottiefiles.com/packages/lf20_3rwasyjy.json", // Unauthorized
-  "403": "https://assets2.lottiefiles.com/packages/lf20_3scbpt5c.json", // Forbidden
-  "404": "https://assets2.lottiefiles.com/packages/lf20_qh5z2fdq.json", // Not Found
-  "500": "https://assets2.lottiefiles.com/packages/lf20_j1adxtyb.json", // Server Error
-};
 
 interface ErrorCTA {
   label: string;
@@ -30,68 +21,157 @@ interface ErrorConfig {
 }
 
 const ERROR_CONFIG: Record<string, ErrorConfig> = {
+  "400": {
+    code: "400",
+    title: "Bad Request",
+    message:
+      "The request could not be understood. Please check your input and try again.",
+    accent: "from-orange-900 via-red-900 to-orange-900",
+    cta: [
+      { label: "Go Back", action: "back", primary: true },
+      { label: "Go Home", href: "/", primary: false },
+    ],
+    animation: "/Errors/400.png",
+  },
   "401": {
     code: "401",
-    title: "Oops, You Need to Log In!",
+    title: "Authentication Required",
     message:
-      "We couldn't verify your identity. Please sign in to access this page.",
-    accent: "from-yellow-200 via-yellow-400 to-red-400",
+      "You need to sign in to access this page. Please log in to continue.",
+    accent: "from-yellow-900 via-orange-900 to-yellow-900",
     cta: [
       { label: "Sign In", href: "/auth/signin", primary: true },
-      { label: "Back to Home", href: "/", primary: false },
+      { label: "Go Home", href: "/", primary: false },
     ],
-    animation: "/assets/animations/unauthorized.json", // placeholder
+    animation: "/Errors/401.png",
   },
   "403": {
     code: "403",
-    title: "Access Denied",
+    title: "Access Forbidden",
     message:
-      "Sorry, you don’t have permission to view this page. Let’s get you to a safer spot.",
-    accent: "from-red-400 via-yellow-400 to-purple-400",
+      "You don't have permission to access this resource. Contact support if you believe this is a mistake.",
+    accent: "from-red-900 via-pink-900 to-red-900",
     cta: [
-      {
-        label: "Request Access",
-        href: "/support/request-access",
-        primary: true,
-      },
-      { label: "Return to Homepage", href: "/", primary: false },
+      { label: "Go Home", href: "/", primary: true },
+      { label: "Contact Support", href: "/about", primary: false },
     ],
-    animation: "/assets/animations/forbidden.json", // placeholder
+    animation: "/Errors/403.png",
   },
   "404": {
     code: "404",
-    title: "Lost in the Digital Wilderness",
-    message: "This page seems to have wandered off. Let’s find your way back!",
-    accent: "from-blue-400 via-purple-400 to-pink-400",
+    title: "Page Not Found",
+    message: "The page you're looking for doesn't exist or has been moved.",
+    accent: "from-slate-900 via-purple-900 to-slate-900",
     cta: [
-      { label: "Search Again", href: "/search", primary: true },
+      { label: "Go Home", href: "/", primary: true },
+      { label: "Explore Quizzes", href: "/explore", primary: false },
+    ],
+    animation: "/Errors/404.png",
+  },
+  "405": {
+    code: "405",
+    title: "Method Not Allowed",
+    message: "The request method is not supported for this resource.",
+    accent: "from-indigo-900 via-blue-900 to-indigo-900",
+    cta: [
+      { label: "Go Back", action: "back", primary: true },
       { label: "Go Home", href: "/", primary: false },
     ],
-    animation: "/assets/animations/notfound.json", // placeholder
+    animation: "/Errors/405.png",
+  },
+  "408": {
+    code: "408",
+    title: "Request Timeout",
+    message: "The server timed out waiting for the request. Please try again.",
+    accent: "from-cyan-900 via-teal-900 to-cyan-900",
+    cta: [
+      { label: "Try Again", action: "reload", primary: true },
+      { label: "Go Home", href: "/", primary: false },
+    ],
+    animation: "/Errors/408.png",
+  },
+  "409": {
+    code: "409",
+    title: "Conflict",
+    message: "The request conflicts with the current state of the server.",
+    accent: "from-amber-900 via-yellow-900 to-amber-900",
+    cta: [
+      { label: "Go Back", action: "back", primary: true },
+      { label: "Go Home", href: "/", primary: false },
+    ],
+    animation: "/Errors/409.png",
+  },
+  "429": {
+    code: "429",
+    title: "Too Many Requests",
+    message:
+      "You've made too many requests. Please slow down and try again in a moment.",
+    accent: "from-rose-900 via-red-900 to-rose-900",
+    cta: [
+      { label: "Try Again Later", action: "reload", primary: true },
+      { label: "Go Home", href: "/", primary: false },
+    ],
+    animation: "/Errors/429.png",
   },
   "500": {
     code: "500",
-    title: "Our Servers Are Having a Moment",
-    message: "Something went wrong on our end. Our team is working to fix it!",
-    accent: "from-red-500 via-yellow-400 to-purple-500",
+    title: "Internal Server Error",
+    message:
+      "Something went wrong on our end. Our team has been notified and is working on a fix.",
+    accent: "from-red-900 via-orange-900 to-red-900",
     cta: [
       { label: "Try Again", action: "reload", primary: true },
       { label: "Report Issue", action: "report", primary: false },
     ],
-    animation: "/assets/animations/servererror.json", // placeholder
+    animation: "/Errors/500.png",
+  },
+  "502": {
+    code: "502",
+    title: "Bad Gateway",
+    message:
+      "The server received an invalid response. Please try again in a moment.",
+    accent: "from-violet-900 via-purple-900 to-violet-900",
+    cta: [
+      { label: "Try Again", action: "reload", primary: true },
+      { label: "Go Home", href: "/", primary: false },
+    ],
+    animation: "/Errors/502.png",
+  },
+  "503": {
+    code: "503",
+    title: "Service Unavailable",
+    message:
+      "The service is temporarily unavailable. We're working to restore it as quickly as possible.",
+    accent: "from-fuchsia-900 via-pink-900 to-fuchsia-900",
+    cta: [
+      { label: "Try Again", action: "reload", primary: true },
+      { label: "Go Home", href: "/", primary: false },
+    ],
+    animation: "/Errors/503.png",
+  },
+  "504": {
+    code: "504",
+    title: "Gateway Timeout",
+    message:
+      "The server didn't respond in time. Please try your request again.",
+    accent: "from-sky-900 via-blue-900 to-sky-900",
+    cta: [
+      { label: "Try Again", action: "reload", primary: true },
+      { label: "Go Home", href: "/", primary: false },
+    ],
+    animation: "/Errors/504.png",
   },
 };
 
-function LottieErrorAnimation({ code }: { code: string }) {
-  const url = LOTTIE_URLS[code] || LOTTIE_URLS["404"];
+function ErrorImage({ code, imagePath }: { code: string; imagePath: string }) {
   return (
-    <div className="w-64 h-64 flex items-center justify-center mb-6">
-      <LottiePlayer
-        loop
-        animationData={url}
-        style={{ width: 256, height: 256 }}
-        rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
-        aria-label={`Error ${code} animation`}
+    <div className="relative w-full aspect-4/3 max-w-2xl mb-8">
+      <Image
+        src={imagePath}
+        alt={`Error ${code}`}
+        fill
+        className="object-contain drop-shadow-2xl"
+        priority
       />
     </div>
   );
@@ -175,12 +255,14 @@ export default function ErrorPage() {
   const [showReport, setShowReport] = useState(false);
 
   if (!config) {
-    return null; // Fallback in case config is still undefined
+    return null;
   }
 
   function handleCTA(cta: ErrorCTA) {
     if (cta.action === "reload") {
       router.refresh();
+    } else if (cta.action === "back") {
+      router.back();
     } else if (cta.action === "report") {
       setShowReport(true);
     }
@@ -188,49 +270,48 @@ export default function ErrorPage() {
 
   return (
     <main
-      className={`min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-linear-to-br ${config.accent} dark:from-gray-900 dark:to-gray-950 transition-colors duration-500`}
+      className={`min-h-screen flex flex-col items-center justify-center bg-linear-to-br ${config.accent} px-4 py-8`}
     >
-      {/* Logo/Header */}
-      <Link
-        href="/"
-        className="mb-8 flex items-center gap-2"
-        aria-label="Go to homepage"
-      >
-        {/* Replace with logo SVG if available */}
-        <span className="text-2xl font-heading text-(--primary-accent)">
-          QuizMania
-        </span>
-      </Link>
-      {/* Animation */}
-      <LottieErrorAnimation code={config.code} />
-      {/* Error Code & Title */}
-      <h1 className="text-5xl font-bold font-heading text-(--primary-accent) dark:text-purple-400 mb-2">
-        {config.code}
-      </h1>
-      <h2 className="text-2xl font-semibold mt-2 text-gray-800 dark:text-gray-200 text-center">
-        {config.title}
-      </h2>
-      <p className="text-lg text-gray-600 dark:text-gray-300 mt-2 text-center max-w-xl">
-        {config.message}
-      </p>
-      {/* CTA Buttons */}
-      <div className="mt-6 flex flex-wrap gap-4 justify-center">
-        {config.cta.map(
-          (cta: {
-            label: string;
-            href?: string;
-            onClick?: () => void;
-            primary: boolean;
-          }) =>
+      <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
+        {/* Logo/Header */}
+        <Link
+          href="/"
+          className="mb-8 flex items-center gap-2 hover:scale-105 transition-transform"
+          aria-label="Go to homepage"
+        >
+          <span className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
+            QuizMania
+          </span>
+        </Link>
+
+        {/* Error Image - Full Scale Responsive */}
+        <ErrorImage code={config.code} imagePath={config.animation} />
+
+        {/* Error Details */}
+        <div className="text-center space-y-4 mb-8">
+          <h1 className="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-linear-to-r from-white to-gray-300">
+            {config.code}
+          </h1>
+          <h2 className="text-2xl md:text-3xl font-semibold text-white">
+            {config.title}
+          </h2>
+          <p className="text-lg text-gray-200 max-w-xl px-4">
+            {config.message}
+          </p>
+        </div>
+
+        {/* CTA Buttons */}
+        <div className="flex flex-wrap gap-4 justify-center">
+          {config.cta.map((cta) =>
             cta.href ? (
               <Link
                 key={cta.label}
                 href={cta.href}
-                className={`futuristic-button ${
+                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg ${
                   cta.primary
-                    ? "scale-105"
-                    : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
-                } transition-transform duration-300 focus:ring-4 focus:ring-(--primary-accent)`}
+                    ? "bg-linear-to-r from-purple-600 to-pink-600 text-white hover:scale-105 hover:shadow-purple-500/50"
+                    : "bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 border border-white/20"
+                }`}
                 aria-label={cta.label}
               >
                 {cta.label}
@@ -239,25 +320,30 @@ export default function ErrorPage() {
               <button
                 key={cta.label}
                 onClick={() => handleCTA(cta)}
-                className={`futuristic-button ${
+                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg ${
                   cta.primary
-                    ? "scale-105"
-                    : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
-                } transition-transform duration-300 focus:ring-4 focus:ring-(--primary-accent)`}
+                    ? "bg-linear-to-r from-purple-600 to-pink-600 text-white hover:scale-105 hover:shadow-purple-500/50"
+                    : "bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 border border-white/20"
+                }`}
                 aria-label={cta.label}
               >
                 {cta.label}
               </button>
             )
+          )}
+        </div>
+
+        {/* Report Issue Modal for 500+ errors */}
+        {(status === "500" ||
+          status === "502" ||
+          status === "503" ||
+          status === "504") && (
+          <ReportIssueModal
+            open={showReport}
+            onClose={() => setShowReport(false)}
+          />
         )}
       </div>
-      {/* Report Issue Modal for 500 */}
-      {status === "500" && (
-        <ReportIssueModal
-          open={showReport}
-          onClose={() => setShowReport(false)}
-        />
-      )}
     </main>
   );
 }

@@ -77,15 +77,19 @@ infra/
 # WebSocket server (deployed separately)
 ws-server/
 
-# User resources and test data
-user_resources/
-public/user_resources/
+# User resources and test data (KEEP public assets)
+# Only exclude the root user_resources, NOT public/user_resources
+/user_resources/
 quiz-content*.json
 quiz-debug.json
 temp_*.txt
 
 # Development schemas
 schemas/
+
+# IMPORTANT: DO NOT exclude public folder assets
+# !public/**
+# All files in public/ folder MUST be deployed
 
 # TypeScript config for seed scripts
 tsconfig-seed.json

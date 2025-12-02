@@ -150,7 +150,7 @@ export default function HomePage() {
         "QuizMania is just awesome! The AI quizzes are so accurate, I feel like I'm actually learning something new every day.",
       name: "Tanisha Sahu",
       designation: "MCA Student",
-      src: "https://media.licdn.com/dms/image/v2/D5603AQGtV1mE6n2M3Q/profile-displayphoto-scale_400_400/B56ZeVy7vfHoAk-/0/1750564848545?e=1758153600&v=beta&t=NLshKM2A83o16PzvD5CW-_e72nsWWx3mdesE9vGIjCM",
+      src: "/avatars/gotit.png",
     },
     {
       quote:
@@ -185,21 +185,21 @@ export default function HomePage() {
         "I was able to crack my campus placement aptitude round thanks to the practice quizzes here.",
       name: "Kunal Raidas",
       designation: "MCA Student",
-      src: "https://media.licdn.com/dms/image/v2/D4D35AQE9Yr3n-om2Tw/profile-framedphoto-shrink_400_400/B4DZav67G7HsAc-/0/1746708181814?e=1753293600&v=beta&t=7jEcNd_YB1c_nhS5SG2WPwF6mQbpjGSBn09WGDHH9zM",
+      src: "/avatars/voila.png",
     },
     {
       quote:
         "QuizMania pe quizzes dena matlab time ka best use. Fun bhi hai aur learning bhi!",
       name: "Soni Kumari",
       designation: "Aspiring Developer",
-      src: "https://media.licdn.com/dms/image/v2/D5635AQEbbBIQFQ0HqQ/profile-framedphoto-shrink_400_400/B56ZgNcrimG0Ac-/0/1752572279443?e=1753293600&v=beta&t=6tkOK1zze7tVe0igEx8J0Wu6ho0LEfw7aF94V8oaMsk",
+      src: "/avatars/hi.png",
     },
     {
       quote:
         "The interface is so smooth and modern. Mere friends bhi ab yahi use karte hain!",
       name: "Bhawna Sharma",
       designation: "Aspiring Software Developer",
-      src: "https://media.licdn.com/dms/image/v2/D5635AQGt83llZpLYfw/profile-framedphoto-shrink_400_400/profile-framedphoto-shrink_400_400/0/1718551576382?e=1753293600&v=beta&t=wO8hdC0Kny7M_vyKKNgiHpgfaF_FJFY1xuvYxhaWIaI",
+      src: "/avatars/amazed.png",
     },
 
     {
@@ -237,14 +237,14 @@ export default function HomePage() {
         "I recommended QuizMania to my entire study group. Sabko bahut pasand aaya!",
       name: "Kishor Bharti",
       designation: "Geek",
-      src: "https://media.licdn.com/dms/image/v2/D4D03AQGGalqYxAzT-A/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1708356722670?e=1758153600&v=beta&t=7pVh0Vw7UoGGHL_tPKpkkx2J03i11GkT2H5tabi4LYI",
+      src: "/avatars/thinking.png",
     },
     {
       quote:
         "The instant feedback after every quiz helps me track my progress. Bahut motivating hai!",
       name: "Saurabh Khera",
       designation: "APS Head IEEE BVICAM Student Branch",
-      src: "https://media.licdn.com/dms/image/v2/D5603AQFIJ3aOD5dCBw/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1723625088579?e=1758153600&v=beta&t=jdvTTMq2KXKa_eNhc8HbfMpcTG4-zk7dBWcgwk87K1c",
+      src: "/avatars/wink.png",
     },
   ];
 
@@ -651,4 +651,3 @@ export default function HomePage() {
     </div>
   );
 }
-

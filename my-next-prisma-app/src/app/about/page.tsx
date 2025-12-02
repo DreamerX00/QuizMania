@@ -70,14 +70,26 @@ function HeroSection() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Play/Pause handler
-  const handlePlayPause = () => {
+  const handlePlayPause = async () => {
     if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
+
+    try {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        // Unmute when playing
+        if (isMuted) {
+          audioRef.current.muted = false;
+          setIsMuted(false);
+        }
+        await audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error("Audio playback failed:", error);
+      setIsPlaying(false);
     }
-    setIsPlaying(!isPlaying);
   };
 
   // Mute/Unmute handler
@@ -86,6 +98,35 @@ function HeroSection() {
     audioRef.current.muted = !isMuted;
     setIsMuted(!isMuted);
   };
+
+  // Handle audio errors
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleError = (e: Event) => {
+      console.error("Audio error:", e);
+      setIsPlaying(false);
+    };
+
+    const handleCanPlay = () => {
+      console.log("Audio can play");
+    };
+
+    audio.addEventListener("error", handleError);
+    audio.addEventListener("canplay", handleCanPlay);
+    audio.addEventListener("ended", () => setIsPlaying(false));
+    audio.addEventListener("pause", () => setIsPlaying(false));
+    audio.addEventListener("play", () => setIsPlaying(true));
+
+    return () => {
+      audio.removeEventListener("error", handleError);
+      audio.removeEventListener("canplay", handleCanPlay);
+      audio.removeEventListener("ended", () => setIsPlaying(false));
+      audio.removeEventListener("pause", () => setIsPlaying(false));
+      audio.removeEventListener("play", () => setIsPlaying(true));
+    };
+  }, []);
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden bg-slate-900 pt-20">
@@ -97,13 +138,10 @@ function HeroSection() {
       </div>
 
       {/* Audio Element */}
-      <audio
-        ref={audioRef}
-        src="/about.mp3"
-        loop
-        preload="auto"
-        style={{ display: "none" }}
-      />
+      <audio ref={audioRef} loop preload="metadata" style={{ display: "none" }}>
+        <source src="/about.mp3" type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
 
       {/* Content */}
       <div className="relative z-10 text-center text-white max-w-6xl mx-auto px-4">
@@ -239,7 +277,7 @@ function ProfileCardSection() {
   return (
     <section className="py-24 bg-linear-to-b from-slate-900 to-slate-800 flex justify-center">
       <ProfileCard
-        avatarUrl="/default_avatar.png"
+        avatarUrl="/profile.png"
         name="Akash Singh"
         handle="Akash08"
         title="Full-Stack Developer & Content Creator"
@@ -397,37 +435,40 @@ function SocialMediaGrid() {
 function ProjectsShowcase() {
   const projects = [
     {
+      title: "QuizMania",
+      description:
+        "The Ultimate Quiz Platform - Create, Attempt & Explore Quizzes with AI-powered features, earn points & badges, and monetize your knowledge",
+      tech: ["Next.js", "Prisma", "PostgreSQL", "WebSocket", "AI Integration"],
+      stars: 0,
+      demo: "https://quiz-mania-flame.vercel.app/",
+      github: "https://github.com/DreamerX00/QuizMania",
+    },
+    {
       title: "Numa E-Commerce",
       description:
-        "A Full Scaled E-Commerce Website Completly Made For Selling Jwellery Online",
-      tech: [
-        "Next.js",
-        "Prisma",
-        "MongoDB",
-        "PhonePay API",
-        "Tailwind And 3js",
-      ],
-      stars: 156,
+        "A Full Scaled E-Commerce Website Completely Made For Selling Jewellery Online",
+      tech: ["Next.js", "Prisma", "MongoDB", "PhonePe API", "Tailwind And 3js"],
+      stars: 0,
       demo: "https://numaiin.vercel.app/",
       github: "https://github.com/DreamerX00/numa",
     },
     {
-      title: "Jeevan Android And Web Application",
-      description:
-        "A Medical Application Built In Android Studio And Also Website Built On PERN Stack",
-      tech: ["Kotlin Compose", "React", "Tailwind", "Spring BOOT"],
-      stars: 89,
-      demo: "https://demo.com",
-      github: "https://github.com",
-    },
-    {
-      title: "Dreamer-Academy",
+      title: "Dreamer Academy",
       description:
         "A Feature Rich E-Learning Platform Built For Providing Free Learning Resources To Students",
-      tech: ["Next.js", "Prisma", "PostGreSQL", "TailwindCSS"],
-      stars: 234,
+      tech: ["Next.js", "Prisma", "PostgreSQL", "TailwindCSS"],
+      stars: 0,
       demo: "https://dreamer-academy.vercel.app/",
       github: "https://github.com/DreamerX00/my-course-managment-webiste",
+    },
+    {
+      title: "Jeevan Full Stack",
+      description:
+        "Medical Application And Website - Includes All Features Of Medical/Fitness/Pharma/Diet Applications With Simplified UI",
+      tech: ["JavaScript", "React", "Node.js", "Express", "PostgreSQL"],
+      stars: 4,
+      demo: "https://github.com/DreamerX00/Jeevan_Full_Stack",
+      github: "https://github.com/DreamerX00/Jeevan_Full_Stack",
     },
   ];
 
@@ -488,16 +529,30 @@ function ProjectsShowcase() {
                         size="sm"
                         variant="outline"
                         className="border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/20"
+                        asChild
                       >
-                        <FiCode className="w-4 h-4 mr-1" />
-                        Code
+                        <a
+                          href={project.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <FiCode className="w-4 h-4 mr-1" />
+                          Code
+                        </a>
                       </Button>
                       <Button
                         size="sm"
                         className="bg-linear-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600"
+                        asChild
                       >
-                        <FiPlay className="w-4 h-4 mr-1" />
-                        Demo
+                        <a
+                          href={project.demo}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <FiPlay className="w-4 h-4 mr-1" />
+                          Demo
+                        </a>
                       </Button>
                     </div>
                   </div>
