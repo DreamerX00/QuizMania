@@ -16,6 +16,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Copy Prisma schema from parent directory and generate client
+COPY ../prisma ./prisma
+RUN npx prisma generate
+
 # Build TypeScript
 RUN npm install -g typescript
 RUN npm run build
@@ -33,6 +37,7 @@ RUN adduser --system --uid 1001 wsuser
 COPY --from=builder --chown=wsuser:nodejs /app/dist ./dist
 COPY --from=builder --chown=wsuser:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=wsuser:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=wsuser:nodejs /app/prisma ./prisma
 
 USER wsuser
 
