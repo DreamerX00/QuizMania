@@ -1,0 +1,1164 @@
+// Prisma schema for Quiz Mania
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  CREATOR
+  ADMIN
+  OWNER
+  TEACHER
+}
+
+enum AccountType {
+  FREE
+  PREMIUM
+  PREMIUM_PLUS
+  LIFETIME
+}
+
+enum QuizStatus {
+  COMPLETED
+  IN_PROGRESS
+  FAILED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  PREMIUM_SUBSCRIPTION
+  QUIZ_PURCHASE
+  PACKAGE_PURCHASE
+}
+
+enum DifficultyLevel {
+  SUPER_EASY
+  EASY
+  NORMAL
+  MEDIUM
+  HARD
+  IMPOSSIBLE
+  INSANE
+  JEE_MAIN
+  JEE_ADVANCED
+  NEET_UG
+  UPSC_CSE
+  GATE
+  CAT
+  CLAT
+  CA
+  GAOKAO
+  GRE
+  GMAT
+  USMLE
+  LNAT
+  MCAT
+  CFA
+  GOD_LEVEL
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  BLOCKED
+}
+
+enum ClanRole {
+  LEADER
+  ELDER
+  MEMBER
+}
+
+enum ClanJoinRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum RoomRole {
+  HOST
+  PLAYER
+  SPECTATOR
+}
+
+enum RoomInviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum ReportStatus {
+  Resoloved
+  New
+  Pending
+  Canceled
+  UnderReview
+}
+
+// ==========================================
+// AI QUIZ GENERATION SYSTEM ENUMS
+// ==========================================
+
+enum AIProviderType {
+  OPENAI
+  ANTHROPIC
+  GOOGLE_GEMINI
+  DEEPSEEK
+  COHERE
+  MISTRAL
+  META_LLAMA
+  PERPLEXITY
+  AI21
+  HUGGINGFACE
+  OTHER
+}
+
+enum AIQuizStatus {
+  DRAFT
+  GENERATING
+  READY
+  ACTIVE
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+enum DifficultyTier {
+  NOVICE // Level 1
+  BEGINNER // Level 2
+  ELEMENTARY // Level 3
+  INTERMEDIATE // Level 4
+  ADVANCED // Level 5
+  EXPERT // Level 6
+  MASTER // Level 7
+  VIRTUOSO // Level 8
+  LEGENDARY // Level 9
+  GOD_LEVEL // Level 10
+}
+
+model reports {
+  id          String       @id @default(uuid())
+  description String
+  status      ReportStatus @default(New)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  emailVerified DateTime?
+  name          String?
+  image         String? // Unified avatar field (NextAuth compatible)
+  avatarUrl     String? // Custom avatar URL (legacy support)
+  bannerUrl     String?
+  createdAt     DateTime    @default(now())
+  role          Role        @default(STUDENT)
+  xp            Int         @default(0)
+  rank          Int         @default(0)
+  streak        Int         @default(0)
+  accountType   AccountType @default(FREE)
+  points        Int         @default(0)
+  premiumUntil  DateTime?
+  bio           String?
+  alias         String?
+  socials       Json?
+  region        String?
+
+  // NextAuth relations
+  accounts Account[]
+  sessions Session[]
+
+  // Existing relations (updated to use 'id' instead of 'clerkId')
+  quizzes                    QuizRecord[]
+  createdQuizzes             Quiz[]               @relation("CreatedQuizzes")
+  premiumSummary             PremiumSummary?
+  likes                      QuizLike[]
+  comments                   QuizComment[]
+  ratings                    QuizRating[]
+  withdrawals                Withdrawal[]
+  attempts                   Attempt[]
+  quizUnlocks                QuizUnlock[]
+  payments                   PaymentTransaction[]
+  payoutAccount              PayoutAccount?
+  rankHistories              RankHistory[]
+  sentFriendRequests         Friend[]             @relation("Requester")
+  receivedFriendRequests     Friend[]             @relation("Addressee")
+  clanMemberships            ClanMembership[]
+  clanJoinRequests           ClanJoinRequest[]
+  clanChatSent               ClanChat[]           @relation("ClanChatSender")
+  roomMemberships            RoomMembership[]
+  roomInvites                RoomInvite[]
+  createdInviteLinks         RoomInviteLink[]     @relation("RoomInviteCreator")
+  roomChatSent               RoomChat[]           @relation("RoomChatSender")
+  publicChatMessages         PublicChat[]         @relation("UserPublicChatMessages")
+  gameSetups                 GameSetup[]
+  sentFriendChats            FriendChat[]         @relation("FriendChatSender")
+  receivedFriendChats        FriendChat[]         @relation("FriendChatReceiver")
+  votes                      Vote[]
+  moderationActionsTaken     ModerationAction[]   @relation("ModerationTarget")
+  moderationActionsPerformed ModerationAction[]   @relation("ModerationPerformer")
+  moderatorActions           ModerationAction[]   @relation("Moderator")
+  quizLinkSessions           QuizLinkSession[]
+  quizViolations             QuizViolation[]
+  blockerBlocks              UserBlock[]          @relation("Blocker")
+  blockedBlocks              UserBlock[]          @relation("Blocked")
+  reportsMade                UserReport[]         @relation("Reporter")
+  reportsReceived            UserReport[]         @relation("Reported")
+  adminLogs                  AdminLog[]           @relation("AdminLogs")
+  userAchievements           UserAchievement[]
+
+  // AI Quiz Relations
+  aiGeneratedQuizzes    AIGeneratedQuiz[]
+  aiQuizAttempts        AIQuizAttempt[]
+  aiQuizGenerationQuota AIQuizGenerationQuota?
+  aiQuizAchievements    AIQuizAchievement[]
+
+  // Chat Report Relations
+  chatReportsCreated ChatReport[] @relation("ChatReportReporter")
+  chatReportsReceived ChatReport[] @relation("ChatReportReported")
+  chatReportsReviewed ChatReport[] @relation("ChatReportReviewer")
+
+  @@map("user")
+}
+
+// NextAuth models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model QuizRecord {
+  id                    String           @id @default(cuid())
+  userId                String
+  quizId                String
+  score                 Int
+  duration              Int // in seconds
+  dateTaken             DateTime
+  status                QuizStatus
+  earnedPoints          Int? // Points earned for this attempt
+  quiz                  Quiz             @relation(fields: [quizId], references: [id])
+  user                  User             @relation(fields: [userId], references: [id])
+  likeCount             Int              @default(0)
+  questionRecords       QuestionRecord[]
+  isFlagged             Boolean          @default(false)
+  violations            QuizViolation[]
+  responses             Json?
+  isManualReviewPending Boolean          @default(false)
+
+  @@index([userId])
+  @@index([quizId])
+  @@index([dateTaken])
+  @@index([status])
+  @@index([isFlagged])
+}
+
+model QuizViolation {
+  id           String     @id @default(cuid())
+  quizRecordId String
+  userId       String
+  quizId       String
+  type         String // e.g., "tab-switch", "copy-paste", "timeout"
+  reason       String
+  createdAt    DateTime   @default(now())
+  isFlagged    Boolean    @default(false)
+  quizRecord   QuizRecord @relation(fields: [quizRecordId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+  quiz         Quiz       @relation(fields: [quizId], references: [id])
+}
+
+model Attempt {
+  id     String   @id @default(cuid())
+  quizId String
+  userId String
+  date   DateTime @default(now())
+  quiz   Quiz     @relation(fields: [quizId], references: [id])
+  user   User     @relation(fields: [userId], references: [id])
+
+  @@unique([quizId, userId, date])
+}
+
+model QuizUnlock {
+  id         String   @id @default(cuid())
+  userId     String
+  quizId     String
+  unlockedAt DateTime @default(now())
+  quiz       Quiz     @relation(fields: [quizId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([quizId, userId])
+  @@unique([userId, quizId], name: "userId_quizId")
+}
+
+model PaymentTransaction {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String?       @unique
+  amount            Int
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  type              PaymentType
+  description       String?
+  metadata          Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([type])
+}
+
+model Quiz {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String   @default("Untitled Quiz")
+  description     String?
+  tags            String[]
+  field           String?
+  subject         String?
+  imageUrl        String?
+  isTemplate      Boolean  @default(true)
+  isPublished     Boolean  @default(false)
+  isPinned        Boolean  @default(false)
+  price           Int      @default(0)
+  pricePerAttempt Int      @default(0)
+  pointPerAttempt Int      @default(0)
+  jsonContent     Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+  creatorId       String?
+  creator         User?    @relation("CreatedQuizzes", fields: [creatorId], references: [id])
+
+  // Relations & Aggregates
+  records          QuizRecord[]
+  likes            QuizLike[]
+  comments         QuizComment[]
+  ratings          QuizRating[]
+  attempts         Attempt[]
+  unlocks          QuizUnlock[]
+  quizLinkSessions QuizLinkSession[]
+  questions        Question[]
+  quizViolations   QuizViolation[]
+  template         Template?
+
+  // Aggregated fields
+  usersTaken        Int              @default(0)
+  averageScore      Float            @default(0)
+  rating            Float            @default(0)
+  likeCount         Int              @default(0)
+  durationInSeconds Int              @default(0)
+  isLocked          Boolean          @default(false)
+  lockPassword      String?
+  difficultyLevel   DifficultyLevel?
+
+  @@index([creatorId])
+  @@index([isPublished])
+  @@index([isPinned])
+  @@index([createdAt])
+  @@index([field, subject])
+  @@index([difficultyLevel])
+}
+
+model QuizLike {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quizId    String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+
+  @@unique([quizId, userId])
+}
+
+model QuizComment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  text      String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quizId    String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model QuizRating {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  value     Int // e.g., 1 to 5
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quizId    String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+
+  @@unique([quizId, userId])
+}
+
+model Achievement {
+  id               String            @id @default(cuid())
+  name             String            @unique // Make name unique for upsert
+  description      String?
+  icon             String?
+  type             String?
+  isLocked         Boolean           @default(false)
+  userAchievements UserAchievement[]
+}
+
+model PremiumSummary {
+  id            String @id @default(cuid())
+  userId        String @unique
+  user          User   @relation(fields: [userId], references: [id])
+  templatesUsed Int    @default(0)
+  quizPacks     Int    @default(0)
+  timeSaved     Int    @default(0) // in hours
+  dollarValue   Float  @default(0)
+}
+
+model Withdrawal {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  amount    Int
+  currency  String // e.g., INR, USD
+  status    WithdrawalStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model QuizPackage {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  imageUrl    String?
+  quizIds     String[] // store quiz IDs
+  price       Int      @default(0) // Price in cents/paisa, 0 = free
+  isPublished Boolean  @default(false)
+  isPinned    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Real-time stats fields
+  totalAttempts Int   @default(0)
+  totalLikes    Int   @default(0)
+  earnings      Int   @default(0)
+  averageRating Float @default(0)
+  averageScore  Float @default(0)
+}
+
+model PayoutAccount {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id])
+  razorpayAccountId String   @unique // The Razorpay Fund Account ID
+  accountType       String   @default("upi") // e.g., upi, bank_account
+  accountDetails    Json // Store details like UPI ID, bank info
+  isVerified        Boolean  @default(true) // Assuming verification is handled by Razorpay
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model QuestionRecord {
+  id           String     @id @default(cuid())
+  quizRecordId String
+  questionId   String
+  type         String
+  isCorrect    Boolean
+  timeTaken    Int // in seconds
+  answer       Json? // Store submitted answer for audit
+  createdAt    DateTime   @default(now())
+  quizRecord   QuizRecord @relation(fields: [quizRecordId], references: [id])
+}
+
+model RankHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  oldRank   Int
+  newRank   Int
+  oldXp     Int
+  newXp     Int
+  changedAt DateTime @default(now())
+}
+
+model Friend {
+  id          String       @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  // Optionally, block support
+  isBlocked   Boolean      @default(false)
+  blockedById String? // If blocked, who blocked whom
+
+  requester User @relation("Requester", fields: [requesterId], references: [id])
+  addressee User @relation("Addressee", fields: [addresseeId], references: [id])
+
+  @@unique([requesterId, addresseeId])
+}
+
+model Clan {
+  id           String            @id @default(cuid())
+  name         String            @unique
+  motto        String?
+  region       String? // Region for the clan
+  emblemUrl    String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  memberships  ClanMembership[]
+  joinRequests ClanJoinRequest[]
+  chatMessages ClanChat[]
+}
+
+model ClanMembership {
+  id       String   @id @default(cuid())
+  userId   String
+  clanId   String
+  role     ClanRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  clan     Clan     @relation(fields: [clanId], references: [id])
+
+  @@unique([userId, clanId])
+}
+
+model ClanJoinRequest {
+  id        String                @id @default(cuid())
+  userId    String
+  clanId    String
+  status    ClanJoinRequestStatus @default(PENDING)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  user      User                  @relation(fields: [userId], references: [id])
+  clan      Clan                  @relation(fields: [clanId], references: [id])
+
+  @@unique([userId, clanId])
+}
+
+model ClanChat {
+  id        String   @id @default(cuid())
+  clanId    String
+  senderId  String // Sender ID
+  message   String
+  createdAt DateTime @default(now())
+  sender    User     @relation("ClanChatSender", fields: [senderId], references: [id])
+  clan      Clan     @relation(fields: [clanId], references: [id])
+}
+
+model Room {
+  id              String            @id @default(cuid())
+  name            String
+  code            String            @unique
+  type            String            @default("Public")
+  maxParticipants Int               @default(8)
+  quizTypes       String[]          @default([])
+  quizType        String? // Single quiz type for host controls
+  isLocked        Boolean           @default(false)
+  status          String            @default("WAITING") // WAITING, STARTED, FINISHED
+  startedAt       DateTime?
+  password        String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  memberships     RoomMembership[]
+  invites         RoomInvite[]
+  inviteLinks     RoomInviteLink[]
+  chatMessages    RoomChat[]
+  chatReports     ChatReport[]
+}
+
+model RoomMembership {
+  id       String   @id @default(cuid())
+  userId   String
+  roomId   String
+  role     RoomRole @default(PLAYER)
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  room     Room     @relation(fields: [roomId], references: [id])
+
+  @@unique([userId, roomId])
+}
+
+model RoomInvite {
+  id        String           @id @default(cuid())
+  roomId    String
+  userId    String
+  status    RoomInviteStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  user      User             @relation(fields: [userId], references: [id])
+  room      Room             @relation(fields: [roomId], references: [id])
+
+  @@unique([roomId, userId])
+}
+
+model RoomInviteLink {
+  id         String   @id @default(cuid())
+  roomId     String
+  token      String   @unique
+  createdBy  String
+  expiresAt  DateTime
+  maxUses    Int?     // null = unlimited
+  usedCount  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  creator    User     @relation("RoomInviteCreator", fields: [createdBy], references: [id])
+
+  @@index([token])
+  @@index([roomId])
+}
+
+model RoomChat {
+  id        String   @id @default(cuid())
+  roomId    String
+  senderId  String // Sender ID
+  message   String
+  createdAt DateTime @default(now())
+  sender    User     @relation("RoomChatSender", fields: [senderId], references: [id])
+  room      Room     @relation(fields: [roomId], references: [id])
+}
+
+model PublicChat {
+  id        String   @id @default(cuid())
+  senderId  String
+  sender    User     @relation("UserPublicChatMessages", fields: [senderId], references: [id])
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model ChatReport {
+  id              String   @id @default(cuid())
+  reporterId      String
+  reportedUserId  String
+  message         String
+  roomId          String?
+  reason          String
+  status          String   @default("PENDING") // PENDING, REVIEWED, RESOLVED, DISMISSED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  reviewer        User?    @relation("ChatReportReviewer", fields: [reviewedBy], references: [id])
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  resolutionNotes String?
+
+  reporter  User @relation("ChatReportReporter", fields: [reporterId], references: [id])
+  reported  User @relation("ChatReportReported", fields: [reportedUserId], references: [id])
+  room      Room? @relation(fields: [roomId], references: [id])
+
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model GameSetup {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  mode       String
+  difficulty String
+  region     String
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+}
+
+model FriendChat {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  sender     User     @relation("FriendChatSender", fields: [senderId], references: [id])
+  receiver   User     @relation("FriendChatReceiver", fields: [receiverId], references: [id])
+  message    String
+  createdAt  DateTime @default(now())
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  userId    String
+  roomId    String
+  type      String
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, roomId, type])
+}
+
+model ModerationAction {
+  id            String    @id @default(cuid())
+  action        String // e.g., 'mute', 'kick', 'block', 'report', 'unmute', etc.
+  type          String // Type of moderation action
+  targetUserId  String
+  performedById String
+  moderatorId   String // Moderator who performed the action
+  reason        String?
+  context       Json?
+  roomId        String? // Room context for the action
+  expiresAt     DateTime? // Expiration for temporary actions
+  createdAt     DateTime  @default(now())
+  targetUser    User      @relation("ModerationTarget", fields: [targetUserId], references: [id])
+  performedBy   User      @relation("ModerationPerformer", fields: [performedById], references: [id])
+  moderator     User      @relation("Moderator", fields: [moderatorId], references: [id])
+
+  @@index([targetUserId])
+  @@index([performedById])
+  @@index([moderatorId])
+}
+
+model QuizLinkSession {
+  id          String   @id @default(cuid())
+  userId      String
+  quizId      String
+  fingerprint String
+  deviceInfo  Json
+  ip          String
+  createdAt   DateTime @default(now())
+  isActive    Boolean  @default(true)
+  user        User     @relation(fields: [userId], references: [id])
+  quiz        Quiz     @relation(fields: [quizId], references: [id])
+
+  @@index([quizId, userId, isActive])
+}
+
+model ManualReviewQueue {
+  id           String    @id @default(cuid())
+  quizRecordId String
+  questionId   String
+  userId       String
+  quizId       String
+  answer       Json
+  type         String
+  createdAt    DateTime  @default(now())
+  reviewed     Boolean   @default(false)
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  marksAwarded Int?
+  feedback     String?
+}
+
+model QuizDraft {
+  id        String   @id @default(cuid())
+  quizId    String
+  userId    String
+  savedAt   DateTime @default(now())
+  responses Json
+  expiresAt DateTime
+}
+
+model Question {
+  id              String   @id @default(cuid())
+  quizId          String
+  type            String
+  question        String
+  options         Json?
+  correctAnswer   Json?
+  explanation     String?
+  showExplanation Boolean  @default(false) // <-- New field
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  quiz            Quiz     @relation(fields: [quizId], references: [id])
+}
+
+model UserBlock {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  blockerId String // User who initiated the block
+  blockedId String // User who is blocked
+  reason    String?
+
+  blocker User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model UserReport {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  reporterId     String
+  reportedUserId String // Changed from reportedId
+  reason         String
+  description    String?
+  status         String   @default("PENDING")
+
+  reporter User @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("Reported", fields: [reportedUserId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([status])
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  quizId      String   @unique
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+  isOfficial  Boolean  @default(false)
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  adminId   String
+  action    String
+  details   Json?
+
+  admin User @relation("AdminLogs", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([createdAt])
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+// ==========================================
+// AI QUIZ GENERATION SYSTEM MODELS
+// ==========================================
+
+// AI Provider Configuration (Admin Only)
+model AIProvider {
+  id           String         @id @default(cuid())
+  name         String         @unique // "OpenAI", "Anthropic", etc.
+  type         AIProviderType
+  apiKeyEnvVar String // Name of env variable (e.g., "OPENAI_API_KEY")
+  apiEndpoint  String
+  modelName    String // "gpt-4o", "claude-3-5-sonnet-20241022"
+  modelVersion String?
+
+  // Capabilities
+  maxTokens           Int      @default(4096)
+  maxQuestionsPerCall Int      @default(50)
+  supportsStreaming   Boolean  @default(false)
+  supportsImages      Boolean  @default(false)
+  supportsCode        Boolean  @default(true)
+  supportedLanguages  String[] @default(["en"])
+
+  // Performance & Cost
+  avgResponseTime   Int   @default(30) // seconds
+  costPerRequest    Float @default(0.0) // USD
+  tokensPerQuestion Int   @default(500) // estimated
+  successRate       Float @default(0.95)
+
+  // Status
+  isActive      Boolean @default(true)
+  isRecommended Boolean @default(false)
+  isPremiumOnly Boolean @default(false)
+
+  // Metadata
+  description String? @db.Text
+  icon        String?
+  websiteUrl  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  generatedQuizzes AIGeneratedQuiz[]
+
+  @@index([isActive, isRecommended])
+}
+
+// AI Generated Quiz
+model AIGeneratedQuiz {
+  id         String @id @default(cuid())
+  slug       String @unique
+  userId     String
+  providerId String
+
+  // Quiz Configuration
+  title       String  @default("AI Generated Quiz")
+  description String? @db.Text
+
+  subject   String // "Mathematics", "Science", "History", etc.
+  className String? // "10th Grade", "Undergraduate", "Professional"
+  domain    String? // "Algebra", "Physics", "World History"
+  topics    String[] // ["Quadratic Equations", "Polynomials"]
+
+  difficultyLevel Int // 1-10
+  difficultyTier  DifficultyTier
+  questionCount   Int
+
+  // AI Generation Details
+  aiPrompt       String    @db.Text
+  aiResponse     String?   @db.Text
+  generationTime Int // milliseconds
+  tokensUsed     Int       @default(0)
+  modelUsed      String
+  generatedAt    DateTime?
+
+  // Quiz Content (JSON Structure)
+  questions Json // Array of QuestionObject
+
+  // Quiz Settings
+  timeLimit        Int? // seconds (null = unlimited)
+  allowSkip        Boolean @default(true)
+  showExplanations Boolean @default(true)
+  shuffleQuestions Boolean @default(true)
+  shuffleOptions   Boolean @default(true)
+  isAdaptive       Boolean @default(false)
+
+  // Access Control
+  status          AIQuizStatus @default(DRAFT)
+  isPublic        Boolean      @default(false)
+  allowReplay     Boolean      @default(true)
+  requiresPremium Boolean      @default(true)
+
+  // XP & Rewards
+  baseXP            Int
+  bonusXPMultiplier Float   @default(1.0)
+  perfectScoreBonus Int     @default(0)
+  speedBonusEnabled Boolean @default(true)
+
+  // Statistics
+  viewCount      Int   @default(0)
+  attemptCount   Int   @default(0)
+  averageScore   Float @default(0)
+  completionRate Float @default(0)
+
+  // Metadata
+  tags       String[] @default([])
+  isArchived Boolean  @default(false)
+  isFeatured Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider AIProvider      @relation(fields: [providerId], references: [id])
+  attempts AIQuizAttempt[]
+
+  @@index([userId, status])
+  @@index([subject, difficultyLevel])
+  @@index([isPublic, isFeatured])
+  @@index([createdAt])
+}
+
+// User's Quiz Attempt
+model AIQuizAttempt {
+  id            String @id @default(cuid())
+  quizId        String
+  userId        String
+  attemptNumber Int    @default(1)
+
+  // Attempt Status
+  status String @default("in-progress") // in-progress, completed, abandoned
+
+  // Answers (JSON Structure)
+  answers Json // {questionId: {selected: string, timeSpent: number, skipped: boolean}}
+
+  // Scoring
+  totalQuestions Int
+  correctCount   Int   @default(0)
+  wrongCount     Int   @default(0)
+  skippedCount   Int   @default(0)
+  score          Int   @default(0) // Out of 100
+  percentage     Float @default(0)
+
+  // Timing
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  totalTimeSpent  Int       @default(0) // seconds
+  averageTimePerQ Int       @default(0) // seconds
+
+  // Performance Metrics
+  accuracy      Float @default(0)
+  streak        Int   @default(0)
+  fastestAnswer Int? // seconds
+  slowestAnswer Int? // seconds
+
+  // XP & Rewards
+  xpEarned      Int @default(0)
+  baseXP        Int @default(0)
+  accuracyBonus Int @default(0)
+  speedBonus    Int @default(0)
+  streakBonus   Int @default(0)
+  perfectBonus  Int @default(0)
+
+  // Additional Data
+  deviceType String?
+  userAgent  String?
+  ipAddress  String?
+
+  // Review Status
+  hasReviewed Boolean   @default(false)
+  reviewedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  quiz AIGeneratedQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, userId, attemptNumber])
+  @@index([userId, status])
+  @@index([quizId])
+  @@index([createdAt])
+}
+
+// Quiz Generation Quota Tracking
+model AIQuizGenerationQuota {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Daily Quota
+  dailyLimit    Int // Based on plan: Basic=5, Plus=15, Lifetime=999
+  dailyUsed     Int      @default(0)
+  lastResetDate DateTime @default(now())
+
+  // Lifetime Stats
+  totalGenerated Int @default(0)
+  totalAttempts  Int @default(0)
+  totalXPEarned  Int @default(0)
+
+  // Current Session
+  currentStreak Int @default(0)
+  longestStreak Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lastResetDate])
+}
+
+// Pre-made Quiz Templates
+model AIQuizTemplate {
+  id          String @id @default(cuid())
+  name        String
+  description String @db.Text
+  icon        String @default("📝")
+  category    String // "Exam Prep", "Study Guide", "Practice Test"
+
+  // Pre-configured Settings
+  subject         String
+  className       String?
+  domain          String?
+  topics          String[]
+  difficultyLevel Int
+  difficultyTier  DifficultyTier
+  questionCount   Int
+  timeLimit       Int?
+
+  // AI Instructions
+  customPrompt  String?  @db.Text
+  focusAreas    String[] @default([])
+  excludeTopics String[] @default([])
+
+  // Template Settings
+  isPopular     Boolean @default(false)
+  isFeatured    Boolean @default(false)
+  isPremiumOnly Boolean @default(false)
+
+  // Usage Stats
+  usageCount    Int   @default(0)
+  averageRating Float @default(0)
+
+  // Metadata
+  tags      String[] @default([])
+  createdBy String? // userId or "system"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPopular, isFeatured])
+  @@index([category, subject])
+}
+
+// User's AI Quiz Achievements
+model AIQuizAchievement {
+  id     String @id @default(cuid())
+  userId String
+
+  achievementKey  String // "first_ai_quiz", "perfectionist", "speed_demon"
+  achievementName String
+  description     String
+  icon            String
+
+  unlockedAt DateTime @default(now())
+
+  // Stats at unlock time
+  totalQuizzes Int @default(0)
+  totalScore   Int @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementKey])
+  @@index([userId])
+}

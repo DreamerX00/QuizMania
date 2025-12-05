@@ -16,8 +16,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Copy Prisma schema from parent directory and generate client
-COPY ../prisma ./prisma
+# Generate Prisma Client (prisma schema already copied with COPY . .)
 RUN npx prisma generate
 
 # Build TypeScript
