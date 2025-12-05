@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
+import { withBodyValidation, z } from "@/lib/api-validation";
 
 export const dynamic = "force-dynamic";
 // NO cache - real-time invites
@@ -28,8 +29,15 @@ export async function GET() {
   }
 }
 
+const inviteActionSchema = z.object({
+  action: z.enum(["send", "accept", "decline"]),
+  roomId: z.string().optional(),
+  inviteeId: z.string().optional(),
+  inviteId: z.string().optional(),
+});
+
 // POST: Send, accept, or decline an invite
-export async function POST(request: NextRequest) {
+export const POST = withBodyValidation(inviteActionSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
@@ -43,7 +51,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { roomId, inviteeId, action, inviteId } = await request.json();
+    const { roomId, inviteeId, action, inviteId } = request.validatedBody!;
     if (action === "send") {
       // Only host can send
       if (!roomId || !inviteeId)
@@ -111,4 +119,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

@@ -1,5 +1,7 @@
 import io from "socket.io-client";
 import { useSession } from "next-auth/react";
+import * as React from "react";
+import { env } from "@/lib/env";
 
 // Get socket instance type from the io function's return type
 type SocketInstance = ReturnType<typeof io>;
@@ -87,6 +89,7 @@ export interface VoiceEvent {
 
 // Socket event callbacks
 export interface SocketCallbacks {
+  onConnect?: () => void;
   onUserJoined?: (data: RoomEvent) => void;
   onUserLeft?: (data: RoomEvent) => void;
   onChatMessage?: (data: ChatMessage) => void;
@@ -99,15 +102,17 @@ export interface SocketCallbacks {
   onVoiceUserMuted?: (data: VoiceEvent) => void;
   onVoiceUserSpeaking?: (data: VoiceEvent) => void;
   onVoiceFallbackActivated?: (data: VoiceFallbackData) => void;
-  onLiveKitJoin?: (data: { token: string; roomId: string }) => void;
+  onLivekitJoin?: (data: { token: string; roomId: string }) => void;
 }
 
 class SocketService {
   private socket: SocketInstance | null = null;
   private callbacks: SocketCallbacks = {};
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+  private maxReconnectAttempts = Infinity; // Keep trying indefinitely for Render free tier
+  private reconnectDelay = 2000; // 2 seconds initial delay
+  private maxReconnectDelay = 30000; // Max 30 seconds between retries
+  private isWakingUp = false;
 
   constructor() {
     // Initialize socket connection
@@ -115,15 +120,17 @@ class SocketService {
   }
 
   private init() {
-    const WS_SERVER_URL =
-      process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3001";
+    const WS_SERVER_URL = env.NEXT_PUBLIC_WS_URL || "http://localhost:3001";
 
     this.socket = io(WS_SERVER_URL, {
       transports: ["websocket", "polling"],
       autoConnect: false,
       reconnection: true,
-      reconnectionAttempts: this.maxReconnectAttempts,
+      reconnectionAttempts: Infinity, // Never stop trying
       reconnectionDelay: this.reconnectDelay,
+      reconnectionDelayMax: this.maxReconnectDelay,
+      timeout: 30000, // 30 second timeout for Render cold starts
+      randomizationFactor: 0.5, // Add randomization to prevent thundering herd
     });
 
     this.setupEventListeners();
@@ -137,17 +144,35 @@ class SocketService {
 
     // Connection events
     this.socket.on("connect", () => {
-      console.log("Connected to WebSocket server");
+      console.log("✅ Connected to WebSocket server");
       this.reconnectAttempts = 0;
+      this.isWakingUp = false; // Reset immediately
+      this.callbacks.onConnect?.();
     });
 
     this.socket.on("disconnect", (reason: string) => {
-      console.log("Disconnected from WebSocket server:", reason);
+      console.log("⚠️ Disconnected from WebSocket server:", reason);
+      if (reason === "io server disconnect") {
+        // Server disconnected us, try to reconnect manually
+        this.socket?.connect();
+      }
     });
 
-    this.socket.on("connect_error", (error: Error) => {
-      console.error("WebSocket connection error:", error);
+    this.socket.on("connect_error", (_error: Error) => {
       this.reconnectAttempts++;
+
+      // Check if it's a Render cold start (server is waking up)
+      if (this.reconnectAttempts === 1 && !this.isWakingUp) {
+        this.isWakingUp = true;
+        console.log(
+          "🔄 WebSocket server is waking up (Render free tier), please wait..."
+        );
+      } else if (this.reconnectAttempts % 5 === 0) {
+        // Log every 5 attempts to avoid console spam
+        console.log(
+          `🔄 Reconnection attempt #${this.reconnectAttempts} - Server may be cold starting...`
+        );
+      }
     });
 
     // Room events
@@ -205,7 +230,7 @@ class SocketService {
     this.socket.on(
       "voice:livekit-join",
       (data: { token: string; roomId: string }) => {
-        this.callbacks.onLiveKitJoin?.(data);
+        this.callbacks.onLivekitJoin?.(data);
       }
     );
   }
@@ -503,9 +528,49 @@ class SocketService {
     this.socket.emit("room:heartbeat", { roomId });
   }
 
+  // Keep-alive mechanism to prevent Render from sleeping (call this periodically)
+  startKeepAlive() {
+    // Ping every 10 minutes to keep Render server awake
+    const keepAliveInterval = setInterval(() => {
+      if (this.socket?.connected) {
+        this.socket.emit("ping", { timestamp: Date.now() });
+      }
+    }, 10 * 60 * 1000); // 10 minutes
+
+    // Store interval ID for cleanup
+    if (typeof window !== "undefined") {
+      (
+        window as Window & { __wsKeepAliveInterval?: NodeJS.Timeout }
+      ).__wsKeepAliveInterval = keepAliveInterval;
+    }
+  }
+
+  // Stop keep-alive
+  stopKeepAlive() {
+    if (typeof window !== "undefined") {
+      const interval = (
+        window as Window & { __wsKeepAliveInterval?: NodeJS.Timeout }
+      ).__wsKeepAliveInterval;
+      if (interval) {
+        clearInterval(interval);
+        delete (window as Window & { __wsKeepAliveInterval?: NodeJS.Timeout })
+          .__wsKeepAliveInterval;
+      }
+    }
+  }
+
   // Get connection status
   isConnected(): boolean {
     return this.socket?.connected || false;
+  }
+
+  // Get reconnection status
+  getConnectionInfo() {
+    return {
+      connected: this.socket?.connected || false,
+      reconnectAttempts: this.reconnectAttempts,
+      isWakingUp: this.isWakingUp,
+    };
   }
 
   // Get socket instance (for advanced usage)
@@ -515,6 +580,7 @@ class SocketService {
 
   // Cleanup method for proper disposal
   cleanup() {
+    this.stopKeepAlive();
     if (this.socket) {
       this.socket.removeAllListeners();
       this.socket.disconnect();
@@ -522,23 +588,61 @@ class SocketService {
     }
     this.callbacks = {};
     this.reconnectAttempts = 0;
+    this.isWakingUp = false;
   }
 }
 
 // Create singleton instance
 export const socketService = new SocketService();
 
-// React hook for using socket service
+// React hook for using socket service with connection status
 export const useSocket = () => {
   const { data: session } = useSession();
+  const [isConnected, setIsConnected] = React.useState(
+    socketService.isConnected()
+  );
+  const [connectionInfo, setConnectionInfo] = React.useState(
+    socketService.getConnectionInfo()
+  );
+
+  React.useEffect(() => {
+    const socket = socketService.getSocket();
+
+    // Update state immediately
+    setIsConnected(socketService.isConnected());
+    setConnectionInfo(socketService.getConnectionInfo());
+
+    if (!socket) return;
+
+    const updateState = () => {
+      setIsConnected(socketService.isConnected());
+      setConnectionInfo(socketService.getConnectionInfo());
+    };
+
+    socket.on("connect", updateState);
+    socket.on("disconnect", updateState);
+    socket.on("connect_error", updateState);
+
+    // Poll for connection status updates every second
+    const pollInterval = setInterval(updateState, 1000);
+
+    return () => {
+      clearInterval(pollInterval);
+      socket.off("connect", updateState);
+      socket.off("disconnect", updateState);
+      socket.off("connect_error", updateState);
+    };
+  }, []);
 
   const connect = async () => {
     if (session?.user?.id) {
       socketService.connect(session.user.id);
+      socketService.startKeepAlive(); // Start keep-alive pings
     }
   };
 
   const disconnect = () => {
+    socketService.stopKeepAlive();
     socketService.disconnect();
   };
 
@@ -546,6 +650,7 @@ export const useSocket = () => {
     socketService,
     connect,
     disconnect,
-    isConnected: socketService.isConnected(),
+    isConnected,
+    connectionInfo,
   };
 };

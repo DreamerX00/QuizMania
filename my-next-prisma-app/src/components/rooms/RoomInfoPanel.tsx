@@ -52,25 +52,26 @@ export default function RoomInfoPanel({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className="relative bg-linear-to-br from-[#23234d]/80 to-[#0f1021]/90 rounded-2xl border border-blue-400/30 shadow-lg p-4 sm:p-6 mb-4 flex flex-col gap-4"
-      style={{ boxShadow: "0 0 32px 4px #3b82f655, 0 0 0 1.5px #a78bfa55" }}
+      className="relative bg-linear-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-md rounded-2xl border border-blue-500/30 shadow-2xl shadow-blue-500/10 p-5 sm:p-6 mb-4 flex flex-col gap-4"
     >
       {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-linear-to-b from-[#23234d]/90 to-transparent rounded-t-2xl pb-2 mb-2 flex flex-col gap-2">
+      <div className="sticky top-0 z-10 bg-linear-to-b from-slate-900/95 to-transparent backdrop-blur-md rounded-t-2xl pb-3 mb-3 flex flex-col gap-3">
         <div className="flex items-center gap-4">
-          <span className="text-2xl font-bold text-purple-300 drop-shadow-glow">
+          <span className="text-2xl font-bold bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]">
             {String(room.title || room.name || "Room")}
           </span>
           <button
             onClick={handleCopy}
-            className="ml-auto flex items-center gap-1 text-blue-400 hover:text-blue-200"
+            className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 text-blue-300 hover:text-blue-200 transition-all duration-200 hover:scale-105"
           >
             {copied ? (
-              <CheckCircle2 className="text-green-400" />
+              <CheckCircle2 className="text-green-400 w-4 h-4" />
             ) : (
-              <ClipboardCopy />
+              <ClipboardCopy className="w-4 h-4" />
             )}
-            <span className="text-xs">{String(room.code || "")}</span>
+            <span className="text-sm font-mono font-semibold">
+              {String(room.code || "")}
+            </span>
           </button>
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -86,28 +87,30 @@ export default function RoomInfoPanel({
               level="H"
               includeMargin={false}
             />
-            <span className="text-xs text-slate-400 mt-1">Scan to Join</span>
+            <span className="text-xs text-slate-400 mt-1.5 font-medium">
+              Scan to Join
+            </span>
           </motion.div>
         </div>
         {/* Info row: always visible, never cut off */}
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-slate-300 text-sm w-full mt-2">
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-slate-400 text-sm w-full mt-2">
           <div className="flex-1 min-w-[120px] flex items-center gap-1">
-            <span className="font-semibold text-white">Host:</span>
+            <span className="font-semibold text-blue-300">Host:</span>
             <span className="truncate">{String(room.host || "")}</span>
           </div>
           <div className="flex-1 min-w-[90px] flex items-center gap-1">
-            <span className="font-semibold text-white">Type:</span>
+            <span className="font-semibold text-blue-300">Type:</span>
             <span className="truncate">{String(room.type || "")}</span>
           </div>
           <div className="flex-1 min-w-[90px] flex items-center gap-1">
-            <span className="font-semibold text-white">Players:</span>
+            <span className="font-semibold text-blue-300">Players:</span>
             <span>
               {Array.isArray(room.players) ? room.players.length : 0}/
               {String(room.maxPlayers || 0)}
             </span>
           </div>
           <div className="flex-1 min-w-[120px] flex items-center gap-1">
-            <span className="font-semibold text-white">Quiz:</span>
+            <span className="font-semibold text-blue-300">Quiz:</span>
             <span className="truncate break-all max-w-[120px]">
               {Array.isArray(room.quizTypes) && room.quizTypes.length > 0
                 ? room.quizTypes.join(", ")
@@ -122,18 +125,18 @@ export default function RoomInfoPanel({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="mt-2 flex items-center gap-3"
+              className="mt-3 flex items-center gap-3 p-3 bg-slate-800/80 backdrop-blur-sm rounded-xl border border-green-500/30"
             >
-              <span className="text-lg font-bold text-green-400 animate-pulse">
+              <span className="text-lg font-bold bg-linear-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent animate-pulse">
                 Match starts in:
               </span>
-              <span className="text-2xl font-mono text-yellow-300 animate-bounce">
+              <span className="text-3xl font-mono font-bold bg-linear-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent animate-bounce">
                 {countdown}
               </span>
               {isHost && (
                 <button
                   onClick={cancelCountdown}
-                  className="ml-4 px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                  className="ml-auto px-4 py-2 rounded-xl bg-linear-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-medium shadow-lg shadow-red-500/20 transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
                 >
                   Cancel
                 </button>
@@ -143,10 +146,10 @@ export default function RoomInfoPanel({
         </AnimatePresence>
         {/* Host Controls for Countdown */}
         {isHost && countdown === null && (
-          <div className="mt-2 flex gap-2">
+          <div className="mt-3 flex gap-2">
             <button
               onClick={startCountdown}
-              className="px-4 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+              className="px-6 py-2 rounded-xl bg-linear-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white font-medium shadow-lg shadow-green-500/20 transition-all duration-300 hover:shadow-green-500/40 hover:scale-105"
             >
               Start Countdown
             </button>

@@ -1,9 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
+import { withBodyValidation, z } from "@/lib/api-validation";
+
+const joinRoomSchema = z.object({
+  code: z.string().min(1, "Room code is required").toUpperCase(),
+});
 
 // POST: Join a room by code
-export async function POST(request: NextRequest) {
+export const POST = withBodyValidation(joinRoomSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
@@ -17,13 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { code } = await request.json();
-    if (!code) {
-      return NextResponse.json(
-        { error: "Room code required" },
-        { status: 400 }
-      );
-    }
+    const { code } = request.validatedBody!;
 
     // Find room by code
     const room = await prisma.room.findUnique({
@@ -87,6 +86,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error joining room:", error);
-    return NextResponse.json({ error: "Failed to join room" }, { status: 500 });
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}
+});

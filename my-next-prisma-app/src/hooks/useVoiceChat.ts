@@ -72,7 +72,7 @@ export function useVoiceChat({
     // Voice events
     socket.on(
       "voice:livekit-join",
-      ({ token, roomId }: { token: string; roomId: string }) => {
+      ({ token: _token, roomId }: { token: string; roomId: string }) => {
         setState((prev) => ({
           ...prev,
           mode: "livekit",
@@ -80,7 +80,7 @@ export function useVoiceChat({
         }));
         onModeChange?.("livekit");
         // Here you would initialize LiveKit client with the token
-        console.log("LiveKit join with token:", token);
+        console.log("LiveKit join for room:", roomId);
       }
     );
 

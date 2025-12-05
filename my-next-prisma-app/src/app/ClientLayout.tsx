@@ -17,6 +17,8 @@ import { NavbarButton } from "../../components/ui/resizable-navbar";
 import { AnimatedThemeToggle } from "../../components/ui/AnimatedThemeToggle";
 import { useSession } from "next-auth/react";
 import { NavigationLoader } from "@/components/NavigationLoader";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import WebSocketStatus from "@/components/WebSocketStatus";
 
 // Helper component for signed-out buttons
 function SignedOutButtons() {
@@ -123,13 +125,18 @@ export default function ClientLayout({
                 )}
 
                 <main className="pt-0">
-                  <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
+                  <ErrorBoundary>
+                    <Suspense fallback={<LoadingSpinner />}>
+                      {children}
+                    </Suspense>
+                  </ErrorBoundary>
                 </main>
 
                 <Toaster
                   position="top-right"
                   toastOptions={{ duration: 3500 }}
                 />
+                <WebSocketStatus />
               </div>
             </ClickSpark>
           </AuthProvider>

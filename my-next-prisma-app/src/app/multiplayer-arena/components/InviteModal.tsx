@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Link, Search } from "lucide-react";
+import {
+  UserPlus,
+  Link,
+  Search,
+  Copy,
+  Check,
+  Loader2,
+  Clock,
+  Users,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import useSWR from "swr";
 import toast from "react-hot-toast";
@@ -21,12 +30,42 @@ interface InviteModalProps {
   roomId: string;
 }
 
+interface InviteLink {
+  id: string;
+  token: string;
+  url: string;
+  expiresAt: string;
+  maxUses: number | null;
+  usedCount: number;
+  isActive: boolean;
+}
+
 const InviteModal = ({ isOpen, onClose, roomId }: InviteModalProps) => {
+  const [copied, setCopied] = useState(false);
+  const [generatingLink, setGeneratingLink] = useState(false);
+  const [currentLink, setCurrentLink] = useState<InviteLink | null>(null);
+
   const {
     data: friendsData,
     error: friendsError,
     isLoading: friendsLoading,
   } = useSWR(isOpen ? "/api/friends" : null, fetcher);
+
+  const {
+    data: inviteLinksData,
+    error: linksError,
+    mutate: mutateLinks,
+  } = useSWR(
+    isOpen ? `/api/rooms/invite-links?roomId=${roomId}` : null,
+    fetcher
+  );
+
+  useEffect(() => {
+    if (inviteLinksData?.links?.length > 0) {
+      setCurrentLink(inviteLinksData.links[0]);
+    }
+  }, [inviteLinksData]);
+
   const handleInvite = async (friendId: string) => {
     try {
       await fetch("/api/rooms/invites", {
@@ -39,6 +78,73 @@ const InviteModal = ({ isOpen, onClose, roomId }: InviteModalProps) => {
       toast.error("Failed to send invite.");
     }
   };
+
+  const generateInviteLink = async () => {
+    setGeneratingLink(true);
+    try {
+      const response = await fetch("/api/rooms/invite-links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId,
+          expiresInHours: 24,
+          maxUses: null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate link");
+      }
+
+      setCurrentLink(data);
+      mutateLinks();
+      toast.success("Invite link generated!");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate invite link"
+      );
+    } finally {
+      setGeneratingLink(false);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    if (!currentLink) return;
+
+    try {
+      await navigator.clipboard.writeText(currentLink.url);
+      setCopied(true);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const getTimeUntilExpiry = () => {
+    if (!currentLink) return "";
+    const hours = Math.max(
+      0,
+      Math.floor(
+        (new Date(currentLink.expiresAt).getTime() - Date.now()) /
+          1000 /
+          60 /
+          60
+      )
+    );
+    return hours > 0 ? `${hours}h` : "Expired";
+  };
+
+  const getUsageInfo = () => {
+    if (!currentLink) return "";
+    if (currentLink.maxUses === null) return `${currentLink.usedCount} uses`;
+    return `${currentLink.usedCount}/${currentLink.maxUses} uses`;
+  };
+
   if (!isOpen) return null;
   if (friendsError) toast.error("Failed to load friends.");
   return (
@@ -105,18 +211,70 @@ const InviteModal = ({ isOpen, onClose, roomId }: InviteModalProps) => {
               ))
             )}
           </div>
-          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center gap-3">
-            <Input
-              readOnly
-              value={`https://quizmania.gg/invite/${roomId}`}
-              className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-gray-900 dark:text-white"
-            />
-            <Button
-              variant="outline"
-              className="text-gray-900 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
-            >
-              <Link size={16} />
-            </Button>
+          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Link size={16} /> Invite Link
+              </h3>
+              {currentLink && (
+                <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <Clock size={12} />
+                    {getTimeUntilExpiry()}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users size={12} />
+                    {getUsageInfo()}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {currentLink ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={currentLink.url}
+                  className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-gray-900 dark:text-white text-sm"
+                />
+                <Button
+                  onClick={copyToClipboard}
+                  variant="outline"
+                  size="icon"
+                  className="text-gray-900 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
+                >
+                  {copied ? (
+                    <Check size={16} className="text-green-500" />
+                  ) : (
+                    <Copy size={16} />
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={generateInviteLink}
+                disabled={generatingLink}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                {generatingLink ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Link size={16} className="mr-2" />
+                    Generate Invite Link
+                  </>
+                )}
+              </Button>
+            )}
+
+            {linksError && (
+              <p className="text-xs text-red-500 mt-2">
+                Failed to load invite links
+              </p>
+            )}
           </div>
         </div>
       </DialogContent>

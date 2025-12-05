@@ -1,12 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
+import { withQueryValidation, z } from "@/lib/api-validation";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 180; // 3 minutes cache
 
-export async function GET(req: NextRequest) {
+const publishedQuerySchema = z.object({
+  search: z.string().optional(),
+  sortBy: z.enum(["createdAt", "price", "title"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  minPrice: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/)
+    .optional(),
+  maxPrice: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/)
+    .optional(),
+  fromDate: z.string().optional(),
+  toDate: z.string().optional(),
+});
+
+export const GET = withQueryValidation(publishedQuerySchema, async (req) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
@@ -14,19 +31,8 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const search = searchParams.get("search");
-    const sortByParam = searchParams.get("sortBy");
-    const sortOrder = searchParams.get("sortOrder") || "desc";
-    const minPrice = searchParams.get("minPrice");
-    const maxPrice = searchParams.get("maxPrice");
-    const fromDate = searchParams.get("fromDate");
-    const toDate = searchParams.get("toDate");
-
-    const allowedSortFields = ["createdAt", "price", "title"];
-    const sortBy = allowedSortFields.includes(sortByParam || "")
-      ? sortByParam
-      : "createdAt";
+    const { search, sortBy, sortOrder, minPrice, maxPrice, fromDate, toDate } =
+      req.validatedQuery!;
 
     const where: Prisma.QuizWhereInput = {
       creatorId: userId,
@@ -73,4 +79,4 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

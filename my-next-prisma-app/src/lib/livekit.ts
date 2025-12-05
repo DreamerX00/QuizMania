@@ -13,6 +13,7 @@ import {
   ConnectionState,
   ParticipantEvent,
 } from "livekit-client";
+import { env } from "@/lib/env";
 
 // Voice chat state
 export interface VoiceState {
@@ -91,7 +92,7 @@ class LiveKitService {
       this.setupRoomEventListeners();
 
       // Connect to room - URL should be from env or passed as parameter
-      const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || "";
+      const livekitUrl = env.NEXT_PUBLIC_LIVEKIT_URL || "";
       await this.room.connect(livekitUrl, token);
 
       // Update state

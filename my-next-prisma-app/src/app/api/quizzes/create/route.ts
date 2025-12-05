@@ -6,6 +6,7 @@ import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 import prisma from "@/lib/prisma";
 import { DifficultyLevel } from "@prisma/client";
+import { getRedisClient } from "@/lib/redis";
 
 const createQuizSchema = z.object({
   title: z.string().min(3).max(100),
@@ -21,6 +22,7 @@ const createQuizSchema = z.object({
   isLocked: z.boolean().optional(),
   lockPassword: z.string().max(100).optional(),
   difficultyLevel: z.string().optional(),
+  idempotencyKey: z.string().uuid().optional(),
 });
 
 export const POST = withValidation(createQuizSchema, async (req) => {
@@ -45,7 +47,24 @@ export const POST = withValidation(createQuizSchema, async (req) => {
       isLocked,
       lockPassword,
       difficultyLevel,
+      idempotencyKey,
     } = body;
+
+    // 🚀 Check Redis cache for idempotency (if key provided)
+    const redis = getRedisClient();
+    if (redis && idempotencyKey) {
+      const cacheKey = `quiz:create:${userId}:${idempotencyKey}`;
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          console.log(`[IDEMPOTENCY] Returning cached quiz for ${cacheKey}`);
+          return NextResponse.json(JSON.parse(cached), { status: 201 });
+        }
+      } catch (err) {
+        console.error("Redis get error:", err);
+        // Continue without cache
+      }
+    }
 
     // Auto-set pricing based on difficulty level
     let pricePerAttempt = 0;
@@ -89,6 +108,17 @@ export const POST = withValidation(createQuizSchema, async (req) => {
           (difficultyLevel as DifficultyLevel | undefined) || undefined,
       },
     });
+
+    // 💾 Cache the result (24 hour TTL)
+    if (redis && idempotencyKey) {
+      const cacheKey = `quiz:create:${userId}:${idempotencyKey}`;
+      try {
+        await redis.setex(cacheKey, 86400, JSON.stringify(newQuiz));
+      } catch (err) {
+        console.error("Redis setex error:", err);
+        // Continue without caching
+      }
+    }
 
     return NextResponse.json(newQuiz, { status: 201 });
   } catch (error) {

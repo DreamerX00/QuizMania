@@ -161,7 +161,7 @@ const VoiceChat: React.FC<VoiceChatProps> = ({
         setConnectionMode("webrtc-fallback");
         toast.error("Switched to WebRTC fallback mode");
       },
-      onLiveKitJoin: async (data) => {
+      onLivekitJoin: async (data: { token: string; roomId: string }) => {
         console.log("LiveKit join event:", data);
         try {
           await connect(data.token, data.roomId);

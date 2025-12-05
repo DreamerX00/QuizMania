@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { QuizAttemptService } from "@/services/quizAttemptService";
+import { withQueryValidation, z } from "@/lib/api-validation";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 180; // 3 minutes cache
@@ -14,12 +15,15 @@ interface QuizBulkResponse {
   slug: string | null;
 }
 
-export async function GET(req: NextRequest) {
+const bulkQuerySchema = z.object({
+  ids: z.string().min(1, "Quiz IDs are required"),
+});
+
+export const GET = withQueryValidation(bulkQuerySchema, async (req) => {
   const currentUser = await getCurrentUser();
   const userId = currentUser?.id;
   if (!userId) return NextResponse.json([], { status: 401 });
-  const idsParam = req.nextUrl.searchParams.get("ids");
-  if (!idsParam) return NextResponse.json([]);
+  const { ids: idsParam } = req.validatedQuery!;
   const ids = idsParam.split(",").filter(Boolean);
   if (ids.length === 0) return NextResponse.json([]);
   const quizzes: QuizBulkResponse[] = [];
@@ -42,4 +46,4 @@ export async function GET(req: NextRequest) {
     }
   }
   return NextResponse.json(quizzes);
-}
+});

@@ -1,25 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
-import { z } from "zod";
-import { withValidation } from "@/utils/validation";
+import {
+  withQueryValidation,
+  withBodyValidation,
+  z,
+} from "@/lib/api-validation";
 
 export const dynamic = "force-dynamic";
 // NO cache - real-time room members
 
+const membersQuerySchema = z.object({
+  roomId: z.string().min(1, "Room ID is required"),
+});
+
 // GET: List members of a room
-export async function GET(request: NextRequest) {
+export const GET = withQueryValidation(membersQuerySchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { searchParams } = new URL(request.url);
-    const roomId = searchParams.get("roomId");
-    if (!roomId) {
-      return NextResponse.json({ error: "Room ID required" }, { status: 400 });
-    }
+    const { roomId } = request.validatedQuery!;
     const members = await prisma.roomMembership.findMany({
       where: { roomId },
       include: { user: true },
@@ -33,7 +36,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // POST: Join a room (self) or add member (by host)
 export async function POST(request: NextRequest) {
@@ -130,7 +133,7 @@ const removeMemberSchema = z.object({
   userId: z.string().min(1),
 });
 
-export const DELETE = withValidation(
+export const DELETE = withBodyValidation(
   removeMemberSchema,
   async (request: NextRequest) => {
     try {

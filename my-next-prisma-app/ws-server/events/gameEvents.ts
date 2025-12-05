@@ -23,22 +23,38 @@ const VOTE_THROTTLE_MS = 2000;
 
 // Load schemas (placeholder: load default.json)
 const schemaDir = path.join(__dirname, "../../schemas/game-modes/v1");
+const schemaCache: Record<string, z.ZodTypeAny> = {};
+
+// Load default schema
 let defaultSchema: z.ZodTypeAny = z.any();
 try {
   const schemaJson = JSON.parse(
     fs.readFileSync(path.join(schemaDir, "default.json"), "utf-8")
   );
   defaultSchema = z.object(schemaJson);
+  schemaCache["default"] = defaultSchema;
 } catch {
   // fallback to any
 }
 
 function validateGameModeSchema(mode: string, payload: any): boolean {
-  // TODO: Load correct schema by mode
+  // Load schema dynamically by mode
   try {
-    defaultSchema.parse(payload);
+    // Check cache first
+    if (!schemaCache[mode]) {
+      const schemaPath = path.join(schemaDir, `${mode}.json`);
+      if (fs.existsSync(schemaPath)) {
+        const schemaJson = JSON.parse(fs.readFileSync(schemaPath, "utf-8"));
+        schemaCache[mode] = z.object(schemaJson);
+      } else {
+        // Fall back to default schema
+        schemaCache[mode] = defaultSchema;
+      }
+    }
+    schemaCache[mode].parse(payload);
     return true;
-  } catch {
+  } catch (error) {
+    console.error(`Schema validation failed for mode ${mode}:`, error);
     return false;
   }
 }
@@ -81,7 +97,7 @@ export function registerGameEvents(io: Server, socket: Socket) {
     cb?.({ success: true });
   });
 
-  socket.on("game:state", ({ roomId, state }, cb) => {
+  socket.on("game:state", ({ roomId, state, currentState }, cb) => {
     // Validate state transitions
     const validStates = [
       "WAITING",
@@ -94,8 +110,22 @@ export function registerGameEvents(io: Server, socket: Socket) {
       return cb?.({ error: "Invalid game state", code: "INVALID_STATE" });
     }
 
-    // TODO: Add more sophisticated state machine validation
-    // e.g., cannot go from WAITING directly to FINISHED
+    // State machine validation - define valid transitions
+    const validTransitions: Record<string, string[]> = {
+      WAITING: ["STARTING"],
+      STARTING: ["IN_PROGRESS", "WAITING"],
+      IN_PROGRESS: ["PAUSED", "FINISHED"],
+      PAUSED: ["IN_PROGRESS", "FINISHED"],
+      FINISHED: [], // Terminal state
+    };
+
+    if (currentState && !validTransitions[currentState]?.includes(state)) {
+      return cb?.({
+        error: `Invalid state transition from ${currentState} to ${state}`,
+        code: "INVALID_TRANSITION",
+      });
+    }
+
     io.to(roomId).emit("game:state-update", { state });
     cb?.({ success: true });
   });
@@ -109,14 +139,42 @@ export function registerGameEvents(io: Server, socket: Socket) {
       return cb?.({ error: "Invalid game mode", code: "INVALID_MODE" });
     }
 
-    // Check if user has permission to start game (must be room host)
-    // TODO: Query database to verify user is room host
     if (!userId) {
       return cb?.({ error: "Authentication required", code: "UNAUTHORIZED" });
     }
 
-    io.to(roomId).emit("game:started", { mode, startedBy: userId });
-    cb?.({ success: true });
+    // Verify user is room host via database
+    try {
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+
+      const room = await prisma.room.findUnique({
+        where: { id: roomId },
+        include: {
+          memberships: {
+            where: { userId, role: "HOST" },
+          },
+        },
+      });
+
+      await prisma.$disconnect();
+
+      if (!room || room.memberships.length === 0) {
+        return cb?.({
+          error: "Only the room host can start the game",
+          code: "FORBIDDEN",
+        });
+      }
+
+      io.to(roomId).emit("game:started", { mode, startedBy: userId });
+      cb?.({ success: true });
+    } catch (error) {
+      console.error("Error verifying host permissions:", error);
+      return cb?.({
+        error: "Failed to verify permissions",
+        code: "SERVER_ERROR",
+      });
+    }
   });
 
   socket.on("game:end", async ({ roomId, result }, cb) => {
@@ -129,8 +187,36 @@ export function registerGameEvents(io: Server, socket: Socket) {
 
     // Store result in database
     try {
-      // TODO: Save game results to database
-      // await saveGameResult(roomId, userId, result);
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+
+      // Update room status
+      await prisma.room.update({
+        where: { id: roomId },
+        data: {
+          status: "FINISHED",
+        },
+      });
+
+      // Store game results
+      // TODO: Create GameResult model in schema.prisma
+      // if (result.scores && Array.isArray(result.scores)) {
+      //   const gameResultPromises = result.scores.map(
+      //     (score: { userId: string; score: number; rank?: number }) =>
+      //       prisma.gameResult.create({
+      //         data: {
+      //           roomId,
+      //           userId: score.userId,
+      //           score: score.score,
+      //           rank: score.rank || 0,
+      //           completedAt: new Date(),
+      //         },
+      //       })
+      //   );
+      //   await Promise.all(gameResultPromises);
+      // }
+
+      await prisma.$disconnect();
 
       io.to(roomId).emit("game:ended", { result });
       cb?.({ success: true });

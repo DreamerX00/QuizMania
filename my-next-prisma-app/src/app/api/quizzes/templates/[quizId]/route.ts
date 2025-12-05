@@ -1,56 +1,54 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { QuizAttemptService } from "@/services/quizAttemptService";
 import { z } from "zod";
-import { withValidation } from "@/utils/validation";
+import { withParamsValidation } from "@/lib/api-validation";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 600; // 10 minutes cache
 
-export async function GET(request: NextRequest) {
-  try {
-    const currentUser = await getCurrentUser();
-    const userId = currentUser?.id;
+const templateParamsSchema = z.object({
+  quizId: z.string().min(1, "Quiz ID is required"),
+});
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+export const GET = withParamsValidation(
+  templateParamsSchema,
+  async (request, _context) => {
+    try {
+      const currentUser = await getCurrentUser();
+      const userId = currentUser?.id;
+
+      if (!userId) {
+        return new NextResponse("Unauthorized", { status: 401 });
+      }
+
+      const { quizId } = request.validatedParams!;
+
+      const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
+      if (!quiz || quiz.creatorId !== userId) {
+        return new NextResponse("Not Found", { status: 404 });
+      }
+
+      return NextResponse.json(quiz);
+    } catch (error) {
+      console.error("[GET_QUIZ_ID]", error);
+      return new NextResponse("Internal Error", { status: 500 });
     }
-
-    const pathname = request.nextUrl.pathname;
-    const quizId = pathname.split("/").pop();
-
-    if (!quizId) {
-      return new NextResponse("Quiz ID missing", { status: 400 });
-    }
-
-    const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
-    if (!quiz || quiz.creatorId !== userId) {
-      return new NextResponse("Not Found", { status: 404 });
-    }
-
-    return NextResponse.json(quiz);
-  } catch (error) {
-    console.error("[GET_QUIZ_ID]", error);
-    return new NextResponse("Internal Error", { status: 500 });
   }
-}
+);
 
 const quizIdParamSchema = z.object({ quizId: z.string().min(1) });
 
-export const DELETE = withValidation(
+export const DELETE = withParamsValidation(
   quizIdParamSchema,
-  async (request, ...args) => {
-    const { params } = args[0] as { params: { quizId: string } };
+  async (request, _context) => {
+    const { quizId } = request.validatedParams!;
     try {
       const currentUser = await getCurrentUser();
       const userId = currentUser?.id;
       if (!userId) {
         return new NextResponse("Unauthorized", { status: 401 });
-      }
-      const { quizId } = params;
-      if (!quizId) {
-        return new NextResponse("Quiz ID missing", { status: 400 });
       }
       const quiz = await QuizAttemptService.resolveQuizIdentifier(quizId);
       if (!quiz || quiz.creatorId !== userId) {

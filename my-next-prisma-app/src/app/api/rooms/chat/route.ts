@@ -1,23 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
+import {
+  withBodyValidation,
+  withQueryValidation,
+  z,
+} from "@/lib/api-validation";
 
 export const dynamic = "force-dynamic";
 // NO cache - real-time chat
 
+const getChatSchema = z.object({
+  roomId: z.string().min(1, "Room ID is required"),
+});
+
 // GET: Fetch recent chat messages for a room
-export async function GET(request: NextRequest) {
+export const GET = withQueryValidation(getChatSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { searchParams } = new URL(request.url);
-    const roomId = searchParams.get("roomId");
-    if (!roomId) {
-      return NextResponse.json({ error: "Room ID required" }, { status: 400 });
-    }
+    const { roomId } = request.validatedQuery!;
     // Only members can view
     const membership = await prisma.roomMembership.findFirst({
       where: { roomId, userId },
@@ -39,23 +44,22 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
+
+const sendChatSchema = z.object({
+  roomId: z.string().min(1, "Room ID is required"),
+  message: z.string().min(1, "Message is required").max(1000),
+});
 
 // POST: Send a chat message
-export async function POST(request: NextRequest) {
+export const POST = withBodyValidation(sendChatSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { roomId, message } = await request.json();
-    if (!roomId || !message) {
-      return NextResponse.json(
-        { error: "Room ID and message required" },
-        { status: 400 }
-      );
-    }
+    const { roomId, message } = request.validatedBody!;
     // Only members can send
     const membership = await prisma.roomMembership.findFirst({
       where: { roomId, userId },
@@ -75,4 +79,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

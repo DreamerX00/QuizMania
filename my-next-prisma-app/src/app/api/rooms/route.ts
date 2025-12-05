@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { withValidation } from "@/utils/validation";
+import { withQueryValidation, withBodyValidation } from "@/lib/api-validation";
 
 export const dynamic = "force-dynamic";
 // NO cache - real-time multiplayer rooms
@@ -15,16 +15,19 @@ function generateRoomCode(length = 6) {
   return code;
 }
 
+const listRoomsSchema = z.object({
+  my: z.enum(["0", "1"]).optional(),
+});
+
 // GET: List all rooms, or rooms the user is a member of
-export async function GET(request: NextRequest) {
+export const GET = withQueryValidation(listRoomsSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { searchParams } = new URL(request.url);
-    const my = searchParams.get("my");
+    const { my } = request.validatedQuery!;
     let rooms;
     if (my === "1") {
       rooms = await prisma.room.findMany({
@@ -47,7 +50,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 const createRoomSchema = z.object({
   name: z.string().min(1).max(100),
@@ -57,14 +60,15 @@ const createRoomSchema = z.object({
   password: z.string().max(100).optional().nullable(),
 });
 
-export const POST = withValidation(createRoomSchema, async (request) => {
+export const POST = withBodyValidation(createRoomSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { name, maxPlayers, type, quizTypes, password } = request.validated;
+    const { name, maxPlayers, type, quizTypes, password } =
+      request.validatedBody!;
     // Generate unique code
     let code;
     while (true) {
@@ -104,14 +108,14 @@ const deleteRoomSchema = z.object({
   roomId: z.string().min(1),
 });
 
-export const DELETE = withValidation(deleteRoomSchema, async (request) => {
+export const DELETE = withBodyValidation(deleteRoomSchema, async (request) => {
   try {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { roomId } = request.validated;
+    const { roomId } = request.validatedBody!;
     if (!roomId) {
       return NextResponse.json({ error: "Room ID required" }, { status: 400 });
     }

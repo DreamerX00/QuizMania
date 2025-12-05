@@ -209,6 +209,7 @@ model User {
   clanChatSent               ClanChat[]           @relation("ClanChatSender")
   roomMemberships            RoomMembership[]
   roomInvites                RoomInvite[]
+  createdInviteLinks         RoomInviteLink[]     @relation("RoomInviteCreator")
   roomChatSent               RoomChat[]           @relation("RoomChatSender")
   publicChatMessages         PublicChat[]         @relation("UserPublicChatMessages")
   gameSetups                 GameSetup[]
@@ -232,6 +233,11 @@ model User {
   aiQuizAttempts        AIQuizAttempt[]
   aiQuizGenerationQuota AIQuizGenerationQuota?
   aiQuizAchievements    AIQuizAchievement[]
+
+  // Chat Report Relations
+  chatReportsCreated ChatReport[] @relation("ChatReportReporter")
+  chatReportsReceived ChatReport[] @relation("ChatReportReported")
+  chatReportsReviewed ChatReport[] @relation("ChatReportReviewer")
 
   @@map("user")
 }
@@ -592,22 +598,24 @@ model ClanChat {
 }
 
 model Room {
-  id              String           @id @default(cuid())
+  id              String            @id @default(cuid())
   name            String
-  code            String           @unique
-  type            String           @default("Public")
-  maxParticipants Int              @default(8)
-  quizTypes       String[]         @default([])
+  code            String            @unique
+  type            String            @default("Public")
+  maxParticipants Int               @default(8)
+  quizTypes       String[]          @default([])
   quizType        String? // Single quiz type for host controls
-  isLocked        Boolean          @default(false)
-  status          String           @default("WAITING") // WAITING, STARTED, FINISHED
+  isLocked        Boolean           @default(false)
+  status          String            @default("WAITING") // WAITING, STARTED, FINISHED
   startedAt       DateTime?
   password        String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
   memberships     RoomMembership[]
   invites         RoomInvite[]
+  inviteLinks     RoomInviteLink[]
   chatMessages    RoomChat[]
+  chatReports     ChatReport[]
 }
 
 model RoomMembership {
@@ -635,6 +643,24 @@ model RoomInvite {
   @@unique([roomId, userId])
 }
 
+model RoomInviteLink {
+  id         String   @id @default(cuid())
+  roomId     String
+  token      String   @unique
+  createdBy  String
+  expiresAt  DateTime
+  maxUses    Int?     // null = unlimited
+  usedCount  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  creator    User     @relation("RoomInviteCreator", fields: [createdBy], references: [id])
+
+  @@index([token])
+  @@index([roomId])
+}
+
 model RoomChat {
   id        String   @id @default(cuid())
   roomId    String
@@ -651,6 +677,31 @@ model PublicChat {
   sender    User     @relation("UserPublicChatMessages", fields: [senderId], references: [id])
   message   String
   createdAt DateTime @default(now())
+}
+
+model ChatReport {
+  id              String   @id @default(cuid())
+  reporterId      String
+  reportedUserId  String
+  message         String
+  roomId          String?
+  reason          String
+  status          String   @default("PENDING") // PENDING, REVIEWED, RESOLVED, DISMISSED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  reviewer        User?    @relation("ChatReportReviewer", fields: [reviewedBy], references: [id])
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  resolutionNotes String?
+
+  reporter  User @relation("ChatReportReporter", fields: [reporterId], references: [id])
+  reported  User @relation("ChatReportReported", fields: [reportedUserId], references: [id])
+  room      Room? @relation(fields: [roomId], references: [id])
+
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model GameSetup {

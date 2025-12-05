@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import RoomAvatarGrid from "./RoomAvatarGrid";
 import RoomInfoPanel from "./RoomInfoPanel";
 import RoomHostControls from "./RoomHostControls";
+import InviteModal from "@/app/multiplayer-arena/components/InviteModal";
 import { MessageCircle } from "lucide-react";
 import useSWR from "swr";
 
@@ -93,6 +94,7 @@ export default function RoomLobby({
     (m) => m.role === "HOST" && m.userId === currentUser.userId
   );
   const [chatInput, setChatInput] = useState("");
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const {
     data: chatData,
     error: chatError,
@@ -114,20 +116,46 @@ export default function RoomLobby({
     mutateChat();
   };
 
-  // Invite handler (real API call can be added)
+  // Invite handler - opens invite modal
   const handleInvite = () => {
-    // TODO: Implement invite logic
+    setIsInviteModalOpen(true);
   };
 
-  // Start match handler (real API call can be added)
-  const handleStartMatch = () => {
-    // TODO: Implement start match logic
+  // Start match handler - initiates game start via WebSocket/API
+  const handleStartMatch = async () => {
+    try {
+      const response = await fetch(`/api/rooms/${room.id}/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to start match");
+      }
+
+      await response.json();
+
+      // ✅ Emit WebSocket event to notify all room members in real-time
+      const { socketService } = await import("@/lib/socket");
+      if (socketService.isConnected()) {
+        socketService.startGame(
+          room.id as string,
+          String(room.gameMode || "standard")
+        );
+      }
+
+      // Success handled by WebSocket event listeners
+    } catch (error) {
+      console.error("Failed to start match:", error);
+      // Toast notification handled by RoomHostControls
+    }
   };
 
   return (
-    <div className="flex flex-col md:flex-row w-full h-full min-h-screen relative">
+    <div className="flex flex-col md:flex-row w-full h-full min-h-screen relative bg-linear-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Left: Player Grid */}
-      <section className="flex-1 flex flex-col items-center justify-center bg-linear-to-br from-[#181a2a]/80 to-[#23234d]/90 p-0 md:p-8 relative">
+      <section className="flex-1 flex flex-col items-center justify-center bg-linear-to-br from-slate-900/50 via-blue-950/30 to-purple-950/30 backdrop-blur-sm p-4 md:p-8 relative">
         <div className="w-full h-full flex flex-col items-center justify-center">
           <h2 className="text-2xl md:text-3xl font-extrabold text-blue-400 flex items-center gap-2 mb-6 tracking-widest uppercase drop-shadow-glow">
             Lobby
@@ -164,20 +192,20 @@ export default function RoomLobby({
         </div>
       </section>
       {/* Right: Info/Controls/Chat */}
-      <aside className="flex flex-col gap-6 max-w-[420px] w-full min-w-[320px] bg-linear-to-br from-[#23234d]/90 to-[#181a2a]/80 p-0 md:p-8 border-l-2 border-blue-500/20 shadow-xl relative overflow-y-auto">
+      <aside className="flex flex-col gap-6 max-w-[420px] w-full min-w-[320px] bg-linear-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-md p-4 md:p-6 border-l border-blue-500/30 shadow-2xl shadow-blue-500/10 relative overflow-y-auto">
         {/* Sticky Header */}
-        <div className="sticky top-0 z-20 bg-linear-to-b from-[#23234d]/95 to-transparent rounded-t-2xl pb-2 mb-2 flex flex-col gap-2 border-b border-blue-500/10">
+        <div className="sticky top-0 z-20 bg-linear-to-b from-slate-900/98 via-slate-900/95 to-transparent backdrop-blur-md rounded-xl pb-3 mb-4 flex flex-col gap-3 border-b border-blue-500/20">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl font-bold text-purple-300 drop-shadow-glow tracking-wide">
+            <span className="text-2xl font-bold bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] tracking-wide">
               {String(room.title || room.name || "Room")}
             </span>
-            <span className="ml-auto flex items-center gap-2 text-blue-400 font-mono text-lg">
+            <span className="ml-auto flex items-center gap-2 bg-linear-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent font-mono text-lg font-semibold">
               {members.length}/{String(room.maxPlayers || 0)}
             </span>
           </div>
-          <div className="flex items-center gap-4 text-slate-300 text-sm flex-wrap">
+          <div className="flex items-center gap-4 text-slate-400 text-sm flex-wrap">
             <span className="flex items-center gap-1">
-              <span className="font-semibold text-white">Host:</span>{" "}
+              <span className="font-semibold text-blue-300">Host:</span>{" "}
               {String(
                 (
                   members.find((m) => m.role === "HOST")?.user as
@@ -187,11 +215,11 @@ export default function RoomLobby({
               )}
             </span>
             <span className="flex items-center gap-1">
-              <span className="font-semibold text-white">Type:</span>{" "}
+              <span className="font-semibold text-blue-300">Type:</span>{" "}
               {String(room.type || "")}
             </span>
             <span className="flex items-center gap-1">
-              <span className="font-semibold text-white">Quiz:</span>{" "}
+              <span className="font-semibold text-blue-300">Quiz:</span>{" "}
               {Array.isArray(room.quizTypes) && room.quizTypes.length > 0
                 ? room.quizTypes.join(", ")
                 : "—"}
@@ -217,7 +245,7 @@ export default function RoomLobby({
           />
         )}
         {/* Chat Box (desktop) */}
-        <div className="hidden md:flex flex-1 flex-col bg-slate-900/60 rounded-xl p-4 text-slate-300 min-h-[120px] shadow-lg mt-2">
+        <div className="hidden md:flex flex-1 flex-col bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 border border-slate-700/50 shadow-xl shadow-blue-500/5 text-slate-300 min-h-[120px] mt-2">
           <div className="flex-1 overflow-y-auto space-y-2">
             {chatLoading ? (
               <div className="text-slate-400">Loading chat...</div>
@@ -233,7 +261,7 @@ export default function RoomLobby({
               )?.map((msg, _i: number) => (
                 <div
                   key={msg.id}
-                  className="bg-slate-800/80 rounded-lg px-3 py-2 text-white w-fit flex items-center gap-2 animate-fade-in"
+                  className="bg-slate-800/90 backdrop-blur-sm rounded-xl px-4 py-2.5 text-white w-fit flex items-center gap-2 border border-slate-700/30 shadow-md shadow-blue-500/5 animate-fade-in"
                 >
                   <span className="font-bold text-blue-400">
                     {String(
@@ -246,16 +274,16 @@ export default function RoomLobby({
               ))
             )}
           </div>
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-3">
             <input
-              className="flex-1 bg-slate-800/80 rounded-lg px-3 py-2 text-white border border-slate-700"
+              className="flex-1 bg-slate-800/90 backdrop-blur-sm rounded-xl px-4 py-2.5 text-white border border-slate-700/50 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
               placeholder="Type a message..."
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
             />
             <button
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+              className="bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all duration-300 hover:shadow-blue-500/40 hover:scale-105"
               onClick={handleSend}
             >
               Send
@@ -264,14 +292,13 @@ export default function RoomLobby({
         </div>
         {/* Footer (host only, sticky) */}
         {isHost && (
-          <div className="sticky bottom-0 left-0 w-full bg-linear-to-t from-blue-900/80 to-transparent p-4 flex items-center justify-end rounded-b-2xl border-t border-blue-500/10 mt-4">
+          <div className="sticky bottom-0 left-0 w-full bg-linear-to-t from-slate-900/98 via-slate-900/90 to-transparent backdrop-blur-md p-4 flex items-center justify-end rounded-b-2xl border-t border-blue-500/30 mt-4">
             <button
-              className={`px-8 py-3 rounded-2xl font-bold text-lg shadow-lg transition-all duration-300 flex items-center gap-2
-                ${
-                  members.length >= 2
-                    ? "bg-green-500 hover:bg-green-600 text-white animate-pulse-glow"
-                    : "bg-gray-600 text-gray-300 cursor-not-allowed"
-                }`}
+              className={`px-8 py-3.5 rounded-2xl font-bold text-lg shadow-xl transition-all duration-300 flex items-center gap-2 ${
+                members.length >= 2
+                  ? "bg-linear-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-green-500/30 hover:shadow-green-500/50 hover:scale-105 animate-pulse"
+                  : "bg-slate-700/50 text-slate-500 cursor-not-allowed border border-slate-600/30"
+              }`}
               disabled={members.length < 2}
               title={
                 members.length < 2
@@ -287,12 +314,12 @@ export default function RoomLobby({
       {/* Floating Chat Drawer for Mobile */}
       <>
         <button
-          className="fixed bottom-6 right-6 z-50 md:hidden bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg flex items-center justify-center transition-all"
+          className="fixed bottom-6 right-6 z-50 md:hidden bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white rounded-full p-4 shadow-2xl shadow-blue-500/40 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95"
           onClick={() => setMobileChatOpen(true)}
         >
           <MessageCircle size={28} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 animate-bounce">
+            <span className="absolute -top-1 -right-1 bg-linear-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full px-2 py-1 shadow-lg shadow-red-500/50 animate-bounce border-2 border-white">
               {unreadCount}
             </span>
           )}
@@ -303,13 +330,15 @@ export default function RoomLobby({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 400, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="fixed inset-0 z-50 flex flex-col bg-linear-to-br from-[#23234d]/95 to-[#0f1021]/95 backdrop-blur-lg p-0 md:hidden"
+            className="fixed inset-0 z-50 flex flex-col bg-linear-to-br from-slate-900/98 via-slate-800/98 to-slate-900/98 backdrop-blur-xl p-0 md:hidden"
           >
-            <div className="flex items-center justify-between p-4 border-b border-blue-500/20 bg-[#16192a]/80">
-              <span className="font-bold text-lg text-white">Room Chat</span>
+            <div className="flex items-center justify-between p-4 border-b border-blue-500/30 bg-slate-900/90 backdrop-blur-md">
+              <span className="font-bold text-lg bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                Room Chat
+              </span>
               <button
                 onClick={() => setMobileChatOpen(false)}
-                className="text-white text-2xl px-2"
+                className="text-white hover:text-red-400 text-3xl px-2 transition-colors duration-200 hover:scale-110"
               >
                 ×
               </button>
@@ -320,18 +349,25 @@ export default function RoomLobby({
                 Chat goes here...
               </div>
             </div>
-            <div className="p-4 border-t border-blue-500/20 bg-[#16192a]/80 flex gap-2">
+            <div className="p-4 border-t border-blue-500/30 bg-slate-900/90 backdrop-blur-md flex gap-2">
               <input
-                className="flex-1 bg-slate-800/80 rounded-lg px-3 py-2 text-white border border-slate-700"
+                className="flex-1 bg-slate-800/90 rounded-xl px-4 py-2.5 text-white border border-slate-700/50 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                 placeholder="Type a message..."
               />
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+              <button className="bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all duration-300 hover:shadow-blue-500/40">
                 Send
               </button>
             </div>
           </motion.div>
         )}
       </>
+
+      {/* Invite Modal */}
+      <InviteModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        roomId={String(room.id)}
+      />
     </div>
   );
 }

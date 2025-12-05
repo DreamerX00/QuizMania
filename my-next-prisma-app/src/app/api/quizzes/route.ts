@@ -1,29 +1,45 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { withQueryValidation, z } from "@/lib/api-validation";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 180; // Revalidate every 3 minutes
 
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const search = searchParams.get("search");
-    const tags = searchParams.get("tags")?.split(",");
-    const sortBy = searchParams.get("sortBy") || "createdAt";
-    const sortOrder = searchParams.get("sortOrder") || "desc";
-    const field = searchParams.get("field");
-    const subject = searchParams.get("subject");
-    const minPrice = searchParams.get("minPrice");
-    const maxPrice = searchParams.get("maxPrice");
+const listQuizzesSchema = z.object({
+  search: z.string().optional(),
+  tags: z.string().optional(),
+  sortBy: z.string().default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  field: z.string().optional(),
+  subject: z.string().optional(),
+  minPrice: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/)
+    .optional(),
+  maxPrice: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/)
+    .optional(),
+  page: z.string().regex(/^\d+$/).transform(Number).default("1"),
+  limit: z.string().regex(/^\d+$/).transform(Number).default("20"),
+});
 
-    // Pagination parameters
-    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
-    const limit = Math.min(
-      100,
-      Math.max(1, parseInt(searchParams.get("limit") || "20"))
-    );
-    const skip = (page - 1) * limit;
+export const GET = withQueryValidation(listQuizzesSchema, async (req) => {
+  try {
+    const {
+      search,
+      tags,
+      sortBy,
+      sortOrder,
+      field,
+      subject,
+      minPrice,
+      maxPrice,
+      page,
+      limit,
+    } = req.validatedQuery!;
+    const skip = (page - 1) * Math.min(100, Math.max(1, limit));
 
     const where: Prisma.QuizWhereInput = {
       isPublished: true,
@@ -37,7 +53,13 @@ export async function GET(req: NextRequest) {
     }
 
     if (tags && tags.length > 0) {
-      where.tags = { hasSome: tags };
+      const tagsArray = tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (tagsArray.length > 0) {
+        where.tags = { hasSome: tagsArray };
+      }
     }
 
     if (field) where.field = field;
@@ -96,4 +118,4 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

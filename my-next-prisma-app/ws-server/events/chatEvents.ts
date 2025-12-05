@@ -25,19 +25,32 @@ function profanityFilter(msg: string): boolean {
   return PROFANITY_WORDS.some((word) => msg.toLowerCase().includes(word));
 }
 
-// In-memory mute/block (for demo only; use Redis/DB in production)
-const mutedUsers: Record<string, Set<string>> = {}; // roomId -> Set<userId>
-const blockedUsers: Record<string, Set<string>> = {}; // userId -> Set<blockedUserId>
-
-function isMutedOrBlocked(socket: Socket, roomId: string): boolean {
+// Redis-based mute/block state for multi-instance support
+async function isMutedOrBlocked(
+  socket: Socket,
+  roomId: string
+): Promise<boolean> {
   const userId = (socket as any).user?.id;
   if (!userId) return false;
-  if (mutedUsers[roomId]?.has(userId)) return true;
-  // Check if this user is blocked by anyone in the room (simplified)
-  for (const blockedBy of Object.keys(blockedUsers)) {
-    if (blockedUsers[blockedBy]?.has(userId)) return true;
+
+  try {
+    // Check if user is muted in the room
+    const muteKey = `mute:${roomId}:${userId}`;
+    const isMuted = await redisClient.exists(muteKey);
+    if (isMuted) return true;
+
+    // Check if user is blocked globally
+    // Get all users who might have blocked this user
+    const blockPattern = `block:*:${userId}`;
+    const blockKeys = await redisClient.keys(blockPattern);
+    if (blockKeys && blockKeys.length > 0) return true;
+
+    return false;
+  } catch (error) {
+    console.error("Error checking mute/block status:", error);
+    // Graceful degradation: allow message if Redis fails
+    return false;
   }
-  return false;
 }
 
 export function registerChatEvents(io: Server, socket: Socket) {
@@ -65,7 +78,7 @@ export function registerChatEvents(io: Server, socket: Socket) {
       return cb?.({ error: "Missing roomId" });
     if (profanityFilter(message))
       return cb?.({ error: "Message contains inappropriate language" });
-    if (isMutedOrBlocked(socket, roomId || clanId || ""))
+    if (await isMutedOrBlocked(socket, roomId || clanId || ""))
       return cb?.({ error: "User is muted or blocked" });
     const chatMsg = {
       user: (socket as any).user,
@@ -97,27 +110,136 @@ export function registerChatEvents(io: Server, socket: Socket) {
     cb?.({ success: true });
   });
 
-  // Moderation events
-  socket.on("chat:mute", ({ userId, roomId }, cb) => {
-    if (!mutedUsers[roomId]) mutedUsers[roomId] = new Set();
-    mutedUsers[roomId].add(userId);
-    cb?.({ success: true });
+  // Moderation events with Redis persistence
+  socket.on("chat:mute", async ({ userId, roomId, duration = 3600 }, cb) => {
+    try {
+      const moderatorId = (socket as any).user?.id;
+      if (!moderatorId) {
+        return cb?.({ error: "Not authenticated", code: "UNAUTHORIZED" });
+      }
+
+      // Store mute in Redis with expiry (default 1 hour)
+      const muteKey = `mute:${roomId}:${userId}`;
+      if (redisClient && redisClient.isOpen) {
+        await redisClient.setex?.(muteKey, duration, moderatorId);
+      }
+
+      // Also store in database for audit trail
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+
+      await prisma.moderationAction.create({
+        data: {
+          targetUserId: userId,
+          performedById: moderatorId,
+          moderatorId: moderatorId,
+          action: "MUTE",
+          type: "CHAT_MUTE",
+          reason: `Muted in room ${roomId}`,
+          roomId,
+        },
+      });
+
+      await prisma.$disconnect();
+
+      // Notify room about mute
+      io.to(roomId).emit("moderation:user-muted", { userId, duration });
+
+      cb?.({ success: true, expiresAt: Date.now() + duration * 1000 });
+    } catch (error) {
+      console.error("Error muting user:", error);
+      cb?.({ error: "Failed to mute user", code: "SERVER_ERROR" });
+    }
   });
-  socket.on("chat:unmute", ({ userId, roomId }, cb) => {
-    mutedUsers[roomId]?.delete(userId);
-    cb?.({ success: true });
+
+  socket.on("chat:unmute", async ({ userId, roomId }, cb) => {
+    try {
+      const moderatorId = (socket as any).user?.id;
+      if (!moderatorId) {
+        return cb?.({ error: "Not authenticated", code: "UNAUTHORIZED" });
+      }
+
+      // Remove mute from Redis
+      const muteKey = `mute:${roomId}:${userId}`;
+      await redisClient.del(muteKey);
+
+      // Notify room about unmute
+      io.to(roomId).emit("moderation:user-unmuted", { userId });
+
+      cb?.({ success: true });
+    } catch (error) {
+      console.error("Error unmuting user:", error);
+      cb?.({ error: "Failed to unmute user", code: "SERVER_ERROR" });
+    }
   });
-  socket.on("chat:block", ({ userId }, cb) => {
-    const blockerId = (socket as any).user?.id;
-    if (!blockerId) return cb?.({ error: "Not authenticated" });
-    if (!blockedUsers[blockerId]) blockedUsers[blockerId] = new Set();
-    blockedUsers[blockerId].add(userId);
-    cb?.({ success: true });
+
+  socket.on("chat:block", async ({ userId }, cb) => {
+    try {
+      const blockerId = (socket as any).user?.id;
+      if (!blockerId) {
+        return cb?.({ error: "Not authenticated", code: "UNAUTHORIZED" });
+      }
+
+      // Store block in Redis (no expiry for blocks)
+      const blockKey = `block:${blockerId}:${userId}`;
+      await redisClient.set(blockKey, Date.now().toString());
+
+      // Also store in database
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+
+      await prisma.userBlock.upsert({
+        where: {
+          blockerId_blockedId: {
+            blockerId,
+            blockedId: userId,
+          },
+        },
+        create: {
+          blockerId,
+          blockedId: userId,
+        },
+        update: {},
+      });
+
+      await prisma.$disconnect();
+
+      cb?.({ success: true });
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      cb?.({ error: "Failed to block user", code: "SERVER_ERROR" });
+    }
   });
-  socket.on("chat:unblock", ({ userId }, cb) => {
-    const blockerId = (socket as any).user?.id;
-    blockedUsers[blockerId]?.delete(userId);
-    cb?.({ success: true });
+
+  socket.on("chat:unblock", async ({ userId }, cb) => {
+    try {
+      const blockerId = (socket as any).user?.id;
+      if (!blockerId) {
+        return cb?.({ error: "Not authenticated", code: "UNAUTHORIZED" });
+      }
+
+      // Remove block from Redis
+      const blockKey = `block:${blockerId}:${userId}`;
+      await redisClient.del(blockKey);
+
+      // Remove from database
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+
+      await prisma.userBlock.deleteMany({
+        where: {
+          blockerId,
+          blockedId: userId,
+        },
+      });
+
+      await prisma.$disconnect();
+
+      cb?.({ success: true });
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      cb?.({ error: "Failed to unblock user", code: "SERVER_ERROR" });
+    }
   });
   socket.on("chat:report", async ({ userId, message, roomId, reason }, cb) => {
     const reporterId = (socket as any).user?.id;
@@ -132,27 +254,38 @@ export function registerChatEvents(io: Server, socket: Socket) {
 
     try {
       // Store report in database
-      // TODO: Replace with actual database call
-      const report = {
-        reporterId,
-        reportedUserId: userId,
-        message,
-        roomId,
-        reason,
-        timestamp: Date.now(),
-        status: "PENDING",
-      };
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
 
-      console.log("Chat report created:", report);
+      const report = await prisma.chatReport.create({
+        data: {
+          reporterId,
+          reportedUserId: userId,
+          message,
+          roomId,
+          reason,
+          status: "PENDING",
+        },
+      });
+
+      await prisma.$disconnect();
+
+      console.log("Chat report created:", report.id);
 
       // Notify moderators (emit to mod channel)
-      io.to("moderators").emit("moderation:new-report", report);
+      io.to("moderators").emit("moderation:new-report", {
+        reportId: report.id,
+        reporterId,
+        reportedUserId: userId,
+        reason,
+        roomId,
+        timestamp: report.createdAt,
+      });
 
-      cb?.({ success: true, reportId: `report_${Date.now()}` });
+      cb?.({ success: true, reportId: report.id });
     } catch (error) {
       console.error("Error creating report:", error);
       cb?.({ error: "Failed to create report", code: "SERVER_ERROR" });
     }
   });
 }
-// NOTE: For production, move mute/block state to Redis or DB for multi-instance support.
