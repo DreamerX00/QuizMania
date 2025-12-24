@@ -17,8 +17,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma Client (prisma schema already copied with COPY . .)
-# Provide dummy DATABASE_URL for prisma generate (only needed for client generation, not connection)
-RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
+# Provide dummy DATABASE_URL and DIRECT_DATABASE_URL for prisma generate (only needed for client generation, not connection)
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" DIRECT_DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
 # Build TypeScript
 RUN npm install -g typescript
