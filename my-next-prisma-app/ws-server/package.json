@@ -2,7 +2,6 @@
   "name": "quizmania-ws-server",
   "version": "1.0.0",
   "description": "WebSocket server for QuizMania multiplayer features",
-  "type": "module",
   "main": "index.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only index.ts",
