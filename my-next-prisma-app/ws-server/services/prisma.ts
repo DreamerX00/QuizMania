@@ -10,7 +10,7 @@ const pool = new Pool({
 });
 
 // Create the adapter
-const adapter = new PrismaPg({ pool });
+const adapter = new PrismaPg(pool);
 
 // Create and export the Prisma client
 const globalForPrisma = globalThis as unknown as {

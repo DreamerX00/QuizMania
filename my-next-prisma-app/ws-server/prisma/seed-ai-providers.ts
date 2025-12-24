@@ -10,7 +10,7 @@ const pool = new Pool({
 });
 
 // Create the adapter
-const adapter = new PrismaPg({ pool });
+const adapter = new PrismaPg(pool);
 
 const prisma = new PrismaClient({ adapter });
 
