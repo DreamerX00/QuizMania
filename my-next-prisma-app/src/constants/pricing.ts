@@ -1,4 +1,4 @@
-import { DifficultyLevel } from '@prisma/client';
+import { DifficultyLevel } from "@/generated/prisma/client";
 
 export interface PricingConfig {
   pricePerAttempt: number; // in ₹
@@ -139,7 +139,11 @@ export const DAILY_ATTEMPT_LIMITS = {
 export const PREMIUM_SUBSCRIPTION_PRICE = 400; // ₹400/month
 
 // Points calculation formula
-export function calculateEarnedPoints(userScore: number, totalMarks: number, pointPerAttempt: number): number {
+export function calculateEarnedPoints(
+  userScore: number,
+  totalMarks: number,
+  pointPerAttempt: number
+): number {
   return Math.floor((userScore / totalMarks) * pointPerAttempt);
 }
 
@@ -149,13 +153,23 @@ export function getPricingConfig(difficulty: DifficultyLevel): PricingConfig {
 }
 
 // Check if user can access premium quiz
-export function canAccessPremiumQuiz(userAccountType: string, userPremiumUntil?: Date | null): boolean {
-  if (userAccountType === 'LIFETIME') return true;
-  if (userAccountType === 'PREMIUM' && userPremiumUntil && userPremiumUntil > new Date()) return true;
+export function canAccessPremiumQuiz(
+  userAccountType: string,
+  userPremiumUntil?: Date | null
+): boolean {
+  if (userAccountType === "LIFETIME") return true;
+  if (
+    userAccountType === "PREMIUM" &&
+    userPremiumUntil &&
+    userPremiumUntil > new Date()
+  )
+    return true;
   return false;
 }
 
 // Get daily attempt limit for user
 export function getDailyAttemptLimit(userAccountType: string): number {
-  return userAccountType === 'FREE' ? DAILY_ATTEMPT_LIMITS.FREE : DAILY_ATTEMPT_LIMITS.PREMIUM;
-} 
+  return userAccountType === "FREE"
+    ? DAILY_ATTEMPT_LIMITS.FREE
+    : DAILY_ATTEMPT_LIMITS.PREMIUM;
+}
