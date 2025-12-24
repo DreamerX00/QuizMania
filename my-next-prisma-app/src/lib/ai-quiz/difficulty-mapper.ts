@@ -1,6 +1,6 @@
 // Difficulty Level to Tier Mapper
 
-import { DifficultyTier } from "@prisma/client";
+import { DifficultyTier } from "@/generated/prisma/client";
 import { DIFFICULTY_LEVELS } from "@/constants/ai-quiz";
 
 export function getDifficultyTier(level: number): DifficultyTier {

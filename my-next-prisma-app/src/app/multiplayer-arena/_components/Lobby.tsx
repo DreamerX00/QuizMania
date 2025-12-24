@@ -6,6 +6,8 @@ import { Plus, Crown, Users, Sword, Target, Flame, Zap } from "lucide-react";
 import InviteModal from "../components/InviteModal";
 import toast from "react-hot-toast";
 import Image from "next/image";
+import { socketService } from "@/lib/socket";
+import { useAuth } from "@/context/AuthContext";
 
 interface Participant {
   id: string;
@@ -20,6 +22,7 @@ interface Room {
   id: string;
   name?: string;
   hostId?: string;
+  gameMode?: string;
 }
 
 const Lobby = ({
@@ -31,7 +34,9 @@ const Lobby = ({
   currentRoom: Room | null;
   gameState?: "waiting" | "playing" | "voting" | "results";
 }) => {
+  const { user } = useAuth();
   const [isInviteModalOpen, setInviteModalOpen] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Convert participants Map to array for rendering
@@ -62,10 +67,57 @@ const Lobby = ({
     playSound("/game_arena/invite.mp3");
   };
 
-  const handleStartMatch = () => {
+  const handleStartMatch = async () => {
+    if (!currentRoom?.id) {
+      toast.error("No room found");
+      return;
+    }
+
+    // Check if user is the host
+    const isHost = currentRoom.hostId === user?.id;
+    if (!isHost) {
+      toast.error("Only the host can start the match");
+      return;
+    }
+
+    // Check minimum players
+    if (participants.size < 2) {
+      toast.error("At least 2 players required to start");
+      return;
+    }
+
+    setIsStarting(true);
     playSound("/game_arena/start_match.mp3");
-    toast.success("Match started!");
-    // TODO: Implement match start logic with real API
+
+    try {
+      // Call API to update room status
+      const response = await fetch(`/api/rooms/${currentRoom.id}/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to start match");
+      }
+
+      // Emit WebSocket event to notify all room members
+      if (socketService.isConnected()) {
+        socketService.startGame(
+          currentRoom.id,
+          currentRoom.gameMode || "standard"
+        );
+      }
+
+      toast.success("Match started!");
+    } catch (error) {
+      console.error("Failed to start match:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to start match"
+      );
+    } finally {
+      setIsStarting(false);
+    }
   };
 
   return (
@@ -218,6 +270,11 @@ const Lobby = ({
             size="lg"
             className="relative px-8 py-4 bg-linear-to-r from-purple-600 via-blue-600 to-cyan-600 hover:from-purple-700 hover:via-blue-700 hover:to-cyan-700 text-white text-lg font-bold rounded-2xl shadow-2xl shadow-purple-600/30 border-0 overflow-hidden group"
             onClick={handleStartMatch}
+            disabled={
+              isStarting ||
+              participants.size < 2 ||
+              currentRoom?.hostId !== user?.id
+            }
           >
             {/* Animated background */}
             <div className="absolute inset-0 bg-linear-to-r from-purple-600/20 via-blue-600/20 to-cyan-600/20 animate-pulse"></div>
@@ -225,7 +282,13 @@ const Lobby = ({
             {/* Content */}
             <div className="relative flex items-center gap-3">
               <Flame className="w-5 h-5 group-hover:animate-bounce" />
-              <span>START BATTLE</span>
+              <span>
+                {isStarting
+                  ? "STARTING..."
+                  : currentRoom?.hostId !== user?.id
+                  ? "WAITING FOR HOST"
+                  : "START BATTLE"}
+              </span>
               <Zap className="w-5 h-5 group-hover:animate-pulse" />
             </div>
 
@@ -245,4 +308,3 @@ const Lobby = ({
 };
 
 export default Lobby;
-

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Quiz } from "@prisma/client";
+import type { Quiz } from "@/generated/prisma/client";
 import { motion } from "framer-motion";
 import { X, Edit, Bookmark, Loader2, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
@@ -326,4 +326,3 @@ export default function TemplateActionPanel({
     </>
   );
 }
-

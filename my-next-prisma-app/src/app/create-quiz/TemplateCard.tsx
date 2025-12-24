@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import type { Quiz } from "@prisma/client";
+import type { Quiz } from "@/generated/prisma/client";
 import { Tag, Calendar, DollarSign, BookOpen } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -116,4 +116,3 @@ export default function TemplateCard({
     </motion.div>
   );
 }
-

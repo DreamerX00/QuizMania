@@ -7,7 +7,6 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-// import { auth } from "@clerk/nextjs/server"; // Not used - using NextAuth
 import prisma from "@/lib/prisma";
 
 /**
@@ -118,8 +117,7 @@ export function withOwnership(
       request: NextRequest,
       context: Record<string, unknown>
     ): Promise<NextResponse> => {
-      // TODO: Use NextAuth instead of Clerk
-      // const { userId } = await auth();
+      // Get current user from NextAuth session
       const currentUser = await import("@/lib/session").then((m) =>
         m.getCurrentUser()
       );
@@ -160,8 +158,7 @@ export function withRole(requiredRoles: string[]) {
     handler: (request: NextRequest) => Promise<NextResponse>
   ) {
     return async (request: NextRequest): Promise<NextResponse> => {
-      // TODO: Use NextAuth instead of Clerk
-      // const { userId } = await auth();
+      // Get current user from NextAuth session
       const currentUser = await import("@/lib/session").then((m) =>
         m.getCurrentUser()
       );

@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+// AI Providers Seed Script for Prisma 7
+import prisma from "../src/lib/prisma";
 
 async function main() {
   console.log("Seeding AI providers...");

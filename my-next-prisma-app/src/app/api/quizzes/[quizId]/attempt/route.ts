@@ -4,7 +4,7 @@ import { QuizAttemptService } from "@/services/quizAttemptService";
 import { updatePackageStatsForQuiz } from "@/services/updatePackageStats";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
-import { QuizStatus, Prisma } from "@prisma/client";
+import { QuizStatus, Prisma } from "@/generated/prisma/client";
 
 // Accept either a simple score-based submission or a structured submission
 const structuredSchema = z.object({

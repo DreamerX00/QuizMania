@@ -16,6 +16,7 @@ import path from "path";
 import { createVoteLog } from "../services/voteLog";
 import { allowVote } from "../services/voteThrottle";
 import { votesTotal } from "../config/metrics";
+import { prisma } from "../services/prisma";
 
 // In-memory vote throttle (for demo only; use Redis in production)
 const lastVote: Record<string, number> = {}; // userId: timestamp
@@ -145,9 +146,6 @@ export function registerGameEvents(io: Server, socket: Socket) {
 
     // Verify user is room host via database
     try {
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-
       const room = await prisma.room.findUnique({
         where: { id: roomId },
         include: {
@@ -156,8 +154,6 @@ export function registerGameEvents(io: Server, socket: Socket) {
           },
         },
       });
-
-      await prisma.$disconnect();
 
       if (!room || room.memberships.length === 0) {
         return cb?.({
@@ -187,9 +183,6 @@ export function registerGameEvents(io: Server, socket: Socket) {
 
     // Store result in database
     try {
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-
       // Update room status
       await prisma.room.update({
         where: { id: roomId },
@@ -198,25 +191,55 @@ export function registerGameEvents(io: Server, socket: Socket) {
         },
       });
 
-      // Store game results
-      // TODO: Create GameResult model in schema.prisma
-      // if (result.scores && Array.isArray(result.scores)) {
-      //   const gameResultPromises = result.scores.map(
-      //     (score: { userId: string; score: number; rank?: number }) =>
-      //       prisma.gameResult.create({
-      //         data: {
-      //           roomId,
-      //           userId: score.userId,
-      //           score: score.score,
-      //           rank: score.rank || 0,
-      //           completedAt: new Date(),
-      //         },
-      //       })
-      //   );
-      //   await Promise.all(gameResultPromises);
-      // }
+      // Store game results for each player
+      if (result.scores && Array.isArray(result.scores)) {
+        const gameResultPromises = result.scores.map(
+          (score: {
+            odId: string;
+            score: number;
+            rank?: number;
+            correctAnswers?: number;
+            totalQuestions?: number;
+            duration?: number;
+            xpEarned?: number;
+          }) =>
+            prisma.gameResult.create({
+              data: {
+                roomId,
+                odId: score.odId,
+                score: score.score,
+                rank: score.rank || 0,
+                gameMode: result.gameMode || "standard",
+                correctAnswers: score.correctAnswers || 0,
+                totalQuestions: score.totalQuestions || 0,
+                duration: score.duration || null,
+                xpEarned: score.xpEarned || 0,
+                completedAt: new Date(),
+                metadata: {
+                  endedBy: userId,
+                  timestamp: Date.now(),
+                },
+              },
+            })
+        );
+        await Promise.all(gameResultPromises);
 
-      await prisma.$disconnect();
+        // Update user XP for each player
+        const xpUpdatePromises = result.scores.map(
+          (score: { odId: string; xpEarned?: number }) => {
+            if (score.xpEarned && score.xpEarned > 0) {
+              return prisma.user.update({
+                where: { id: score.odId },
+                data: {
+                  xp: { increment: score.xpEarned },
+                },
+              });
+            }
+            return Promise.resolve();
+          }
+        );
+        await Promise.all(xpUpdatePromises);
+      }
 
       io.to(roomId).emit("game:ended", { result });
       cb?.({ success: true });

@@ -1,13 +1,13 @@
 // Prisma schema for Quiz Mania
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
+  provider = "postgresql"
+  // URL is configured in prisma.config.ts
 }
 
 enum Role {
@@ -238,6 +238,9 @@ model User {
   chatReportsCreated ChatReport[] @relation("ChatReportReporter")
   chatReportsReceived ChatReport[] @relation("ChatReportReported")
   chatReportsReviewed ChatReport[] @relation("ChatReportReviewer")
+
+  // Game Results (multiplayer)
+  gameResults GameResult[] @relation("UserGameResults")
 
   @@map("user")
 }
@@ -616,6 +619,30 @@ model Room {
   inviteLinks     RoomInviteLink[]
   chatMessages    RoomChat[]
   chatReports     ChatReport[]
+  gameResults     GameResult[]
+}
+
+// Multiplayer Game Results - stores scores from room-based games
+model GameResult {
+  id          String   @id @default(cuid())
+  roomId      String
+  odId      String
+  score       Int
+  rank        Int      @default(0)
+  gameMode    String   @default("standard") // e.g., "standard", "speed", "survival"
+  duration    Int?     // Duration in seconds
+  correctAnswers Int   @default(0)
+  totalQuestions Int   @default(0)
+  xpEarned    Int      @default(0)
+  completedAt DateTime @default(now())
+  metadata    Json?    // Additional game-specific data
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation("UserGameResults", fields: [odId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([odId])
+  @@index([completedAt])
 }
 
 model RoomMembership {

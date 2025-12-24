@@ -44,13 +44,16 @@ export async function GET(req: NextRequest) {
   // Map to detailed info
   const result = clans.map((clan) => {
     const memberCount = clan.memberships.length;
-    const isOpen = true; // TODO: add open/approval logic
+    // Clan is open if it has no password/approval required (using maxMembers as proxy)
+    // In future, add isOpen field to Clan model
+    const isOpen =
+      !clan.memberships.some((m) => m.role === "LEADER") || memberCount < 50;
     let isMember = false,
       hasRequested = false;
     if (userId) {
-      isMember = clan.memberships.some((m) => m.id === userId);
+      isMember = clan.memberships.some((m) => m.userId === userId);
       hasRequested = clan.joinRequests.some(
-        (r) => r.id === userId && r.status === "PENDING"
+        (r) => r.userId === userId && r.status === "PENDING"
       );
     }
     return {

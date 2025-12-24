@@ -14,11 +14,11 @@ import { NextRequest, NextResponse } from "next/server";
  */
 const CSP_POLICY = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: https: blob:",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self' https://*.clerk.accounts.dev https://*.razorpay.com wss: https://api.openai.com https://api.anthropic.com",
+  "connect-src 'self' https://*.razorpay.com wss: https://api.openai.com https://api.anthropic.com https://livekit.cloud wss://livekit.cloud",
   "frame-src 'self' https://*.razorpay.com https://challenges.cloudflare.com",
   "frame-ancestors 'none'", // Prevent clickjacking
   "base-uri 'self'",

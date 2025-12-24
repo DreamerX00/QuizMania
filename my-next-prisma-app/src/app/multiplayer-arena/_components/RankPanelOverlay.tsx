@@ -17,6 +17,7 @@ import {
 import useSWR from "swr";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import { IQScoreGraph } from "@/components/charts/IQScoreGraph";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -328,8 +329,8 @@ const RankPanelOverlay = ({ open, onClose }: RankPanelOverlayProps) => {
                           Visualizations
                         </h3>
                         <div className="space-y-3">
-                          <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 h-32 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                            IQ Score Graph (Coming Soon)
+                          <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-slate-600/50">
+                            <IQScoreGraph currentIQ={128} height={120} />
                           </div>
                           <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 h-32 flex items-center justify-center text-slate-500 dark:text-slate-400">
                             Battle Heatmap (Coming Soon)

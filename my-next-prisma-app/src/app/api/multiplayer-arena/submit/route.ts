@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/session";
 import { QuizAttemptService } from "@/services/quizAttemptService";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
-import { Prisma, QuizStatus } from "@prisma/client";
+import { Prisma, QuizStatus } from "@/generated/prisma/client";
 
 const submitArenaSchema = z.object({
   quizRecordId: z.string().min(1),

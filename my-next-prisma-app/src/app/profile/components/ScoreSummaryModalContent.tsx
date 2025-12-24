@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import validator from "validator";
+import { downloadQuizResultPDF, QuizResultData } from "@/utils/pdfExport";
+import useSWR from "swr";
+import { useAuth } from "@/context/AuthContext";
 
 interface ScoreSummaryModalContentProps {
   quizId: string;
@@ -18,13 +21,27 @@ interface ManualReview {
   type: string;
 }
 
+interface ReEvalRequest {
+  id: string;
+  status: string;
+  createdAt: string;
+  responses: Array<{
+    id: string;
+    feedback: string;
+    adjustedMarks?: number;
+  }>;
+}
+
 const QUESTIONS_PER_PAGE = 20;
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ScoreSummaryModalContent({
   quizId,
   attemptId,
   onClose,
 }: ScoreSummaryModalContentProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{
@@ -43,8 +60,116 @@ export default function ScoreSummaryModalContent({
     [key: string]: unknown;
   } | null>(null);
   const [downloading, setDownloading] = useState(false);
-  const [pdfTooltip, setPdfTooltip] = useState(false);
   const [page, setPage] = useState(1);
+  const [reEvalSubmitting, setReEvalSubmitting] = useState(false);
+  const [reEvalReason, setReEvalReason] = useState("");
+  const [showReEvalModal, setShowReEvalModal] = useState(false);
+  const [showCreatorChatModal, setShowCreatorChatModal] = useState(false);
+  const [creatorChatMessage, setCreatorChatMessage] = useState("");
+  const [chatSubmitting, setChatSubmitting] = useState(false);
+  const [creatorInfo, setCreatorInfo] = useState<{
+    name?: string;
+    image?: string;
+  } | null>(null);
+
+  // Fetch user premium status
+  const { data: userData } = useSWR(
+    user ? `/api/profile/premium-summary` : null,
+    fetcher
+  );
+
+  const isPremium =
+    userData?.accountType === "PREMIUM" || userData?.accountType === "LIFETIME";
+  const isPremiumActive =
+    isPremium &&
+    (!userData?.premiumUntil || new Date(userData.premiumUntil) > new Date());
+
+  // Fetch re-evaluation status
+  const { data: reEvalData, mutate: mutateReEval } = useSWR(
+    attemptId ? `/api/quiz/re-evaluation?attemptId=${attemptId}` : null,
+    fetcher
+  );
+  const hasPendingReEval = reEvalData?.hasPending;
+  const reEvalRequests: ReEvalRequest[] = reEvalData?.requests || [];
+
+  const handleReEvalRequest = async () => {
+    if (!reEvalReason.trim()) {
+      alert("Please provide a reason for the re-evaluation request.");
+      return;
+    }
+
+    setReEvalSubmitting(true);
+    try {
+      const res = await fetch("/api/quiz/re-evaluation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          attemptId,
+          reason: reEvalReason,
+        }),
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Re-evaluation request submitted successfully!");
+        setShowReEvalModal(false);
+        setReEvalReason("");
+        mutateReEval();
+      } else {
+        alert(result.error || "Failed to submit request");
+      }
+    } catch (err) {
+      alert("Failed to submit request");
+    } finally {
+      setReEvalSubmitting(false);
+    }
+  };
+
+  const handleOpenCreatorChat = async () => {
+    if (!isPremiumActive) return;
+
+    try {
+      const res = await fetch(`/api/quiz/creator-chat?quizId=${quizId}`);
+      const data = await res.json();
+      if (res.ok && data.creator) {
+        setCreatorInfo(data.creator);
+        setShowCreatorChatModal(true);
+      } else {
+        alert(data.error || "Unable to open chat with creator");
+      }
+    } catch (err) {
+      alert("Failed to connect");
+    }
+  };
+
+  const handleSendCreatorMessage = async () => {
+    if (!creatorChatMessage.trim()) return;
+
+    setChatSubmitting(true);
+    try {
+      const res = await fetch("/api/quiz/creator-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quizId,
+          message: creatorChatMessage,
+        }),
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Message sent to quiz creator!");
+        setShowCreatorChatModal(false);
+        setCreatorChatMessage("");
+      } else {
+        alert(result.error || "Failed to send message");
+      }
+    } catch (err) {
+      alert("Failed to send message");
+    } finally {
+      setChatSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -97,9 +222,24 @@ export default function ScoreSummaryModalContent({
         a.click();
         URL.revokeObjectURL(url);
       } else if (format === "pdf") {
-        // Scaffold: PDF generation coming soon
-        setPdfTooltip(true);
-        setTimeout(() => setPdfTooltip(false), 2000);
+        // Generate PDF using jsPDF
+        const pdfData: QuizResultData = {
+          quizTitle: data?.attempt?.quizTitle || "Quiz Result",
+          attemptId,
+          dateTaken: data?.attempt?.dateTaken || new Date().toISOString(),
+          autoMarks: data?.attempt?.autoMarks || 0,
+          revisedMarks: data?.attempt?.revisedMarks,
+          totalMarks: data?.totalScore,
+          allReviewed: data?.attempt?.allReviewed || false,
+          manualReviews: (data?.manualReviews || []).map((r: ManualReview) => ({
+            questionId: r.questionId,
+            marksAwarded: r.marksAwarded,
+            reviewed: r.reviewed,
+            feedback: r.feedback,
+            type: r.type,
+          })),
+        };
+        downloadQuizResultPDF(pdfData);
       }
     } finally {
       setDownloading(false);
@@ -232,36 +372,191 @@ export default function ScoreSummaryModalContent({
           </button>
           <div className="relative">
             <button
-              className="rounded-lg px-6 py-2 bg-linear-to-r from-yellow-500 to-orange-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
-              disabled
-              aria-label="Download as PDF (Coming Soon)"
-              onMouseEnter={() => setPdfTooltip(true)}
-              onMouseLeave={() => setPdfTooltip(false)}
-              onFocus={() => setPdfTooltip(true)}
-              onBlur={() => setPdfTooltip(false)}
+              className="rounded-lg px-6 py-2 bg-linear-to-r from-yellow-500 to-orange-600 text-white font-semibold shadow hover:scale-105 transition"
+              onClick={() => handleDownload("pdf")}
+              disabled={downloading}
+              aria-label="Download as PDF"
             >
-              Download as PDF (Coming Soon)
+              {downloading ? "Generating PDF..." : "Download as PDF"}
             </button>
-            {pdfTooltip && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 px-3 py-1 rounded bg-black text-white text-xs shadow-lg z-50 whitespace-nowrap">
-                PDF export coming soon!
-              </div>
-            )}
           </div>
-          <button
-            className="rounded-lg px-6 py-2 bg-linear-to-r from-pink-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
-            disabled
-          >
-            Premium: Request Re-evaluation
-          </button>
-          <button
-            className="rounded-lg px-6 py-2 bg-linear-to-r from-green-500 to-blue-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
-            disabled
-          >
-            Premium: Chat with Quiz Creator
-          </button>
+          {/* Re-evaluation Button */}
+          {isPremiumActive ? (
+            hasPendingReEval ? (
+              <button
+                className="rounded-lg px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold shadow cursor-default"
+                disabled
+              >
+                ⏳ Re-evaluation Pending
+              </button>
+            ) : (
+              <button
+                className="rounded-lg px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition"
+                onClick={() => setShowReEvalModal(true)}
+              >
+                ⭐ Request Re-evaluation
+              </button>
+            )
+          ) : (
+            <button
+              className="rounded-lg px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
+              disabled
+              title="Premium feature - Upgrade to request re-evaluation"
+            >
+              🔒 Premium: Request Re-evaluation
+            </button>
+          )}
+          {/* Chat with Creator Button */}
+          {isPremiumActive ? (
+            <button
+              className="rounded-lg px-6 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold shadow hover:scale-105 transition"
+              onClick={handleOpenCreatorChat}
+            >
+              💬 Chat with Quiz Creator
+            </button>
+          ) : (
+            <button
+              className="rounded-lg px-6 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
+              disabled
+              title="Premium feature - Upgrade to chat with quiz creators"
+            >
+              🔒 Premium: Chat with Quiz Creator
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Re-evaluation Modal */}
+      {showReEvalModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-white mb-4">
+              Request Re-evaluation
+            </h3>
+            <p className="text-white/70 mb-4">
+              Submit a request to the quiz creator to re-evaluate your answers.
+              Please provide a detailed reason for your request.
+            </p>
+            <textarea
+              value={reEvalReason}
+              onChange={(e) => setReEvalReason(e.target.value)}
+              placeholder="Explain why you believe your answers should be re-evaluated..."
+              className="w-full h-32 bg-slate-700 text-white rounded-lg p-3 mb-4 resize-none"
+              maxLength={1000}
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition"
+                onClick={() => setShowReEvalModal(false)}
+                disabled={reEvalSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:scale-105 transition disabled:opacity-50"
+                onClick={handleReEvalRequest}
+                disabled={reEvalSubmitting || !reEvalReason.trim()}
+              >
+                {reEvalSubmitting ? "Submitting..." : "Submit Request"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Re-evaluation History */}
+      {reEvalRequests.length > 0 && (
+        <div className="mb-4 p-4 bg-purple-900/30 rounded-xl">
+          <h4 className="text-white font-semibold mb-2">
+            Re-evaluation History
+          </h4>
+          {reEvalRequests.map((req) => (
+            <div key={req.id} className="text-white/70 text-sm mb-2">
+              <span
+                className={`px-2 py-1 rounded text-xs ${
+                  req.status === "PENDING"
+                    ? "bg-yellow-500/30 text-yellow-300"
+                    : req.status === "IN_PROGRESS"
+                    ? "bg-blue-500/30 text-blue-300"
+                    : req.status === "COMPLETED"
+                    ? "bg-green-500/30 text-green-300"
+                    : "bg-red-500/30 text-red-300"
+                }`}
+              >
+                {req.status}
+              </span>
+              <span className="ml-2">
+                {new Date(req.createdAt).toLocaleDateString()}
+              </span>
+              {req.responses.length > 0 && (
+                <p className="mt-1 text-white/60 italic">
+                  Response: {req.responses[0].feedback}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Creator Chat Modal */}
+      {showCreatorChatModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-white mb-4">
+              💬 Chat with Quiz Creator
+            </h3>
+            {creatorInfo && (
+              <div className="flex items-center gap-3 mb-4 p-3 bg-slate-700 rounded-lg">
+                {creatorInfo.image ? (
+                  <img
+                    src={creatorInfo.image}
+                    alt={creatorInfo.name || "Creator"}
+                    className="w-10 h-10 rounded-full"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                    {creatorInfo.name?.[0] || "C"}
+                  </div>
+                )}
+                <div>
+                  <p className="text-white font-semibold">
+                    {creatorInfo.name || "Quiz Creator"}
+                  </p>
+                  <p className="text-white/60 text-sm">Quiz Creator</p>
+                </div>
+              </div>
+            )}
+            <p className="text-white/70 mb-4 text-sm">
+              Send a message to the quiz creator about your attempt. They will
+              receive it as a direct message.
+            </p>
+            <textarea
+              value={creatorChatMessage}
+              onChange={(e) => setCreatorChatMessage(e.target.value)}
+              placeholder="Write your message to the quiz creator..."
+              className="w-full h-32 bg-slate-700 text-white rounded-lg p-3 mb-4 resize-none"
+              maxLength={1000}
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition"
+                onClick={() => setShowCreatorChatModal(false)}
+                disabled={chatSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:scale-105 transition disabled:opacity-50"
+                onClick={handleSendCreatorMessage}
+                disabled={chatSubmitting || !creatorChatMessage.trim()}
+              >
+                {chatSubmitting ? "Sending..." : "Send Message"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div
         id="score-summary-modal-desc"
         className="w-full bg-white/10 rounded-xl p-4 mb-4 flex-1 overflow-y-auto"

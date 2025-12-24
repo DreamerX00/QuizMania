@@ -7,7 +7,7 @@ import type {
   AIQuizStatus,
   DifficultyTier,
   AIProviderType,
-} from "@prisma/client";
+} from "@/generated/prisma/client";
 
 interface PreviewQuestion {
   id: string;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { withQueryValidation, z } from "@/lib/api-validation";

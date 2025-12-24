@@ -1,13 +1,13 @@
 // Prisma schema for Quiz Mania
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
+  provider = "postgresql"
+  // URL is configured in prisma.config.ts
 }
 
 enum Role {
@@ -239,6 +239,13 @@ model User {
   chatReportsReceived ChatReport[] @relation("ChatReportReported")
   chatReportsReviewed ChatReport[] @relation("ChatReportReviewer")
 
+  // Game Results (multiplayer)
+  gameResults GameResult[] @relation("UserGameResults")
+
+  // Re-evaluation Relations (Premium feature)
+  reEvalRequestsMade     ReEvaluationRequest[] @relation("UserReEvalRequests")
+  reEvalRequestsReceived ReEvaluationRequest[] @relation("CreatorReEvalRequests")
+
   @@map("user")
 }
 
@@ -295,6 +302,7 @@ model QuizRecord {
   violations            QuizViolation[]
   responses             Json?
   isManualReviewPending Boolean          @default(false)
+  reEvalRequests        ReEvaluationRequest[]
 
   @@index([userId])
   @@index([quizId])
@@ -393,6 +401,7 @@ model Quiz {
   questions        Question[]
   quizViolations   QuizViolation[]
   template         Template?
+  reEvalRequests   ReEvaluationRequest[]
 
   // Aggregated fields
   usersTaken        Int              @default(0)
@@ -616,6 +625,30 @@ model Room {
   inviteLinks     RoomInviteLink[]
   chatMessages    RoomChat[]
   chatReports     ChatReport[]
+  gameResults     GameResult[]
+}
+
+// Multiplayer Game Results - stores scores from room-based games
+model GameResult {
+  id          String   @id @default(cuid())
+  roomId      String
+  odId      String
+  score       Int
+  rank        Int      @default(0)
+  gameMode    String   @default("standard") // e.g., "standard", "speed", "survival"
+  duration    Int?     // Duration in seconds
+  correctAnswers Int   @default(0)
+  totalQuestions Int   @default(0)
+  xpEarned    Int      @default(0)
+  completedAt DateTime @default(now())
+  metadata    Json?    // Additional game-specific data
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation("UserGameResults", fields: [odId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([odId])
+  @@index([completedAt])
 }
 
 model RoomMembership {
@@ -1161,4 +1194,56 @@ model AIQuizAchievement {
 
   @@unique([userId, achievementKey])
   @@index([userId])
+}
+
+// Re-evaluation Request for Premium Users
+model ReEvaluationRequest {
+  id        String   @id @default(cuid())
+  attemptId String   // QuizRecord ID
+  userId    String
+  quizId    String
+  creatorId String
+
+  // Request details
+  questionIds Json     @default("[]") // Array of question IDs to re-evaluate
+  reason      String   @db.Text
+  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, REJECTED
+
+  // Response
+  responseNote  String?   @db.Text
+  newScore      Int?
+  resolvedAt    DateTime?
+  resolvedBy    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User                          @relation("UserReEvalRequests", fields: [userId], references: [id], onDelete: Cascade)
+  creator   User                          @relation("CreatorReEvalRequests", fields: [creatorId], references: [id], onDelete: Cascade)
+  quiz      Quiz                          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  record    QuizRecord                    @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  responses ReEvaluationResponse[]
+
+  @@index([userId])
+  @@index([creatorId])
+  @@index([quizId])
+  @@index([status])
+}
+
+// Re-evaluation Response from Creator
+model ReEvaluationResponse {
+  id        String @id @default(cuid())
+  requestId String
+
+  // Response details
+  questionId    String?
+  adjustedMarks Int?
+  feedback      String  @db.Text
+
+  createdAt DateTime @default(now())
+
+  request ReEvaluationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
 }

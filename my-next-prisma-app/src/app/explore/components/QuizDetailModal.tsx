@@ -13,7 +13,7 @@ import {
   FiLoader,
 } from "react-icons/fi";
 import { getPricingConfig } from "@/constants/pricing";
-import { DifficultyLevel } from "@prisma/client";
+import { DifficultyLevel } from "@/generated/prisma/client";
 import { toast } from "react-hot-toast";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -545,4 +545,3 @@ function loadRazorpayScript() {
     document.body.appendChild(script);
   });
 }
-

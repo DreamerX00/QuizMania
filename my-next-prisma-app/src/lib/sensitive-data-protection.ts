@@ -21,9 +21,6 @@ const SENSITIVE_PATTERNS = [
     replacement: "Bearer [REDACTED]",
   },
 
-  // Clerk keys
-  { pattern: /clerk_[a-zA-Z0-9_]{30,}/g, replacement: "[REDACTED_CLERK_KEY]" },
-
   // Credit card numbers (basic pattern)
   {
     pattern: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,
@@ -73,13 +70,14 @@ const SENSITIVE_PATTERNS = [
 const SENSITIVE_ENV_VARS = [
   "DATABASE_URL",
   "DIRECT_URL",
-  "CLERK_SECRET_KEY",
+  "NEXTAUTH_SECRET",
   "OPENAI_API_KEY",
   "ANTHROPIC_API_KEY",
   "RAZORPAY_KEY_SECRET",
   "JWT_SECRET",
   "SESSION_SECRET",
   "REDIS_PASSWORD",
+  "LIVEKIT_API_SECRET",
 ];
 
 /**

@@ -7,7 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import type { DateRange } from "react-day-picker";
 import useSWR, { KeyedMutator } from "swr";
 import { useDebounce } from "use-debounce";
-import type { Quiz } from "@prisma/client";
+import type { Quiz } from "@/generated/prisma/client";
 import TemplateCard from "./TemplateCard";
 import TemplateActionPanel from "./TemplateActionPanel";
 

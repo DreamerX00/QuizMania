@@ -30,7 +30,24 @@ export async function POST(req: NextRequest) {
   const { clanId, message } = await req.json();
   if (!clanId || !message)
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  // TODO: Check user is in clan
+
+  // Check user is a member of the clan
+  const membership = await prisma.clanMembership.findUnique({
+    where: {
+      odId_clanId: {
+        odId: userId,
+        clanId: clanId,
+      },
+    },
+  });
+
+  if (!membership) {
+    return NextResponse.json(
+      { error: "You must be a clan member to send messages" },
+      { status: 403 }
+    );
+  }
+
   const chat = await prisma.clanChat.create({
     data: { clanId, senderId: userId, message },
     include: {

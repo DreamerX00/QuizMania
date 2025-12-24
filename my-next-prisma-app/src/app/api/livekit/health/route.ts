@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { webrtcFallbackService } from "@/services/webrtcFallbackService";
+import { livekitService } from "@/services/livekitService";
 
 export const dynamic = "force-dynamic";
 // NO cache - health checks need fresh status
 
 export async function GET() {
   try {
-    // TODO: Implement getHealthStatus method in liveKitService
-    const healthStatus = {
-      isHealthy: true,
-      fallbackActive: false,
-      lastCheck: new Date(),
-      consecutiveFailures: 0,
-    };
+    // Get actual health status from LiveKit service
+    const healthStatus = livekitService.getHealthStatus();
     const webrtcStats = webrtcFallbackService.getRoomStats();
 
     // Check if LiveKit is healthy
@@ -63,19 +59,19 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case "force-fallback":
-        // TODO: Implement forceFallback method in liveKitService
+        livekitService.forceFallback();
         return NextResponse.json({
           success: true,
-          message: "LiveKit fallback mode forced (not implemented)",
-          status: { isHealthy: false, fallbackActive: true },
+          message: "LiveKit fallback mode forced",
+          status: livekitService.getHealthStatus(),
         });
 
       case "reset-fallback":
-        // TODO: Implement resetFallback method in liveKitService
+        livekitService.resetFallback();
         return NextResponse.json({
           success: true,
-          message: "LiveKit fallback mode reset (not implemented)",
-          status: { isHealthy: true, fallbackActive: false },
+          message: "LiveKit fallback mode reset",
+          status: livekitService.getHealthStatus(),
         });
 
       case "cleanup-webrtc":

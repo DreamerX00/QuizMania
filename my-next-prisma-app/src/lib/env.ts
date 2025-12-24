@@ -66,10 +66,6 @@ const envSchema = z.object({
     ? z.string().optional()
     : z.string().regex(/^\d+$/).transform(Number).default("6379"),
 
-  // Clerk Authentication (Legacy - for WebSocket server) (Server-only)
-  CLERK_JWT_ISSUER: z.string().url().optional(),
-  CLERK_AUTHORIZED_PARTIES: z.string().optional(),
-
   // Vote Throttling (Server-only)
   VOTE_THROTTLE_WINDOW_MS: isBrowser
     ? z.string().optional()

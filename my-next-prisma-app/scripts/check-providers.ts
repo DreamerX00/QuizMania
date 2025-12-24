@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+// Script to check AI providers - must be run via tsx with proper env setup
+import prisma from "../src/lib/prisma";
 
 async function main() {
   const providers = await prisma.aIProvider.findMany({

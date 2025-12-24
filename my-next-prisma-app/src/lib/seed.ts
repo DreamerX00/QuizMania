@@ -1,4 +1,4 @@
-import { PrismaClient, AIProviderType } from "@prisma/client";
+import { PrismaClient, AIProviderType } from "@/generated/prisma/client";
 import { seedAchievements } from "./achievements";
 import dotenv from "dotenv";
 

@@ -91,20 +91,15 @@ export function clearCookie(name: string): string {
 }
 
 /**
- * Clerk environment configuration
- * Ensures Clerk uses secure cookie settings
+ * NextAuth environment configuration
+ * These settings work with NextAuth's session management
  */
-export const CLERK_CONFIG = {
-  /**
-   * Frontend API endpoint (from env)
-   */
-  frontendApi: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API,
-
+export const AUTH_CONFIG = {
   /**
    * Sign in/up URLs
    */
-  signInUrl: "/sign-in",
-  signUpUrl: "/sign-up",
+  signInUrl: "/auth/signin",
+  signUpUrl: "/auth/signup",
 
   /**
    * After auth redirect
@@ -113,15 +108,15 @@ export const CLERK_CONFIG = {
   afterSignUpUrl: "/dashboard",
 
   /**
-   * Cookie security settings (Clerk auto-configures these)
-   * These are documentation - Clerk manages cookies internally
+   * Cookie security settings
+   * NextAuth handles these automatically based on NEXTAUTH_SECRET
    */
   cookies: {
-    // Clerk automatically uses:
+    // NextAuth automatically uses:
     // - HttpOnly for session tokens
-    // - Secure in production
+    // - Secure in production (when NEXTAUTH_URL uses https)
     // - SameSite=Lax
-    // - CSRF protection via state parameter
+    // - CSRF protection via token
   },
 } as const;
 

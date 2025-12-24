@@ -8,7 +8,7 @@ import type {
   Quiz,
   QuizComment as PrismaQuizComment,
   QuizPackage,
-} from "@prisma/client";
+} from "@/generated/prisma/client";
 import { Slider } from "@/components/ui/slider";
 
 // Extended types for runtime data (Quiz already has durationInSeconds, isLocked, difficultyLevel in Prisma)

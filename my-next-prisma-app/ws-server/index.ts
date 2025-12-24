@@ -31,10 +31,7 @@ dotenv.config();
 
 // Debug environment variables
 logger.info("Environment check:", {
-  hasClerkSecret: !!process.env.CLERK_SECRET_KEY,
-  clerkSecretPreview: process.env.CLERK_SECRET_KEY
-    ? `${process.env.CLERK_SECRET_KEY.substring(0, 10)}...`
-    : "not set",
+  hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
   nodeEnv: process.env.NODE_ENV,
   wsPort: process.env.WS_PORT,
 });

@@ -18,12 +18,9 @@ import {
   createFriendChat,
 } from "../services/chatPersistence";
 import { messagesTotal } from "../config/metrics";
-
-// Placeholder: Replace with a real word list or external service
-const PROFANITY_WORDS = ["badword", "anotherbadword"];
-function profanityFilter(msg: string): boolean {
-  return PROFANITY_WORDS.some((word) => msg.toLowerCase().includes(word));
-}
+import { containsProfanity, cleanMessage } from "../services/profanityFilter";
+import { logger } from "../config/logger";
+import { prisma } from "../services/prisma";
 
 // Redis-based mute/block state for multi-instance support
 async function isMutedOrBlocked(
@@ -76,25 +73,39 @@ export function registerChatEvents(io: Server, socket: Socket) {
       return cb?.({ error: "Missing receiverId for friend chat" });
     if ((type === "match" || type === "room") && !roomId)
       return cb?.({ error: "Missing roomId" });
-    if (profanityFilter(message))
-      return cb?.({ error: "Message contains inappropriate language" });
+
+    // Clean message if it contains profanity (auto-censor instead of block)
+    let cleanedMessage = message;
+    if (containsProfanity(message)) {
+      cleanedMessage = cleanMessage(message);
+      logger.info("Profanity detected and cleaned", {
+        userId: (socket as any).user?.id,
+        original: message.substring(0, 50),
+        cleaned: cleanedMessage.substring(0, 50),
+      });
+    }
+
     if (await isMutedOrBlocked(socket, roomId || clanId || ""))
       return cb?.({ error: "User is muted or blocked" });
     const chatMsg = {
       user: (socket as any).user,
-      message,
+      message: cleanedMessage,
       timestamp: Date.now(),
       type,
     };
     // Persist to Postgres for persistent chat types
     if (type === "clan" && clanId) {
-      await createClanChat(clanId, (socket as any).user.id, message);
+      await createClanChat(clanId, (socket as any).user.id, cleanedMessage);
     } else if (type === "room" && roomId) {
-      await createRoomChat(roomId, (socket as any).user.id, message);
+      await createRoomChat(roomId, (socket as any).user.id, cleanedMessage);
     } else if (type === "public") {
-      await createPublicChat((socket as any).user.id, message);
+      await createPublicChat((socket as any).user.id, cleanedMessage);
     } else if (type === "friend" && receiverId) {
-      await createFriendChat((socket as any).user.id, receiverId, message);
+      await createFriendChat(
+        (socket as any).user.id,
+        receiverId,
+        cleanedMessage
+      );
     }
     if (type === "match" && roomId) {
       // Ephemeral: store in Redis (volatile)
@@ -125,9 +136,6 @@ export function registerChatEvents(io: Server, socket: Socket) {
       }
 
       // Also store in database for audit trail
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-
       await prisma.moderationAction.create({
         data: {
           targetUserId: userId,
@@ -139,8 +147,6 @@ export function registerChatEvents(io: Server, socket: Socket) {
           roomId,
         },
       });
-
-      await prisma.$disconnect();
 
       // Notify room about mute
       io.to(roomId).emit("moderation:user-muted", { userId, duration });
@@ -185,9 +191,6 @@ export function registerChatEvents(io: Server, socket: Socket) {
       await redisClient.set(blockKey, Date.now().toString());
 
       // Also store in database
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-
       await prisma.userBlock.upsert({
         where: {
           blockerId_blockedId: {
@@ -201,8 +204,6 @@ export function registerChatEvents(io: Server, socket: Socket) {
         },
         update: {},
       });
-
-      await prisma.$disconnect();
 
       cb?.({ success: true });
     } catch (error) {
@@ -223,17 +224,12 @@ export function registerChatEvents(io: Server, socket: Socket) {
       await redisClient.del(blockKey);
 
       // Remove from database
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-
       await prisma.userBlock.deleteMany({
         where: {
           blockerId,
           blockedId: userId,
         },
       });
-
-      await prisma.$disconnect();
 
       cb?.({ success: true });
     } catch (error) {
@@ -254,9 +250,6 @@ export function registerChatEvents(io: Server, socket: Socket) {
 
     try {
       // Store report in database
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-
       const report = await prisma.chatReport.create({
         data: {
           reporterId,
@@ -267,8 +260,6 @@ export function registerChatEvents(io: Server, socket: Socket) {
           status: "PENDING",
         },
       });
-
-      await prisma.$disconnect();
 
       console.log("Chat report created:", report.id);
 

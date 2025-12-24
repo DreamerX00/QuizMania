@@ -1,6 +1,10 @@
 // AI Quiz Generation System Types
 
-import { AIProviderType, AIQuizStatus, DifficultyTier } from "@prisma/client";
+import {
+  AIProviderType,
+  AIQuizStatus,
+  DifficultyTier,
+} from "@/generated/prisma/client";
 
 export interface QuizConfig {
   providerId: string;

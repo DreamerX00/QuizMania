@@ -5,7 +5,7 @@ import slugify from "slugify";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 import prisma from "@/lib/prisma";
-import { DifficultyLevel } from "@prisma/client";
+import { DifficultyLevel } from "@/generated/prisma/client";
 import { getRedisClient } from "@/lib/redis";
 
 const createQuizSchema = z.object({

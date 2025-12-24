@@ -1,19 +1,12 @@
-// Prisma Accelerate schema mismatches (requires setup)
+// Prisma Accelerate Cache Configuration
 import prisma from "./prisma";
 
 /**
  * Prisma Accelerate Cache Configuration
  *
- * NOTE: This file contains Prisma Accelerate caching examples.
- * Currently disabled as it requires:
- * 1. Prisma Accelerate setup (connection pooling + caching)
- * 2. Updated Prisma schema matching the cache operations
- * 3. Environment configuration with Accelerate connection string
- *
- * To enable:
- * - Set up Prisma Accelerate: https://www.prisma.io/accelerate
- * - Uncomment cacheStrategy and withAccelerateInfo() calls
- * - Update schema to match the cached models
+ * Prisma Accelerate is enabled with cacheStrategy for read operations.
+ * Requires: DATABASE_URL to be a Prisma Accelerate connection string
+ * (e.g., prisma://accelerate.prisma-data.net/?api_key=...)
  *
  * Cache TTL Guidelines:
  * - Static content (about, guides): 3600s (1 hour)
@@ -54,6 +47,7 @@ export async function getCachedQuizzes(options: {
 }) {
   return await prisma.quiz.findMany({
     ...options,
+    cacheStrategy: CACHE_STRATEGIES.QUIZ_LIST,
     select: {
       id: true,
       title: true,
@@ -86,6 +80,7 @@ export async function getCachedQuizzes(options: {
 export async function getCachedUserProfile(userId: string) {
   return await prisma.user.findUnique({
     where: { id: userId },
+    cacheStrategy: CACHE_STRATEGIES.USER_PROFILE,
     select: {
       id: true,
       name: true,
@@ -131,6 +126,7 @@ export async function getCachedLeaderboard(limit = 100) {
   return await prisma.user.findMany({
     take: limit,
     orderBy: { points: "desc" },
+    cacheStrategy: CACHE_STRATEGIES.LEADERBOARD,
     select: {
       id: true,
       name: true,
@@ -146,6 +142,7 @@ export async function getCachedLeaderboard(limit = 100) {
 export async function getCachedPopularTags(limit = 20) {
   const quizzes = await prisma.quiz.findMany({
     select: { tags: true },
+    cacheStrategy: CACHE_STRATEGIES.TAGS,
   });
 
   const tagCounts = new Map<string, number>();
@@ -165,6 +162,7 @@ export async function getCachedPopularTags(limit = 20) {
 export async function getCachedQuizDetails(quizId: string) {
   return await prisma.quiz.findUnique({
     where: { id: quizId },
+    cacheStrategy: CACHE_STRATEGIES.QUIZ_LIST,
     include: {
       questions: true,
       creator: {
@@ -183,6 +181,7 @@ export async function getCachedUserQuizzes(userId: string) {
   return await prisma.quiz.findMany({
     where: { creatorId: userId },
     orderBy: { createdAt: "desc" },
+    cacheStrategy: CACHE_STRATEGIES.USER_PROFILE,
     select: {
       id: true,
       title: true,

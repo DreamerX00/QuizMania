@@ -6,11 +6,8 @@ import { QuizAttemptService } from "@/services/quizAttemptService";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
 
-// This is the platform's main account where commission will be sent.
-// In a real app, this should come from a secure config or environment variable.
-// For Razorpay Route to work, you must add your own account as a linked account.
-// See: https://razorpay.com/docs/route/getting-started/#add-a-linked-account
-const PLATFORM_RAZORPAY_ACCOUNT_ID = process.env.RAZORPAY_PLATFORM_ACCOUNT_ID;
+// Platform fee: 30%
+const PLATFORM_FEE_PERCENTAGE = 0.3;
 
 const purchaseQuizSchema = z.object({
   quizId: z.string().min(1),
@@ -22,16 +19,6 @@ export const POST = withValidation(purchaseQuizSchema, async (request) => {
     const userId = currentUser?.id;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (!PLATFORM_RAZORPAY_ACCOUNT_ID) {
-      console.error(
-        "PLATFORM_RAZORPAY_ACCOUNT_ID is not set in environment variables."
-      );
-      return NextResponse.json(
-        { error: "Platform account not configured." },
-        { status: 500 }
-      );
     }
 
     const { quizId } = request.validated;
@@ -48,6 +35,23 @@ export const POST = withValidation(purchaseQuizSchema, async (request) => {
       return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
     }
 
+    // Check if already purchased
+    const existingUnlock = await prisma.quizUnlock.findUnique({
+      where: {
+        userId_quizId: {
+          userId,
+          quizId: quiz.id,
+        },
+      },
+    });
+
+    if (existingUnlock) {
+      return NextResponse.json(
+        { error: "You have already purchased this quiz" },
+        { status: 400 }
+      );
+    }
+
     if (!quiz.creatorId) {
       return NextResponse.json(
         { error: "Quiz has no creator" },
@@ -55,9 +59,10 @@ export const POST = withValidation(purchaseQuizSchema, async (request) => {
       );
     }
 
-    // Fetch the creator
+    // Fetch the creator with payout account
     const creator = await prisma.user.findUnique({
       where: { id: quiz.creatorId },
+      include: { payoutAccount: true },
     });
 
     if (!creator) {
@@ -67,13 +72,17 @@ export const POST = withValidation(purchaseQuizSchema, async (request) => {
       );
     }
 
-    // TODO: Add payout account check when schema is updated
-    // if (!creator.payoutAccount?.razorpayAccountId) {
-    //   return NextResponse.json(
-    //     { error: "Quiz creator has not set up payouts." },
-    //     { status: 400 }
-    //   );
-    // }
+    // Check if creator has a payout account set up
+    if (!creator.payoutAccount) {
+      return NextResponse.json(
+        {
+          error:
+            "Quiz creator has not set up payouts. Please contact the creator.",
+        },
+        { status: 400 }
+      );
+    }
+
     if (!quiz.pricePerAttempt || quiz.pricePerAttempt <= 0) {
       return NextResponse.json(
         { error: "This quiz cannot be purchased (invalid price)." },
@@ -81,43 +90,20 @@ export const POST = withValidation(purchaseQuizSchema, async (request) => {
       );
     }
 
-    // 2. Calculate amounts (in paise)
-    const totalAmount = quiz.pricePerAttempt * 100;
-    const platformFee = Math.round(totalAmount * 0.1); // 10%
-    const creatorAmount = totalAmount - platformFee;
+    // Calculate amounts (in paise for Razorpay)
+    const totalAmountPaise = quiz.pricePerAttempt * 100;
+    const platformFeePaise = Math.round(
+      totalAmountPaise * PLATFORM_FEE_PERCENTAGE
+    );
+    const creatorAmountPaise = totalAmountPaise - platformFeePaise;
 
-    // 3. Define the transfers for Razorpay Route
-    // TODO: Re-enable when payoutAccount relation is added to schema
-    const transfers = [
-      {
-        account: "PLACEHOLDER_ACCOUNT_ID", // creator.payoutAccount.razorpayAccountId,
-        amount: creatorAmount,
-        currency: "INR",
-        notes: {
-          role: "quiz_creator",
-          quizId: quiz.id,
-          creatorId: creator.id,
-        },
-      },
-      {
-        account: PLATFORM_RAZORPAY_ACCOUNT_ID,
-        amount: platformFee,
-        currency: "INR",
-        notes: {
-          role: "platform_fee",
-          quizId: quiz.id,
-        },
-      },
-    ];
-
-    // 4. Create Razorpay order with transfers
-    const order = await RazorpayService.createOrderWithTransfers(
+    // Create a simple Razorpay order (no Route/split - full payment to platform)
+    const order = await RazorpayService.createOrder(
       userId,
-      quiz.pricePerAttempt,
-      transfers
+      quiz.pricePerAttempt
     );
 
-    // 5. Store transaction in database
+    // Store transaction in database with creator share info
     await prisma.paymentTransaction.create({
       data: {
         userId: userId,
@@ -128,14 +114,20 @@ export const POST = withValidation(purchaseQuizSchema, async (request) => {
         type: "QUIZ_PURCHASE",
         metadata: {
           quizId: quiz.id,
+          quizTitle: quiz.title,
           creatorId: creator.id,
-          transfers: transfers,
+          creatorPayoutAccountId: creator.payoutAccount.id,
+          // Store amounts for later payout processing
+          totalAmount: totalAmountPaise,
+          platformFee: platformFeePaise,
+          creatorShare: creatorAmountPaise,
+          platformFeePercentage: PLATFORM_FEE_PERCENTAGE * 100,
           description: `Purchase of quiz: ${quiz.title}`,
         },
       },
     });
 
-    // 6. Return order to frontend
+    // Return order to frontend
     return NextResponse.json({
       orderId: order.id,
       amount: order.amount,
@@ -143,6 +135,12 @@ export const POST = withValidation(purchaseQuizSchema, async (request) => {
       key: process.env.RAZORPAY_KEY_ID,
       quizTitle: quiz.title,
       description: `Payment for ${quiz.title}`,
+      // Show creator share info (useful for UI)
+      breakdown: {
+        total: quiz.pricePerAttempt,
+        platformFee: platformFeePaise / 100,
+        creatorShare: creatorAmountPaise / 100,
+      },
     });
   } catch (error) {
     console.error("Quiz purchase error:", error);

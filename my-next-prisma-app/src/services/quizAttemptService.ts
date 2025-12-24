@@ -5,7 +5,7 @@ import {
   canAccessPremiumQuiz,
   getPricingConfig,
 } from "@/constants/pricing";
-import { QuizStatus, Prisma } from "@prisma/client";
+import { QuizStatus, Prisma } from "@/generated/prisma/client";
 import { calculateArenaXP } from "./xpAlgorithm";
 import { getRankByXP } from "@/utils/rank";
 

@@ -45,7 +45,7 @@ const ALLOWED_EXTERNAL_DOMAINS = [
   "api.razorpay.com",
   "checkout.razorpay.com",
   "api.stripe.com",
-  "clerk.accounts.dev",
+  "livekit.cloud",
 ];
 
 /**

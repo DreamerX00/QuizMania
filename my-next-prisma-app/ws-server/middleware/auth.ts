@@ -1,89 +1,99 @@
-import { Socket } from 'socket.io';
-// If Clerk types are missing, run: npm install --save-dev @types/clerk__clerk-sdk-node
-// If ExtendedError is missing, define it locally:
-// If socket.io types are missing, run: npm install --save-dev @types/socket.io
-// (This file assumes types are present.)
-type ExtendedError = Error & { data?: unknown };
-// Use Clerk's backend verification API
-import { verifyToken } from '@clerk/backend';
-import { logger } from '../config/logger';
+import { Socket } from "socket.io";
+import * as jose from "jose";
+import { logger } from "../config/logger";
 
-interface ClerkSession {
+type ExtendedError = Error & { data?: unknown };
+
+interface JWTPayload {
   sub: string;
   email?: string;
-  firstName?: string;
-  username?: string;
-  publicMetadata?: { premium?: boolean };
+  name?: string;
+  picture?: string;
+  id?: string;
+  iat?: number;
+  exp?: number;
   [key: string]: unknown;
 }
 
-interface ClerkUser {
+interface AuthenticatedUser {
   id: string;
   email?: string;
   name: string;
-  premium: boolean;
-  clerkSession: ClerkSession;
+  image?: string;
 }
 
-export async function authMiddleware(socket: Socket & { user?: ClerkUser }, next: (err?: ExtendedError) => void) {
-  const token = socket.handshake.auth?.token || socket.handshake.headers['authorization'];
-  
-  // Debug logging
-  logger.info('Auth middleware called', {
+/**
+ * Socket.IO Authentication Middleware
+ *
+ * Verifies NextAuth JWT tokens for WebSocket connections.
+ * Uses NEXTAUTH_SECRET for JWT verification.
+ */
+export async function authMiddleware(
+  socket: Socket & { user?: AuthenticatedUser },
+  next: (err?: ExtendedError) => void
+) {
+  const token =
+    socket.handshake.auth?.token || socket.handshake.headers["authorization"];
+
+  logger.info("Auth middleware called", {
     hasToken: !!token,
     tokenLength: token?.length,
-    tokenPreview: token ? `${token.substring(0, 10)}...` : 'no token',
+    tokenPreview: token ? `${token.substring(0, 20)}...` : "no token",
     authData: socket.handshake.auth,
     headers: Object.keys(socket.handshake.headers),
-    envClerkSecretPreview: process.env.CLERK_SECRET_KEY ? `${process.env.CLERK_SECRET_KEY.substring(0, 10)}...` : 'not set',
-    envClerkSecretSet: !!process.env.CLERK_SECRET_KEY
   });
-  logger.info('Token received in handshake', { token });
-  logger.info('Clerk secret in env', { key: process.env.CLERK_SECRET_KEY ? `${process.env.CLERK_SECRET_KEY.substring(0, 10)}...` : 'not set' });
-  
+
   if (!token) {
-    logger.warn('No token provided in auth middleware');
-    return next(new Error('Authentication required'));
+    logger.warn("No token provided in auth middleware");
+    return next(new Error("Authentication required"));
   }
-  
+
   try {
     // Remove 'Bearer ' prefix if present
-    const cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
-    logger.info('Verifying token with Clerk', { cleanTokenPreview: cleanToken ? `${cleanToken.substring(0, 10)}...` : 'no token' });
-    
-    const issuer = process.env.CLERK_JWT_ISSUER || process.env.CLERK_ISSUER;
-    const authorizedParties = process.env.CLERK_AUTHORIZED_PARTIES
-      ? process.env.CLERK_AUTHORIZED_PARTIES.split(',').map(s => s.trim()).filter(Boolean)
-      : undefined;
+    const cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
 
-    if (!issuer) {
-      logger.error('Clerk JWT issuer is not configured. Please set CLERK_JWT_ISSUER.');
-      return next(new Error('Server misconfiguration: CLERK_JWT_ISSUER not set'));
+    // Get the NextAuth secret
+    const secret = process.env.NEXTAUTH_SECRET;
+    if (!secret) {
+      logger.error("NEXTAUTH_SECRET is not configured");
+      return next(
+        new Error("Server misconfiguration: NEXTAUTH_SECRET not set")
+      );
     }
 
-    // Clerk: verify the session token and attach user info
-    const session = await verifyToken(cleanToken, {
-      secretKey: process.env.CLERK_SECRET_KEY,
-      issuer,
-      authorizedParties,
-    } as any) as ClerkSession;
-    
+    // Verify the JWT
+    const secretKey = new TextEncoder().encode(secret);
+    const { payload } = await jose.jwtVerify(cleanToken, secretKey, {
+      algorithms: ["HS256"],
+    });
+
+    const jwtPayload = payload as JWTPayload;
+
+    // Extract user info from JWT
+    const userId = jwtPayload.id || jwtPayload.sub;
+    if (!userId) {
+      logger.error("JWT payload missing user ID");
+      return next(new Error("Invalid token: missing user ID"));
+    }
+
     socket.user = {
-      id: session.sub,
-      email: session.email,
-      name: session.firstName || session.username || 'User',
-      premium: !!(session.publicMetadata && session.publicMetadata.premium),
-      clerkSession: session
+      id: userId,
+      email: jwtPayload.email,
+      name: jwtPayload.name || "User",
+      image: jwtPayload.picture,
     };
-    logger.info('User authenticated successfully', { userId: socket.user.id });
+
+    logger.info("User authenticated successfully", {
+      userId: socket.user.id,
+      name: socket.user.name,
+    });
     next();
   } catch (err) {
-    logger.error('Clerk token verification failed', { 
-      error: err instanceof Error ? err.message : 'Unknown error',
-      tokenPreview: token ? `${token.substring(0, 10)}...` : 'no token',
-      envClerkSecretPreview: process.env.CLERK_SECRET_KEY ? `${process.env.CLERK_SECRET_KEY.substring(0, 10)}...` : 'not set',
-      errStack: err instanceof Error ? err.stack : err
+    logger.error("JWT verification failed", {
+      error: err instanceof Error ? err.message : "Unknown error",
+      tokenPreview: token ? `${token.substring(0, 20)}...` : "no token",
+      errStack: err instanceof Error ? err.stack : err,
     });
-    next(new Error('Invalid or expired Clerk token'));
+    next(new Error("Invalid or expired token"));
   }
-} 
+}

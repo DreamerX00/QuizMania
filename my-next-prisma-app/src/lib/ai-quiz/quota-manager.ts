@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { DAILY_QUOTA_LIMITS } from "@/constants/ai-quiz";
 import { QuotaStatus } from "@/types/ai-quiz";
-import { AccountType } from "@prisma/client";
+import { AccountType } from "@/generated/prisma/client";
 
 export async function checkQuota(userId: string): Promise<QuotaStatus> {
   // Get or create quota record

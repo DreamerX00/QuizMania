@@ -28,7 +28,24 @@ export async function POST(req: NextRequest) {
   const { roomId, message } = await req.json();
   if (!roomId || !message)
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  // TODO: Check user is in room
+
+  // Check user is a member of the room
+  const membership = await prisma.roomMembership.findUnique({
+    where: {
+      userId_roomId: {
+        userId: userId,
+        roomId: roomId,
+      },
+    },
+  });
+
+  if (!membership) {
+    return NextResponse.json(
+      { error: "You must be in the room to send messages" },
+      { status: 403 }
+    );
+  }
+
   const chat = await prisma.roomChat.create({
     data: { roomId, senderId: userId, message },
     include: {
