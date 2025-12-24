@@ -260,7 +260,10 @@ export class QuizAttemptService {
     const totalAttempts = allRecords.length;
     const averageScore =
       allRecords.length > 0
-        ? allRecords.reduce((sum, r) => sum + r.score, 0) / allRecords.length
+        ? allRecords.reduce(
+            (sum: number, r: (typeof allRecords)[number]) => sum + r.score,
+            0
+          ) / allRecords.length
         : 0;
 
     await prisma.quiz.update({
@@ -418,80 +421,82 @@ export class QuizAttemptService {
     ip?: string
   ): Promise<StartAttemptResult & { sessionId?: string }> {
     // Use an interactive transaction to make the start atomic and avoid races
-    const result = await prisma.$transaction(async (tx) => {
-      // Re-fetch user and quiz inside transaction
-      const [user, quiz] = await Promise.all([
-        tx.user.findUnique({ where: { id: userId } }),
-        tx.quiz.findUnique({ where: { id: quizId } }),
-      ]);
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        // Re-fetch user and quiz inside transaction
+        const [user, quiz] = await Promise.all([
+          tx.user.findUnique({ where: { id: userId } }),
+          tx.quiz.findUnique({ where: { id: quizId } }),
+        ]);
 
-      if (!user || !quiz) {
-        return {
-          success: false,
-          reason: "User or quiz not found",
-        } as StartAttemptResult & { sessionId?: string };
-      }
+        if (!user || !quiz) {
+          return {
+            success: false,
+            reason: "User or quiz not found",
+          } as StartAttemptResult & { sessionId?: string };
+        }
 
-      // Check for existing IN_PROGRESS record (atomic check)
-      const existingAttempt = await tx.quizRecord.findFirst({
-        where: { userId, quizId, status: "IN_PROGRESS" },
-      });
-      if (existingAttempt) {
-        return {
-          success: false,
-          reason: "You already have an attempt in progress for this quiz.",
-          quizRecordId: existingAttempt.id,
-        } as StartAttemptResult & { sessionId?: string };
-      }
-
-      // Reuse validation logic inside the transaction to avoid duplication
-      const validation = await this.validateAttempt(userId, quizId, tx);
-      if (!validation.canAttempt) {
-        return {
-          success: false,
-          reason: validation.reason,
-          remainingAttempts: validation.remainingAttempts,
-          dailyLimit: validation.dailyLimit,
-          requiresPayment: validation.requiresPayment,
-          isUnlocked: validation.isUnlocked,
-        } as StartAttemptResult & { sessionId?: string };
-      }
-
-      const { remainingAttempts, dailyLimit } = validation;
-
-      // Create attempt and quizRecord atomically
-      await tx.attempt.create({ data: { userId, quizId, date: new Date() } });
-      const quizRecord = await tx.quizRecord.create({
-        data: {
-          userId,
-          quizId,
-          score: 0,
-          duration: 0,
-          dateTaken: new Date(),
-          status: "IN_PROGRESS",
-          earnedPoints: 0,
-        },
-      });
-
-      let sessionId: string | undefined = undefined;
-      if (fingerprint && deviceInfo && ip) {
-        const session = await tx.quizLinkSession.create({
-          data: { userId, quizId, fingerprint, deviceInfo, ip },
+        // Check for existing IN_PROGRESS record (atomic check)
+        const existingAttempt = await tx.quizRecord.findFirst({
+          where: { userId, quizId, status: "IN_PROGRESS" },
         });
-        sessionId = session.id;
-      }
+        if (existingAttempt) {
+          return {
+            success: false,
+            reason: "You already have an attempt in progress for this quiz.",
+            quizRecordId: existingAttempt.id,
+          } as StartAttemptResult & { sessionId?: string };
+        }
 
-      return {
-        success: true,
-        quizRecordId: quizRecord.id,
-        remainingAttempts:
-          typeof remainingAttempts === "number"
-            ? remainingAttempts - 1
-            : undefined,
-        dailyLimit,
-        sessionId,
-      } as StartAttemptResult & { sessionId?: string };
-    });
+        // Reuse validation logic inside the transaction to avoid duplication
+        const validation = await this.validateAttempt(userId, quizId, tx);
+        if (!validation.canAttempt) {
+          return {
+            success: false,
+            reason: validation.reason,
+            remainingAttempts: validation.remainingAttempts,
+            dailyLimit: validation.dailyLimit,
+            requiresPayment: validation.requiresPayment,
+            isUnlocked: validation.isUnlocked,
+          } as StartAttemptResult & { sessionId?: string };
+        }
+
+        const { remainingAttempts, dailyLimit } = validation;
+
+        // Create attempt and quizRecord atomically
+        await tx.attempt.create({ data: { userId, quizId, date: new Date() } });
+        const quizRecord = await tx.quizRecord.create({
+          data: {
+            userId,
+            quizId,
+            score: 0,
+            duration: 0,
+            dateTaken: new Date(),
+            status: "IN_PROGRESS",
+            earnedPoints: 0,
+          },
+        });
+
+        let sessionId: string | undefined = undefined;
+        if (fingerprint && deviceInfo && ip) {
+          const session = await tx.quizLinkSession.create({
+            data: { userId, quizId, fingerprint, deviceInfo, ip },
+          });
+          sessionId = session.id;
+        }
+
+        return {
+          success: true,
+          quizRecordId: quizRecord.id,
+          remainingAttempts:
+            typeof remainingAttempts === "number"
+              ? remainingAttempts - 1
+              : undefined,
+          dailyLimit,
+          sessionId,
+        } as StartAttemptResult & { sessionId?: string };
+      }
+    );
 
     return result;
   }

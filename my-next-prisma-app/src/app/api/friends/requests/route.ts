@@ -29,7 +29,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({
-      incoming: incoming.map((r) => ({
+      incoming: incoming.map((r: (typeof incoming)[number]) => ({
         id: r.id,
         userId: r.requester.id,
         name: r.requester.name,
@@ -37,7 +37,7 @@ export async function GET() {
         avatar: r.requester.image,
         createdAt: r.createdAt,
       })),
-      outgoing: outgoing.map((r) => ({
+      outgoing: outgoing.map((r: (typeof outgoing)[number]) => ({
         id: r.id,
         userId: r.addressee.id,
         name: r.addressee.name,

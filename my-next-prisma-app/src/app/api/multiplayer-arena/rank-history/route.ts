@@ -22,7 +22,7 @@ export async function GET(_request: NextRequest) {
     });
 
     // Map to include rank names/emojis
-    const formatted = history.map((entry) => {
+    const formatted = history.map((entry: (typeof history)[number]) => {
       const oldRank = getRankByXP(entry.oldXp).current;
       const newRank = getRankByXP(entry.newXp).current;
       return {

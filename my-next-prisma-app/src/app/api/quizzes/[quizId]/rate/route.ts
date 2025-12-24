@@ -44,7 +44,10 @@ export const POST = withValidation(
       });
       const averageRating =
         ratings.length > 0
-          ? ratings.reduce((sum, r) => sum + r.value, 0) / ratings.length
+          ? ratings.reduce(
+              (sum: number, r: (typeof ratings)[number]) => sum + r.value,
+              0
+            ) / ratings.length
           : 0;
       // Update quiz average rating
       await prisma.quiz.update({

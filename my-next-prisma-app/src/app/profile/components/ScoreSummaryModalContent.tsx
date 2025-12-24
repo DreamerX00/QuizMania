@@ -384,14 +384,14 @@ export default function ScoreSummaryModalContent({
           {isPremiumActive ? (
             hasPendingReEval ? (
               <button
-                className="rounded-lg px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold shadow cursor-default"
+                className="rounded-lg px-6 py-2 bg-linear-to-r from-amber-500 to-orange-500 text-white font-semibold shadow cursor-default"
                 disabled
               >
                 ⏳ Re-evaluation Pending
               </button>
             ) : (
               <button
-                className="rounded-lg px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition"
+                className="rounded-lg px-6 py-2 bg-linear-to-r from-pink-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition"
                 onClick={() => setShowReEvalModal(true)}
               >
                 ⭐ Request Re-evaluation
@@ -399,7 +399,7 @@ export default function ScoreSummaryModalContent({
             )
           ) : (
             <button
-              className="rounded-lg px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
+              className="rounded-lg px-6 py-2 bg-linear-to-r from-pink-500 to-purple-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
               disabled
               title="Premium feature - Upgrade to request re-evaluation"
             >
@@ -409,14 +409,14 @@ export default function ScoreSummaryModalContent({
           {/* Chat with Creator Button */}
           {isPremiumActive ? (
             <button
-              className="rounded-lg px-6 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold shadow hover:scale-105 transition"
+              className="rounded-lg px-6 py-2 bg-linear-to-r from-green-500 to-blue-600 text-white font-semibold shadow hover:scale-105 transition"
               onClick={handleOpenCreatorChat}
             >
               💬 Chat with Quiz Creator
             </button>
           ) : (
             <button
-              className="rounded-lg px-6 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
+              className="rounded-lg px-6 py-2 bg-linear-to-r from-green-500 to-blue-600 text-white font-semibold shadow hover:scale-105 transition opacity-60 cursor-not-allowed"
               disabled
               title="Premium feature - Upgrade to chat with quiz creators"
             >
@@ -453,7 +453,7 @@ export default function ScoreSummaryModalContent({
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:scale-105 transition disabled:opacity-50"
+                className="px-4 py-2 bg-linear-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:scale-105 transition disabled:opacity-50"
                 onClick={handleReEvalRequest}
                 disabled={reEvalSubmitting || !reEvalReason.trim()}
               >
@@ -490,7 +490,7 @@ export default function ScoreSummaryModalContent({
               </span>
               {req.responses.length > 0 && (
                 <p className="mt-1 text-white/60 italic">
-                  Response: {req.responses[0].feedback}
+                  Response: {req.responses[0]?.feedback}
                 </p>
               )}
             </div>
@@ -514,7 +514,7 @@ export default function ScoreSummaryModalContent({
                     className="w-10 h-10 rounded-full"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-full bg-linear-to-r from-green-500 to-blue-500 flex items-center justify-center text-white font-bold">
                     {creatorInfo.name?.[0] || "C"}
                   </div>
                 )}
@@ -546,7 +546,7 @@ export default function ScoreSummaryModalContent({
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:scale-105 transition disabled:opacity-50"
+                className="px-4 py-2 bg-linear-to-r from-green-500 to-blue-600 text-white rounded-lg hover:scale-105 transition disabled:opacity-50"
                 onClick={handleSendCreatorMessage}
                 disabled={chatSubmitting || !creatorChatMessage.trim()}
               >

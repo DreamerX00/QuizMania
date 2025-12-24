@@ -2,7 +2,6 @@
 
 import React from "react";
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -24,7 +23,7 @@ interface IQScoreGraphProps {
   data?: IQDataPoint[];
   currentIQ?: number;
   height?: number;
-  showTrend?: boolean;
+  _showTrend?: boolean;
 }
 
 // Generate mock data if none provided
@@ -53,9 +52,9 @@ const CustomTooltip = ({
 }) => {
   if (!active || !payload || !payload.length) return null;
 
-  const data = payload[0];
+  const data = payload[0]!;
   const score = data.value;
-  const quizzes = data.payload.quizzesTaken;
+  const quizzes = data.payload?.quizzesTaken;
 
   // IQ category based on score
   const getCategory = (iq: number) => {
@@ -91,7 +90,7 @@ export function IQScoreGraph({
   data,
   currentIQ = 115,
   height = 200,
-  showTrend = true,
+  _showTrend = true,
 }: IQScoreGraphProps) {
   const chartData = data || generateMockData();
 

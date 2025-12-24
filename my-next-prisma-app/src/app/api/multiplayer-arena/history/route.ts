@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const rankInfo = getRankByXP(xp);
 
     // Format response
-    const history = records.map((r) => ({
+    const history = records.map((r: (typeof records)[number]) => ({
       id: r.id,
       quizId: r.quizId,
       quizTitle: r.quiz?.title || "",
@@ -55,7 +55,9 @@ export async function GET(request: NextRequest) {
       earnedPoints: r.earnedPoints,
       status: r.status,
       totalQuestions: r.questionRecords.length,
-      correct: r.questionRecords.filter((q) => q.isCorrect).length,
+      correct: r.questionRecords.filter(
+        (q: (typeof r.questionRecords)[number]) => q.isCorrect
+      ).length,
     }));
 
     // Calculate pagination metadata

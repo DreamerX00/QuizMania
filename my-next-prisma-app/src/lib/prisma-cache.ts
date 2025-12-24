@@ -146,8 +146,8 @@ export async function getCachedPopularTags(limit = 20) {
   });
 
   const tagCounts = new Map<string, number>();
-  quizzes.forEach((quiz) => {
-    quiz.tags.forEach((tag) => {
+  quizzes.forEach((quiz: (typeof quizzes)[number]) => {
+    quiz.tags.forEach((tag: string) => {
       tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
     });
   });

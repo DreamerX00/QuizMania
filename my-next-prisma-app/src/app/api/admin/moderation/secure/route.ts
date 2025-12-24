@@ -162,7 +162,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      logs: logs.map((log) => ({
+      logs: logs.map((log: (typeof logs)[number]) => ({
         id: log.id,
         type: log.type,
         targetUser: log.targetUser?.name || "Unknown",

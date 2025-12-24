@@ -63,11 +63,13 @@ export const GET = withValidation(paramsSchema, async (request, ...args) => {
     str ? validator.escape(str) : "";
   // Aggregate revised marks
   const revisedMarks = manualReviews.reduce(
-    (sum, r) => sum + (r.marksAwarded ?? 0),
+    (sum: number, r: (typeof manualReviews)[number]) =>
+      sum + (r.marksAwarded ?? 0),
     0
   );
   const allReviewed =
-    manualReviews.length > 0 && manualReviews.every((r) => r.reviewed);
+    manualReviews.length > 0 &&
+    manualReviews.every((r: (typeof manualReviews)[number]) => r.reviewed);
   return NextResponse.json({
     attempt: {
       id: record.id,
@@ -83,7 +85,7 @@ export const GET = withValidation(paramsSchema, async (request, ...args) => {
       quizTitle: sanitize(record.quiz?.title),
       questionRecords: record.questionRecords,
     },
-    manualReviews: manualReviews.map((r) => ({
+    manualReviews: manualReviews.map((r: (typeof manualReviews)[number]) => ({
       ...r,
       feedback: sanitize(r.feedback),
       type: sanitize(r.type),

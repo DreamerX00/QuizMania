@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { z } from "zod";
 import { withValidation } from "@/utils/validation";
-import { JsonValue } from "@prisma/client/runtime/library";
+import type { Prisma } from "@/generated/prisma/client";
 
 interface User {
   id: string;
@@ -14,7 +14,7 @@ interface User {
   bannerUrl?: string | null;
   bio?: string | null;
   alias?: string | null;
-  socials?: JsonValue;
+  socials?: Prisma.JsonValue;
   region?: string | null;
   [key: string]: unknown;
 }

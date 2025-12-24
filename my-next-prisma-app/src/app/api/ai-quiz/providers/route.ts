@@ -45,7 +45,8 @@ export async function GET() {
       success: true,
       data: providers,
       defaultProviderId:
-        providers.find((p) => p.isRecommended)?.id || providers[0]?.id,
+        providers.find((p: (typeof providers)[number]) => p.isRecommended)
+          ?.id || providers[0]?.id,
     });
   } catch (error) {
     console.error("Error fetching providers:", error);

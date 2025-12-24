@@ -185,7 +185,8 @@ export async function getPremiumStatus(
       premiumUntil: user.premiumUntil?.toISOString() || null,
       features: isPremium
         ? Object.keys(
-            ACCOUNT_FEATURES[user.accountType] || ACCOUNT_FEATURES.FREE
+            (ACCOUNT_FEATURES[user.accountType] ||
+              ACCOUNT_FEATURES.FREE) as PremiumFeatures
           )
         : [],
       lastUpdated: now.toISOString(),
@@ -223,7 +224,8 @@ export async function getPremiumFeatures(
 ): Promise<PremiumFeatures> {
   const status = await getPremiumStatus(userId);
   const accountType = status?.accountType || "FREE";
-  return ACCOUNT_FEATURES[accountType] || ACCOUNT_FEATURES.FREE;
+  return (ACCOUNT_FEATURES[accountType] ||
+    ACCOUNT_FEATURES.FREE) as PremiumFeatures;
 }
 
 /**

@@ -153,10 +153,12 @@ export const GET = withQueryValidation(
 
       // Generate full URLs for each link
       const baseUrl = env.NEXT_PUBLIC_APP_URL || env.NEXTAUTH_URL || "";
-      const linksWithUrls = inviteLinks.map((link) => ({
-        ...link,
-        url: `${baseUrl}/invite/${link.token}`,
-      }));
+      const linksWithUrls = inviteLinks.map(
+        (link: (typeof inviteLinks)[number]) => ({
+          ...link,
+          url: `${baseUrl}/invite/${link.token}`,
+        })
+      );
 
       return NextResponse.json({ inviteLinks: linksWithUrls });
     } catch (error) {
@@ -217,7 +219,8 @@ export const DELETE = withQueryValidation(
       // Check if user is the creator or a host of the room
       const isCreator = inviteLink.createdBy === userId;
       const isHost = inviteLink.room.memberships.some(
-        (m) => m.userId === userId && m.role === "HOST"
+        (m: (typeof inviteLink.room.memberships)[number]) =>
+          m.userId === userId && m.role === "HOST"
       );
 
       if (!isCreator && !isHost) {

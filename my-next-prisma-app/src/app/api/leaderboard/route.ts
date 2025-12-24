@@ -19,11 +19,13 @@ export async function GET(request: NextRequest) {
     const paginatedLeaderboard = leaderboard.slice(offset, offset + limit);
 
     // Add rank numbers
-    const leaderboardWithRanks = paginatedLeaderboard.map((user, index) => ({
-      rank: offset + index + 1,
-      ...user,
-      totalQuizzes: user._count.quizzes,
-    }));
+    const leaderboardWithRanks = paginatedLeaderboard.map(
+      (user: (typeof paginatedLeaderboard)[number], index: number) => ({
+        rank: offset + index + 1,
+        ...user,
+        totalQuizzes: user._count.quizzes,
+      })
+    );
 
     return NextResponse.json({
       leaderboard: leaderboardWithRanks,

@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import prisma from "@/lib/prisma";
 
 /**
  * Updates stats for all packages containing a specific quiz
@@ -8,14 +8,14 @@ export async function updatePackageStatsForQuiz(quizId: string) {
   try {
     // Find all packages containing this quiz
     const packages = await prisma.quizPackage.findMany({
-      where: { quizIds: { has: quizId } }
+      where: { quizIds: { has: quizId } },
     });
 
     for (const pkg of packages) {
       await updatePackageStats(pkg.id);
     }
   } catch (error) {
-    console.error('Error updating package stats for quiz:', quizId, error);
+    console.error("Error updating package stats for quiz:", quizId, error);
   }
 }
 
@@ -27,11 +27,11 @@ export async function updatePackageStats(packageId: string) {
   try {
     // Get the package
     const pkg = await prisma.quizPackage.findUnique({
-      where: { id: packageId }
+      where: { id: packageId },
     });
 
     if (!pkg) {
-      console.error('Package not found:', packageId);
+      console.error("Package not found:", packageId);
       return;
     }
 
@@ -43,8 +43,8 @@ export async function updatePackageStats(packageId: string) {
         usersTaken: true,
         likeCount: true,
         rating: true,
-        averageScore: true
-      }
+        averageScore: true,
+      },
     });
 
     if (quizzes.length === 0) {
@@ -57,29 +57,52 @@ export async function updatePackageStats(packageId: string) {
           earnings: 0,
           averageRating: 0,
           averageScore: 0,
-        }
+        },
       });
       return;
     }
 
     // Calculate aggregated stats
-    const totalAttempts = quizzes.reduce((sum, quiz) => sum + (quiz.usersTaken || 0), 0);
-    const totalLikes = quizzes.reduce((sum, quiz) => sum + (quiz.likeCount || 0), 0);
-    
+    const totalAttempts = quizzes.reduce(
+      (sum: number, quiz: (typeof quizzes)[number]) =>
+        sum + (quiz.usersTaken || 0),
+      0
+    );
+    const totalLikes = quizzes.reduce(
+      (sum: number, quiz: (typeof quizzes)[number]) =>
+        sum + (quiz.likeCount || 0),
+      0
+    );
+
     // Calculate averages (only for quizzes that have ratings/scores)
-    const quizzesWithRating = quizzes.filter(q => q.rating > 0);
-    const quizzesWithScore = quizzes.filter(q => q.averageScore > 0);
-    
-    const averageRating = quizzesWithRating.length > 0 
-      ? quizzesWithRating.reduce((sum, q) => sum + q.rating, 0) / quizzesWithRating.length 
-      : 0;
-    
-    const averageScore = quizzesWithScore.length > 0 
-      ? quizzesWithScore.reduce((sum, q) => sum + q.averageScore, 0) / quizzesWithScore.length 
-      : 0;
+    const quizzesWithRating = quizzes.filter(
+      (q: (typeof quizzes)[number]) => q.rating > 0
+    );
+    const quizzesWithScore = quizzes.filter(
+      (q: (typeof quizzes)[number]) => q.averageScore > 0
+    );
+
+    const averageRating =
+      quizzesWithRating.length > 0
+        ? quizzesWithRating.reduce(
+            (sum: number, q: (typeof quizzesWithRating)[number]) =>
+              sum + q.rating,
+            0
+          ) / quizzesWithRating.length
+        : 0;
+
+    const averageScore =
+      quizzesWithScore.length > 0
+        ? quizzesWithScore.reduce(
+            (sum: number, q: (typeof quizzesWithScore)[number]) =>
+              sum + q.averageScore,
+            0
+          ) / quizzesWithScore.length
+        : 0;
 
     // Calculate earnings (70% of package price per attempt for paid packages)
-    const earnings = pkg.price > 0 ? Math.floor(totalAttempts * pkg.price / 100 * 0.7) : 0;
+    const earnings =
+      pkg.price > 0 ? Math.floor(((totalAttempts * pkg.price) / 100) * 0.7) : 0;
 
     // Update the package stats
     await prisma.quizPackage.update({
@@ -89,8 +112,8 @@ export async function updatePackageStats(packageId: string) {
         totalLikes,
         earnings,
         averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
-        averageScore: Math.round(averageScore * 10) / 10,   // Round to 1 decimal
-      }
+        averageScore: Math.round(averageScore * 10) / 10, // Round to 1 decimal
+      },
     });
 
     console.log(`Updated package stats for ${packageId}:`, {
@@ -98,11 +121,10 @@ export async function updatePackageStats(packageId: string) {
       totalLikes,
       earnings,
       averageRating,
-      averageScore
+      averageScore,
     });
-
   } catch (error) {
-    console.error('Error updating package stats:', packageId, error);
+    console.error("Error updating package stats:", packageId, error);
   }
 }
 
@@ -112,7 +134,7 @@ export async function updatePackageStats(packageId: string) {
 export async function updateAllPackageStats() {
   try {
     const packages = await prisma.quizPackage.findMany({
-      select: { id: true }
+      select: { id: true },
     });
 
     console.log(`Updating stats for ${packages.length} packages...`);
@@ -121,8 +143,8 @@ export async function updateAllPackageStats() {
       await updatePackageStats(pkg.id);
     }
 
-    console.log('All package stats updated successfully');
+    console.log("All package stats updated successfully");
   } catch (error) {
-    console.error('Error updating all package stats:', error);
+    console.error("Error updating all package stats:", error);
   }
-} 
+}

@@ -8,7 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
   return new PrismaClient({
     // For Prisma Accelerate users, pass the accelerateUrl
-    accelerateUrl: process.env.DATABASE_URL,
+    accelerateUrl: process.env.DATABASE_URL!,
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "info", "warn", "error"]

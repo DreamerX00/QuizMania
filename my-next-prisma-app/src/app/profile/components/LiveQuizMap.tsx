@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import L from "leaflet";
+import type L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface LiveQuiz {
@@ -16,14 +16,14 @@ interface LiveQuiz {
   category?: string;
 }
 
-// Custom marker icon
-const createQuizMarkerIcon = (participants: number) => {
+// Custom marker icon - will be initialized after leaflet loads
+const createQuizMarkerIcon = (leaflet: typeof L, participants: number) => {
   const size = Math.min(20 + participants * 2, 40);
-  return L.divIcon({
+  return leaflet.divIcon({
     html: `
       <div class="relative flex items-center justify-center">
-        <div class="absolute w-${size} h-${size} bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full animate-ping opacity-40"></div>
-        <div class="relative w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg border-2 border-white">
+        <div class="absolute w-${size} h-${size} bg-linear-to-br from-purple-500 to-indigo-600 rounded-full animate-ping opacity-40"></div>
+        <div class="relative w-8 h-8 bg-linear-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg border-2 border-white">
           ${participants}
         </div>
       </div>
@@ -113,33 +113,38 @@ export function LiveQuizMap() {
   useEffect(() => {
     if (!mapRef.current || leafletMapRef.current) return;
 
-    // Fix for default marker icons in Next.js
-    // @ts-expect-error - Leaflet types issue
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl:
-        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-      shadowUrl:
-        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    // Dynamically import leaflet to avoid SSR issues
+    import("leaflet").then((L) => {
+      if (!mapRef.current || leafletMapRef.current) return;
+
+      // Fix for default marker icons in Next.js
+      // @ts-expect-error - Leaflet types issue
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl:
+          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl:
+          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+
+      // Create map centered on India
+      const map = L.map(mapRef.current, {
+        center: [20.5937, 78.9629],
+        zoom: 4,
+        zoomControl: true,
+        attributionControl: true,
+      });
+
+      // Add OpenStreetMap tiles (free)
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(map);
+
+      leafletMapRef.current = map;
     });
-
-    // Create map centered on India
-    const map = L.map(mapRef.current, {
-      center: [20.5937, 78.9629],
-      zoom: 4,
-      zoomControl: true,
-      attributionControl: true,
-    });
-
-    // Add OpenStreetMap tiles (free)
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(map);
-
-    leafletMapRef.current = map;
 
     return () => {
       if (leafletMapRef.current) {
@@ -153,63 +158,68 @@ export function LiveQuizMap() {
   useEffect(() => {
     if (!leafletMapRef.current || liveQuizzes.length === 0) return;
 
-    const map = leafletMapRef.current;
+    // Dynamically import leaflet for marker operations
+    import("leaflet").then((L) => {
+      if (!leafletMapRef.current) return;
 
-    // Clear existing markers
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Marker) {
-        map.removeLayer(layer);
-      }
-    });
+      const map = leafletMapRef.current;
 
-    // Add markers for each live quiz
-    liveQuizzes.forEach((quiz) => {
-      const marker = L.marker([quiz.lat, quiz.lng], {
-        icon: createQuizMarkerIcon(quiz.participants),
+      // Clear existing markers
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+          map.removeLayer(layer);
+        }
       });
 
-      const popupContent = `
-        <div class="p-2 min-w-[200px]">
-          <h3 class="font-bold text-purple-700 text-sm">${quiz.title}</h3>
-          <p class="text-xs text-gray-600 mt-1">
-            <span class="font-semibold">Creator:</span> ${quiz.creator}
-          </p>
-          <p class="text-xs text-gray-600">
-            <span class="font-semibold">Participants:</span> ${
-              quiz.participants
-            }
-          </p>
-          ${
-            quiz.category
-              ? `<p class="text-xs text-gray-600"><span class="font-semibold">Category:</span> ${quiz.category}</p>`
-              : ""
-          }
-          <button 
-            class="mt-2 w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs py-1 px-3 rounded-lg hover:opacity-90 transition"
-            onclick="window.location.href='/quiz/join/${quiz.id}'"
-          >
-            Join Quiz
-          </button>
-        </div>
-      `;
+      // Add markers for each live quiz
+      liveQuizzes.forEach((quiz) => {
+        const marker = L.marker([quiz.lat, quiz.lng], {
+          icon: createQuizMarkerIcon(L, quiz.participants),
+        });
 
-      marker.bindPopup(popupContent);
-      marker.addTo(map);
+        const popupContent = `
+          <div class="p-2 min-w-[200px]">
+            <h3 class="font-bold text-purple-700 text-sm">${quiz.title}</h3>
+            <p class="text-xs text-gray-600 mt-1">
+              <span class="font-semibold">Creator:</span> ${quiz.creator}
+            </p>
+            <p class="text-xs text-gray-600">
+              <span class="font-semibold">Participants:</span> ${
+                quiz.participants
+              }
+            </p>
+            ${
+              quiz.category
+                ? `<p class="text-xs text-gray-600"><span class="font-semibold">Category:</span> ${quiz.category}</p>`
+                : ""
+            }
+            <button 
+              class="mt-2 w-full bg-linear-to-r from-purple-500 to-indigo-600 text-white text-xs py-1 px-3 rounded-lg hover:opacity-90 transition"
+              onclick="window.location.href='/quiz/join/${quiz.id}'"
+            >
+              Join Quiz
+            </button>
+          </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        marker.addTo(map);
+      });
     });
   }, [liveQuizzes]);
 
   return (
     <motion.div
-      className="relative bg-white dark:bg-gradient-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
+      className="relative bg-white dark:bg-linear-to-br dark:from-[#1a1a2e] dark:to-[#23234d] rounded-2xl p-4 md:p-6 shadow-2xl border border-gray-200 dark:border-white/10 backdrop-blur-xl overflow-hidden min-h-[180px]"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.7 }}
     >
       {/* Floating Orbs */}
-      <div className="absolute -top-8 -left-8 w-16 h-16 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/30 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0" />
+      <div className="absolute -top-8 -left-8 w-16 h-16 bg-linear-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/30 dark:to-purple-400/20 rounded-full blur-2xl animate-float z-0" />
       <div
-        className="absolute bottom-0 right-0 w-12 h-12 bg-gradient-to-br from-blue-400/10 to-pink-400/10 dark:from-blue-400/20 dark:to-pink-400/20 rounded-full blur-2xl animate-float z-0"
+        className="absolute bottom-0 right-0 w-12 h-12 bg-linear-to-br from-blue-400/10 to-pink-400/10 dark:from-blue-400/20 dark:to-pink-400/20 rounded-full blur-2xl animate-float z-0"
         style={{ animationDelay: "2s" }}
       />
 
@@ -251,7 +261,7 @@ export function LiveQuizMap() {
       <div className="flex items-center justify-between mt-3 text-xs z-10 relative">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full" />
+            <div className="w-3 h-3 bg-linear-to-br from-purple-500 to-indigo-600 rounded-full" />
             <span className="text-gray-600 dark:text-gray-400">
               {liveQuizzes.reduce((sum, q) => sum + q.participants, 0)} players
               online

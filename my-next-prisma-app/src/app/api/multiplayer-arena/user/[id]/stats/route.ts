@@ -30,11 +30,17 @@ export async function GET(
     const totalMatches = records.length;
     const totalXP = user.xp;
     const rankInfo = getRankByXP(totalXP);
-    const bestScore = records.reduce((max, r) => Math.max(max, r.score), 0);
+    const bestScore = records.reduce(
+      (max: number, r: (typeof records)[number]) => Math.max(max, r.score),
+      0
+    );
     const averageScore =
       records.length > 0
         ? Math.round(
-            records.reduce((sum, r) => sum + r.score, 0) / records.length
+            records.reduce(
+              (sum: number, r: (typeof records)[number]) => sum + r.score,
+              0
+            ) / records.length
           )
         : 0;
     // Streak: count consecutive wins (COMPLETED with all correct)
@@ -42,7 +48,9 @@ export async function GET(
     for (const r of records) {
       if (
         r.status === "COMPLETED" &&
-        r.questionRecords.every((q) => q.isCorrect)
+        r.questionRecords.every(
+          (q: (typeof r.questionRecords)[number]) => q.isCorrect
+        )
       ) {
         streak++;
       } else {
@@ -53,7 +61,7 @@ export async function GET(
     const performance = records
       .slice(0, 10)
       .reverse()
-      .map((r, i) => ({
+      .map((r: (typeof records)[number], i: number) => ({
         name: `Match ${records.length - i}`,
         score: r.score,
         date: r.dateTaken,

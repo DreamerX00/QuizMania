@@ -18,7 +18,7 @@ export async function GET() {
         xp: true,
       },
     });
-    const leaderboard = users.map((u, i) => ({
+    const leaderboard = users.map((u: (typeof users)[number], i: number) => ({
       userId: u.id,
       name: u.name,
       avatarUrl: u.image,

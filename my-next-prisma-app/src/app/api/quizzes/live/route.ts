@@ -61,23 +61,25 @@ export async function GET() {
       { lat: 21.1702, lng: 72.8311, name: "Surat" },
     ];
 
-    const quizzes = activeRooms.map((room, index) => {
-      const region = regions[index % regions.length];
-      // Add some randomness to prevent markers from overlapping
-      const jitter = () => (Math.random() - 0.5) * 0.5;
+    const quizzes = activeRooms.map(
+      (room: (typeof activeRooms)[number], index: number) => {
+        const region = regions[index % regions.length]!;
+        // Add some randomness to prevent markers from overlapping
+        const jitter = () => (Math.random() - 0.5) * 0.5;
 
-      return {
-        id: room.id,
-        title: room.quiz?.title || room.name || "Quiz Room",
-        lat: region.lat + jitter(),
-        lng: region.lng + jitter(),
-        participants: room._count.members,
-        creator: room.host?.name || "Anonymous",
-        startedAt: room.createdAt.toISOString(),
-        category: room.quiz?.field || undefined,
-        roomCode: room.code,
-      };
-    });
+        return {
+          id: room.id,
+          title: room.quiz?.title || room.name || "Quiz Room",
+          lat: region.lat + jitter(),
+          lng: region.lng + jitter(),
+          participants: room._count.members,
+          creator: room.host?.name || "Anonymous",
+          startedAt: room.createdAt.toISOString(),
+          category: room.quiz?.field || undefined,
+          roomCode: room.code,
+        };
+      }
+    );
 
     return NextResponse.json({
       quizzes,

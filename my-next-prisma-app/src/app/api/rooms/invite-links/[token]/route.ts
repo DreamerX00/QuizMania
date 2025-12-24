@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { withParamsValidation, z } from "@/lib/api-validation";
+import { Prisma } from "@/generated/prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -201,41 +202,43 @@ export const POST = withParamsValidation(
       }
 
       // Use transaction to ensure user exists and join room
-      const result = await prisma.$transaction(async (tx) => {
-        // Ensure user exists in database
-        const user = currentUser;
-        await tx.user.upsert({
-          where: { id: userId },
-          update: {},
-          create: {
-            id: userId,
-            email: user?.email || "unknown@example.com",
-            name: user?.name || "Unknown User",
-            avatarUrl: user?.avatarUrl || user?.image,
-          },
-        });
-
-        // Add user to room
-        const membership = await tx.roomMembership.create({
-          data: {
-            userId,
-            roomId: inviteLink.roomId,
-            role: "PLAYER",
-          },
-        });
-
-        // Increment the used count
-        await tx.roomInviteLink.update({
-          where: { id: inviteLink.id },
-          data: {
-            usedCount: {
-              increment: 1,
+      const result = await prisma.$transaction(
+        async (tx: Prisma.TransactionClient) => {
+          // Ensure user exists in database
+          const user = currentUser;
+          await tx.user.upsert({
+            where: { id: userId },
+            update: {},
+            create: {
+              id: userId,
+              email: user?.email || "unknown@example.com",
+              name: user?.name || "Unknown User",
+              avatarUrl: user?.avatarUrl || user?.image,
             },
-          },
-        });
+          });
 
-        return membership;
-      });
+          // Add user to room
+          const membership = await tx.roomMembership.create({
+            data: {
+              userId,
+              roomId: inviteLink.roomId,
+              role: "PLAYER",
+            },
+          });
+
+          // Increment the used count
+          await tx.roomInviteLink.update({
+            where: { id: inviteLink.id },
+            data: {
+              usedCount: {
+                increment: 1,
+              },
+            },
+          });
+
+          return membership;
+        }
+      );
 
       return NextResponse.json({
         success: true,

@@ -31,7 +31,7 @@ export async function GET() {
       orderBy: { updatedAt: "desc" },
     });
     // Map to friend user info
-    const mapped = friends.map((f) => {
+    const mapped = friends.map((f: (typeof friends)[number]) => {
       const isRequester = f.requesterId === userId;
       const friendUser = isRequester ? f.addressee : f.requester;
       return {

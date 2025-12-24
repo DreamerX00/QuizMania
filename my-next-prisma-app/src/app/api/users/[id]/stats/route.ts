@@ -77,7 +77,7 @@ export const GET = withValidation(
 
       // Combine and sort by date
       const allAttempts = [
-        ...submissions.map((sub) => ({
+        ...submissions.map((sub: (typeof submissions)[number]) => ({
           id: sub.id,
           date: sub.dateTaken,
           score: sub.score,
@@ -87,7 +87,7 @@ export const GET = withValidation(
           quizId: sub.quiz.id,
           type: "regular" as const,
         })),
-        ...aiAttempts.map((attempt) => ({
+        ...aiAttempts.map((attempt: (typeof aiAttempts)[number]) => ({
           id: attempt.id,
           date: attempt.completedAt || new Date(),
           score: attempt.score,
@@ -127,14 +127,16 @@ export const GET = withValidation(
       });
 
       // Flatten the achievements
-      const achievements = achievementRecords.map((record) => ({
-        id: record.achievement.id,
-        name: record.achievement.name,
-        icon: record.achievement.icon,
-        isLocked: record.achievement.isLocked,
-        type: record.achievement.type,
-        unlockedAt: record.unlockedAt,
-      }));
+      const achievements = achievementRecords.map(
+        (record: (typeof achievementRecords)[number]) => ({
+          id: record.achievement.id,
+          name: record.achievement.name,
+          icon: record.achievement.icon,
+          isLocked: record.achievement.isLocked,
+          type: record.achievement.type,
+          unlockedAt: record.unlockedAt,
+        })
+      );
 
       if (totalCount === 0) {
         return NextResponse.json({
@@ -190,18 +192,23 @@ export const GET = withValidation(
         _avg: { score: true },
         orderBy: { _avg: { score: "desc" } },
       });
-      const rank = allUserStats.findIndex((stat) => stat.userId === userId) + 1;
+      const rank =
+        allUserStats.findIndex(
+          (stat: (typeof allUserStats)[number]) => stat.userId === userId
+        ) + 1;
 
       // Recent quizzes (combined from both types)
-      const recentQuizzes = allAttempts.slice(0, 5).map((attempt) => ({
-        attemptId: attempt.id,
-        quizId: attempt.quizId,
-        slug: attempt.type === "ai" ? attempt.slug : undefined,
-        title: attempt.title,
-        score: attempt.score,
-        date: attempt.date,
-        type: attempt.type,
-      }));
+      const recentQuizzes = allAttempts
+        .slice(0, 5)
+        .map((attempt: (typeof allAttempts)[number]) => ({
+          attemptId: attempt.id,
+          quizId: attempt.quizId,
+          slug: attempt.type === "ai" ? attempt.slug : undefined,
+          title: attempt.title,
+          score: attempt.score,
+          date: attempt.date,
+          type: attempt.type,
+        }));
 
       const totalPages = Math.ceil(totalCount / limit);
 

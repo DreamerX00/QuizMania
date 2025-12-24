@@ -42,18 +42,23 @@ export async function GET(req: NextRequest) {
     prisma.clan.count({ where }),
   ]);
   // Map to detailed info
-  const result = clans.map((clan) => {
+  const result = clans.map((clan: (typeof clans)[number]) => {
     const memberCount = clan.memberships.length;
     // Clan is open if it has no password/approval required (using maxMembers as proxy)
     // In future, add isOpen field to Clan model
     const isOpen =
-      !clan.memberships.some((m) => m.role === "LEADER") || memberCount < 50;
+      !clan.memberships.some(
+        (m: (typeof clan.memberships)[number]) => m.role === "LEADER"
+      ) || memberCount < 50;
     let isMember = false,
       hasRequested = false;
     if (userId) {
-      isMember = clan.memberships.some((m) => m.userId === userId);
+      isMember = clan.memberships.some(
+        (m: (typeof clan.memberships)[number]) => m.userId === userId
+      );
       hasRequested = clan.joinRequests.some(
-        (r) => r.userId === userId && r.status === "PENDING"
+        (r: (typeof clan.joinRequests)[number]) =>
+          r.userId === userId && r.status === "PENDING"
       );
     }
     return {

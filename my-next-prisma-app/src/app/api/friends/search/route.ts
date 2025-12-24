@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
       },
     });
     const relatedIds = new Set([
-      ...relations.map((r) => r.requesterId),
-      ...relations.map((r) => r.addresseeId),
+      ...relations.map((r: (typeof relations)[number]) => r.requesterId),
+      ...relations.map((r: (typeof relations)[number]) => r.addresseeId),
       userId,
     ]);
     // Search users
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       take: 10,
     });
     return NextResponse.json({
-      users: users.map((u) => ({
+      users: users.map((u: (typeof users)[number]) => ({
         userId: u.id,
         name: u.name,
         alias: u.alias,

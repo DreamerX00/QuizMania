@@ -95,7 +95,7 @@ export function generateQuizResultPDF(data: QuizResultData): jsPDF {
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
 
-  const summaryData = [
+  const summaryData: [string, string | number | undefined][] = [
     ["Attempt ID:", data.attemptId],
     ["Date:", new Date(data.dateTaken).toLocaleString()],
     [
@@ -111,9 +111,9 @@ export function generateQuizResultPDF(data: QuizResultData): jsPDF {
 
   summaryData.forEach(([label, value]) => {
     doc.setFont("helvetica", "bold");
-    doc.text(label, margin, yPosition);
+    doc.text(label || "", margin, yPosition);
     doc.setFont("helvetica", "normal");
-    doc.text(String(value), margin + 35, yPosition);
+    doc.text(String(value ?? ""), margin + 35, yPosition);
     yPosition += 6;
   });
 
@@ -125,7 +125,7 @@ export function generateQuizResultPDF(data: QuizResultData): jsPDF {
       ? ((data.revisedMarks ?? data.autoMarks) / data.totalMarks) * 100
       : 0;
 
-  const badgeColor =
+  const badgeColor: [number, number, number] =
     scorePercent >= 80
       ? [34, 197, 94] // Green
       : scorePercent >= 60
@@ -167,7 +167,7 @@ export function generateQuizResultPDF(data: QuizResultData): jsPDF {
     // Marks badge
     const marks = review.marksAwarded ?? 0;
     const maxMarks = review.maxMarks ?? 1;
-    const markColor =
+    const markColor: [number, number, number] =
       marks >= maxMarks
         ? [34, 197, 94]
         : marks > 0

@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { DAILY_QUOTA_LIMITS } from "@/constants/ai-quiz";
 import { QuotaStatus } from "@/types/ai-quiz";
-import { AccountType } from "@/generated/prisma/client";
+import { AccountType, Prisma } from "@/generated/prisma/client";
 
 export async function checkQuota(userId: string): Promise<QuotaStatus> {
   // Get or create quota record
@@ -98,37 +98,39 @@ export async function checkQuota(userId: string): Promise<QuotaStatus> {
 export async function consumeQuota(userId: string): Promise<boolean> {
   // Use transaction to prevent race condition
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const quota = await tx.aIQuizGenerationQuota.findUnique({
-        where: { userId },
-        include: {
-          user: {
-            select: { accountType: true },
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const quota = await tx.aIQuizGenerationQuota.findUnique({
+          where: { userId },
+          include: {
+            user: {
+              select: { accountType: true },
+            },
           },
-        },
-      });
+        });
 
-      if (!quota) {
-        throw new Error("Quota record not found");
+        if (!quota) {
+          throw new Error("Quota record not found");
+        }
+
+        const currentLimit = getDailyLimit(quota.user.accountType);
+        const remaining = currentLimit - quota.dailyUsed;
+
+        if (remaining <= 0) {
+          return false;
+        }
+
+        await tx.aIQuizGenerationQuota.update({
+          where: { userId },
+          data: {
+            dailyUsed: { increment: 1 },
+            totalGenerated: { increment: 1 },
+          },
+        });
+
+        return true;
       }
-
-      const currentLimit = getDailyLimit(quota.user.accountType);
-      const remaining = currentLimit - quota.dailyUsed;
-
-      if (remaining <= 0) {
-        return false;
-      }
-
-      await tx.aIQuizGenerationQuota.update({
-        where: { userId },
-        data: {
-          dailyUsed: { increment: 1 },
-          totalGenerated: { increment: 1 },
-        },
-      });
-
-      return true;
-    });
+    );
 
     return result;
   } catch (error) {

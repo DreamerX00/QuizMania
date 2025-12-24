@@ -4,6 +4,7 @@ import { QuizAttemptService } from "@/services/quizAttemptService";
 import prisma from "@/lib/prisma";
 import { getRedisClient } from "@/lib/redis";
 import { withValidation, z } from "@/lib/api-validation";
+import { Prisma } from "@/generated/prisma/client";
 
 const publishSchema = z.object({
   idempotencyKey: z.string().uuid().optional(),
@@ -53,35 +54,37 @@ export const PATCH = withValidation(
       }
 
       // ✅ Use transaction to prevent race conditions
-      const publishedQuiz = await prisma.$transaction(async (tx) => {
-        // Re-fetch with latest state inside transaction
-        const currentQuiz = await tx.quiz.findUnique({
-          where: { id: quiz.id },
-          select: {
-            id: true,
-            isPublished: true,
-            creatorId: true,
-          },
-        });
+      const publishedQuiz = await prisma.$transaction(
+        async (tx: Prisma.TransactionClient) => {
+          // Re-fetch with latest state inside transaction
+          const currentQuiz = await tx.quiz.findUnique({
+            where: { id: quiz.id },
+            select: {
+              id: true,
+              isPublished: true,
+              creatorId: true,
+            },
+          });
 
-        if (!currentQuiz || currentQuiz.creatorId !== userId) {
-          throw new Error("Quiz not found or unauthorized");
+          if (!currentQuiz || currentQuiz.creatorId !== userId) {
+            throw new Error("Quiz not found or unauthorized");
+          }
+
+          // If already published, return existing (idempotent)
+          if (currentQuiz.isPublished) {
+            console.log(`[IDEMPOTENCY] Quiz ${quiz.id} already published`);
+            return await tx.quiz.findUnique({ where: { id: quiz.id } });
+          }
+
+          // Publish the quiz
+          return await tx.quiz.update({
+            where: { id: quiz.id, creatorId: userId },
+            data: {
+              isPublished: true,
+            },
+          });
         }
-
-        // If already published, return existing (idempotent)
-        if (currentQuiz.isPublished) {
-          console.log(`[IDEMPOTENCY] Quiz ${quiz.id} already published`);
-          return await tx.quiz.findUnique({ where: { id: quiz.id } });
-        }
-
-        // Publish the quiz
-        return await tx.quiz.update({
-          where: { id: quiz.id, creatorId: userId },
-          data: {
-            isPublished: true,
-          },
-        });
-      });
+      );
 
       // 💾 Cache the result (24 hour TTL)
       if (redis && idempotencyKey && publishedQuiz) {
