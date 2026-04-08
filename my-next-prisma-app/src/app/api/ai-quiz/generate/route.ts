@@ -169,6 +169,9 @@ export async function POST(request: NextRequest) {
       // Map database provider type to provider factory format
       let providerKey: string;
       switch (dbProvider.type) {
+        case "NVIDIA":
+          providerKey = "nvidia-llama";
+          break;
         case "OPENAI":
           providerKey = "openai-gpt4o";
           break;
@@ -182,19 +185,19 @@ export async function POST(request: NextRequest) {
           providerKey = "deepseek";
           break;
         default:
-          providerKey = "openai-gpt4o"; // fallback
+          providerKey = "nvidia-llama"; // fallback to NVIDIA
       }
 
-      // Try to get the provider, fallback to OpenAI if it fails
+      // Try to get the provider, fallback to NVIDIA if it fails
       let provider: ReturnType<typeof getProvider>;
       try {
         provider = getProvider(providerKey);
       } catch (error) {
         console.warn(
-          `Failed to get provider ${providerKey}, falling back to OpenAI:`,
+          `Failed to get provider ${providerKey}, falling back to NVIDIA:`,
           error
         );
-        providerKey = "openai-gpt4o";
+        providerKey = "nvidia-llama";
         provider = getProvider(providerKey);
       }
 
@@ -203,6 +206,7 @@ export async function POST(request: NextRequest) {
         ReturnType<typeof provider.generateQuestions>
       > | null = null;
       const fallbackOrder = [
+        "nvidia-llama",
         "gemini-pro",
         "deepseek",
         "openai-gpt4o",

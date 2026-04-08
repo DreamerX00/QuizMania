@@ -146,14 +146,21 @@ export default function AIQuizGenerationPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {AI_PROVIDERS.filter((p) => p.isActive).map((provider) => {
+              {AI_PROVIDERS.map((provider) => {
+                const isActive = provider.isActive;
                 const availability = providerAvailability[provider.id];
-                const isAvailable = availability?.available ?? true;
+                const isAvailable = isActive && (availability?.available ?? true);
+                const isComingSoon = !isActive;
 
                 return (
                   <div key={provider.id} className="relative">
-                    {/* Disabled overlay for unavailable providers */}
-                    {!isAvailable && (
+                    {/* Coming Soon overlay for inactive providers */}
+                    {isComingSoon && (
+                      <DisabledBadge variant="coming-soon" />
+                    )}
+
+                    {/* Disabled overlay for unavailable (but active) providers */}
+                    {!isComingSoon && !isAvailable && (
                       <DisabledBadge
                         reason={availability?.reason || undefined}
                       />
@@ -174,7 +181,9 @@ export default function AIQuizGenerationPage() {
                         group relative p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg
                         transition-all duration-300 border-2 border-transparent block
                         ${
-                          !isAvailable
+                          isComingSoon
+                            ? "grayscale opacity-50 cursor-not-allowed"
+                            : !isAvailable
                             ? "grayscale opacity-60 cursor-not-allowed"
                             : "hover:shadow-2xl hover:border-indigo-500 cursor-pointer"
                         }
@@ -234,7 +243,11 @@ export default function AIQuizGenerationPage() {
                             }
                           `}
                         >
-                          {isAvailable ? "Select Provider →" : "Not Available"}
+                          {isAvailable
+                            ? "Select Provider →"
+                            : isComingSoon
+                            ? "Coming Soon"
+                            : "Not Available"}
                         </button>
                       </div>
                     </Link>
