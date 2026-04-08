@@ -1,7 +1,7 @@
 // AI Quiz Generation System Constants
 
 export const DAILY_QUOTA_LIMITS = {
-  FREE: 0,
+  FREE: 3,
   PREMIUM: 5,
   PREMIUM_PLUS: 15,
   LIFETIME: 999,
