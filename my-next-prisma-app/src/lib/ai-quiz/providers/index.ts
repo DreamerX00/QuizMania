@@ -5,8 +5,10 @@ import { OpenAIProvider } from "./openai";
 import { AnthropicProvider } from "./anthropic";
 import { GeminiProvider } from "./gemini";
 import { DeepSeekProvider } from "./deepseek";
+import { NvidiaProvider } from "./nvidia";
 
 export type ProviderType =
+  | "nvidia-llama"
   | "openai-gpt4o"
   | "openai-gpt4o-mini"
   | "openai-gpt35-turbo"
@@ -27,6 +29,11 @@ export function getProvider(providerId: string): BaseAIProvider {
   const sanitizedId = providerId.toLowerCase().trim();
 
   switch (sanitizedId) {
+    case "nvidia-llama":
+      if (!process.env.NVIDIA_API_KEY) {
+        throw new Error("NVIDIA API key not configured");
+      }
+      return new NvidiaProvider();
     case "openai-gpt4o":
       if (!process.env.OPENAI_API_KEY) {
         throw new Error("OpenAI API key not configured");
@@ -82,7 +89,9 @@ export function isProviderAvailable(providerId: string): boolean {
     const sanitizedId = providerId.toLowerCase().trim();
 
     // Check if required API key is configured
-    if (sanitizedId.startsWith("openai-")) {
+    if (sanitizedId === "nvidia-llama") {
+      return process.env.NVIDIA_API_KEY !== undefined;
+    } else if (sanitizedId.startsWith("openai-")) {
       return process.env.OPENAI_API_KEY !== undefined;
     } else if (sanitizedId.startsWith("anthropic-")) {
       return process.env.ANTHROPIC_API_KEY !== undefined;

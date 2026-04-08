@@ -112,6 +112,21 @@ export const DIFFICULTY_LEVELS = [
 
 export const AI_PROVIDERS = [
   {
+    id: "nvidia-llama",
+    name: "NVIDIA",
+    model: "LLaMA 3.3 70B",
+    type: "NVIDIA",
+    icon: "🟢",
+    description:
+      "Meta LLaMA 3.3 70B via NVIDIA NIM — powerful open-source model for all subjects",
+    avgTime: 18,
+    costPerQuiz: 0.002,
+    successRate: 0.97,
+    features: ["Code support", "Math equations", "Fast generation"],
+    isRecommended: true,
+    isActive: true,
+  },
+  {
     id: "openai-gpt4o",
     name: "OpenAI",
     model: "GPT-4o",
@@ -122,8 +137,8 @@ export const AI_PROVIDERS = [
     costPerQuiz: 0.025,
     successRate: 0.98,
     features: ["Code support", "Math equations", "Fast generation"],
-    isRecommended: true,
-    isActive: true,
+    isRecommended: false,
+    isActive: false,
   },
   {
     id: "openai-gpt4o-mini",
@@ -137,7 +152,7 @@ export const AI_PROVIDERS = [
     successRate: 0.95,
     features: ["Fast", "Cost-effective", "Good quality"],
     isRecommended: false,
-    isActive: true,
+    isActive: false,
   },
   {
     id: "openai-gpt35-turbo",
@@ -151,7 +166,7 @@ export const AI_PROVIDERS = [
     successRate: 0.92,
     features: ["Affordable", "Quick", "Reliable"],
     isRecommended: false,
-    isActive: true,
+    isActive: false,
   },
   {
     id: "anthropic-opus",
@@ -170,8 +185,8 @@ export const AI_PROVIDERS = [
       "Premium quality",
       "200K context",
     ],
-    isRecommended: true,
-    isActive: true,
+    isRecommended: false,
+    isActive: false,
   },
   {
     id: "anthropic-sonnet",
@@ -190,8 +205,8 @@ export const AI_PROVIDERS = [
       "Coding excellence",
       "200K-1M context",
     ],
-    isRecommended: true,
-    isActive: true,
+    isRecommended: false,
+    isActive: false,
   },
   {
     id: "anthropic-haiku",
@@ -211,7 +226,7 @@ export const AI_PROVIDERS = [
       "High throughput",
     ],
     isRecommended: false,
-    isActive: true,
+    isActive: false,
   },
   {
     id: "gemini-pro",
@@ -225,7 +240,7 @@ export const AI_PROVIDERS = [
     successRate: 0.96,
     features: ["Multi-modal", "Large context", "Versatile"],
     isRecommended: false,
-    isActive: true,
+    isActive: false,
   },
   {
     id: "gemini-flash",
@@ -239,7 +254,7 @@ export const AI_PROVIDERS = [
     successRate: 0.93,
     features: ["Ultra-fast", "Cheapest", "Good quality"],
     isRecommended: false,
-    isActive: true,
+    isActive: false,
   },
   {
     id: "deepseek",
@@ -253,7 +268,7 @@ export const AI_PROVIDERS = [
     successRate: 0.94,
     features: ["Cost-efficient", "Code expertise", "Fast", "Multilingual"],
     isRecommended: false,
-    isActive: true,
+    isActive: false,
   },
 ] as const;
 
