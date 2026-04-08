@@ -42,7 +42,7 @@ export class NvidiaProvider extends BaseAIProvider {
           {
             role: "system",
             content:
-              "You are an expert quiz creator. Always return valid JSON without markdown formatting. Return ONLY the JSON object, no explanatory text before or after.",
+              "You are an expert quiz creator. You MUST return ONLY a valid JSON object with no markdown, no code fences, no explanatory text before or after. Do NOT include real newline characters inside JSON string values — use \\n instead.",
           },
           {
             role: "user",
@@ -51,7 +51,9 @@ export class NvidiaProvider extends BaseAIProvider {
         ],
         temperature: 0.2,
         top_p: 0.7,
-        max_tokens: 4000,
+        max_tokens: 8192,
+        // Force JSON output mode — prevents LLaMA from adding preamble text
+        response_format: { type: "json_object" },
       });
 
       const responseText = completion.choices[0]?.message?.content;
@@ -151,7 +153,7 @@ export class NvidiaProvider extends BaseAIProvider {
 
   getCapabilities(): ProviderCapabilities {
     return {
-      maxTokens: 4000,
+      maxTokens: 8192,
       maxQuestionsPerCall: 50,
       supportsStreaming: true,
       supportsImages: false,
@@ -174,5 +176,77 @@ export class NvidiaProvider extends BaseAIProvider {
     // LLaMA 3.3 70B via NVIDIA NIM
     // Approximate cost per quiz generation
     return (questionCount / 10) * 0.002;
+  }
+
+  /**
+   * Override base cleaning with LLaMA-specific sanitisation.
+   * LLaMA can still emit literal newline / tab / control characters inside
+   * JSON string values even when response_format json_object is set.  A
+   * character-level parser walks the text and escapes any bare control
+   * characters found inside quoted strings so that JSON.parse succeeds.
+   */
+  protected cleanJsonResponse(text: string): string {
+    // Apply base cleaning first (strip markdown fences, extract JSON object)
+    text = super.cleanJsonResponse(text);
+
+    // Fix literal control characters inside JSON string values
+    text = this.fixControlCharsInStrings(text);
+
+    return text;
+  }
+
+  /**
+   * Walk the JSON text character by character, tracking whether we are
+   * inside a quoted string.  Any bare control character (newline, carriage
+   * return, tab, or other char < 0x20) found inside a string is replaced
+   * with its proper JSON escape sequence so that JSON.parse does not throw.
+   */
+  private fixControlCharsInStrings(text: string): string {
+    let result = "";
+    let inString = false;
+    let escaped = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (char === undefined) continue;
+      const code = char.charCodeAt(0);
+
+      if (escaped) {
+        result += char;
+        escaped = false;
+        continue;
+      }
+
+      if (char === "\\") {
+        escaped = true;
+        result += char;
+        continue;
+      }
+
+      if (char === '"') {
+        inString = !inString;
+        result += char;
+        continue;
+      }
+
+      if (inString && code < 0x20) {
+        // Replace bare control characters with their JSON escape sequences
+        if (char === "\n") {
+          result += "\\n";
+        } else if (char === "\r") {
+          result += "\\r";
+        } else if (char === "\t") {
+          result += "\\t";
+        } else {
+          // Other control characters are not legal in JSON strings; drop them
+          result += " ";
+        }
+        continue;
+      }
+
+      result += char;
+    }
+
+    return result;
   }
 }
