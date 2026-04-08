@@ -175,6 +175,15 @@ Generate the quiz now. Return ONLY valid JSON.`;
     // Remove any leading single backticks
     text = text.replace(/^`+\s*/g, "");
 
+    // Extract JSON object from surrounding preamble/postamble text.
+    // Some models (e.g. LLaMA) prefix the JSON with sentences like
+    // "Here is the quiz:" — JSON.parse will fail on that extra text.
+    const firstBrace = text.indexOf("{");
+    const lastBrace = text.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      text = text.slice(firstBrace, lastBrace + 1);
+    }
+
     return text;
   }
 }
