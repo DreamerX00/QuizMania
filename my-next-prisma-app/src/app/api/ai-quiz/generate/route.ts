@@ -166,84 +166,31 @@ export async function POST(request: NextRequest) {
         throw new Error("Provider not found");
       }
 
-      // Map database provider type to provider factory format
-      let providerKey: string;
-      switch (dbProvider.type) {
-        case "NVIDIA":
-          providerKey = "nvidia-llama";
-          break;
-        case "OPENAI":
-          providerKey = "openai-gpt4o";
-          break;
-        case "ANTHROPIC":
-          providerKey = "anthropic-sonnet";
-          break;
-        case "GOOGLE_GEMINI":
-          providerKey = "gemini-pro";
-          break;
-        case "DEEPSEEK":
-          providerKey = "deepseek";
-          break;
-        default:
-          providerKey = "nvidia-llama"; // fallback to NVIDIA
-      }
-
-      // Try to get the provider, fallback to NVIDIA if it fails
+      // Always use NVIDIA as the only provider
       let provider: ReturnType<typeof getProvider>;
       try {
-        provider = getProvider(providerKey);
+        provider = getProvider("nvidia-llama");
       } catch (error) {
-        console.warn(
-          `Failed to get provider ${providerKey}, falling back to NVIDIA:`,
-          error
+        console.error("Failed to initialize NVIDIA provider:", error);
+        return NextResponse.json(
+          { error: "NVIDIA provider is not available. Please check configuration." },
+          { status: 503 }
         );
-        providerKey = "nvidia-llama";
-        provider = getProvider(providerKey);
       }
 
-      // Generate quiz with error handling and fallback to other providers
+      // Generate quiz with NVIDIA only (no fallback to other providers)
       let generatedQuiz: Awaited<
         ReturnType<typeof provider.generateQuestions>
       > | null = null;
-      const fallbackOrder = [
-        "nvidia-llama",
-        "gemini-pro",
-        "deepseek",
-        "openai-gpt4o",
-        "anthropic-sonnet",
-      ];
-      const attempedProviders = [providerKey];
 
       try {
         generatedQuiz = await provider.generateQuestions(config);
       } catch (error) {
-        console.warn(`Provider ${providerKey} failed:`, error);
-
-        // Try fallback providers in order
-        for (const fallbackKey of fallbackOrder) {
-          if (attempedProviders.includes(fallbackKey)) continue;
-
-          try {
-            console.log(`Trying fallback provider: ${fallbackKey}`);
-            const fallbackProvider = getProvider(fallbackKey);
-            generatedQuiz = await fallbackProvider.generateQuestions(config);
-            providerKey = fallbackKey;
-            console.log(`Fallback to ${fallbackKey} succeeded`);
-            break;
-          } catch (fallbackError) {
-            console.warn(
-              `Fallback provider ${fallbackKey} also failed:`,
-              fallbackError
-            );
-            attempedProviders.push(fallbackKey);
-          }
-        }
+        console.warn("NVIDIA provider failed:", error);
 
         if (!generatedQuiz) {
           throw new Error(
-            `All AI providers failed. Attempted: ${attempedProviders.join(
-              ", "
-            )}. Last error: ${
+            `NVIDIA provider failed. Last error: ${
               error instanceof Error ? error.message : "Unknown error"
             }`
           );
